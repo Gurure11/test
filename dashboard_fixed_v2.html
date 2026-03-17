@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On Point Group - Project Financial System</title>
+    
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1e3c72;
+            --secondary: #2a5298;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .company-header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-bottom: 4px solid var(--primary);
+            position: relative;
+        }
+        
+        .kpi-button {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            z-index: 100;
+        }
+        
+        .kpi-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        
+        .kpi-button i {
+            margin-right: 8px;
+        }
+        
+        .company-title {
+            color: var(--primary);
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+            padding-right: 200px;
+        }
+        
+        .company-subtitle {
+            color: #6c757d;
+            font-size: 16px;
+        }
+        
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+        
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-connected i {
+            color: #28a745;
+        }
+        
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-disconnected i {
+            color: #dc3545;
+        }
+        
+        .status-checking {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .nav-custom {
+            background: white;
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .nav-custom .nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .nav-custom .nav-link {
+            color: #6c757d;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        .nav-custom .nav-link:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .nav-custom .nav-link.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .nav-custom .nav-link i {
+            margin-right: 8px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            background: white;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+            border: none;
+        }
+        
+        .card-header i {
+            margin-right: 10px;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .kpi-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--primary);
+            transition: transform 0.3s;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin: 5px 0;
+        }
+        
+        .kpi-label {
+            color: #6c757d;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            font-size: 13px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 10px 5px;
+            white-space: nowrap;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .table tbody td {
+            padding: 8px 5px;
+            border-bottom: 1px solid #e9ecef;
+            text-align: right;
+        }
+        
+        .table tbody td:first-child {
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .table tbody td:nth-child(2),
+        .table tbody td:nth-child(3),
+        .table tbody td:nth-child(4) {
+            text-align: left;
+        }
+        
+        .company-row {
+            background-color: #f0f4f8;
+            font-weight: 700;
+        }
+        
+        .company-row td {
+            font-size: 14px;
+            color: var(--primary);
+        }
+        
+        .total-row {
+            background-color: #e9ecef;
+            font-weight: 800;
+        }
+        
+        .sector-row {
+            background-color: #f8f9fa;
+            font-style: italic;
+        }
+        
+        .badge-confirmed {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .badge-forecast {
+            background: #ffc107;
+            color: #333;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge-variance-positive {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+        }
+
+        .badge-variance-negative {
+            background: #dc3545;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 14px;
+            width: 100%;
+        }
+        
+        .monthly-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+        
+        @media (max-width: 1200px) {
+            .monthly-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .monthly-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .company-title {
+                font-size: 32px;
+                padding-right: 0;
+            }
+            .kpi-button {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-top: 15px;
+                width: 100%;
+            }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .status-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideIn 0.3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .status-success { background: #28a745; }
+        .status-error { background: #dc3545; }
+        .status-info { background: #17a2b8; }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        
+        .data-summary {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        
+        .project-count {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 18px;
+        }
+        
+        .last-updated {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .variance-positive {
+            color: #28a745;
+            font-weight: 700;
+        }
+        
+        .variance-negative {
+            color: #dc3545;
+            font-weight: 700;
+        }
+        
+        .report-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--primary);
+        }
+        
+        .sector-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .sector-table th {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .sector-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .grand-total {
+            background: var(--primary);
+            color: white;
+            font-weight: 800;
+        }
+        
+        .analysis-filters {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .daily-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div style="margin-top: 20px; color: var(--primary); font-weight: 600;" id="loadingMessage">Loading data from Google Sheets...</div>
+    </div>
+    
+    <!-- Refresh Button -->
+    <div class="refresh-btn" onclick="loadAllData()" title="Refresh Data">
+        <i class="fas fa-sync-alt"></i>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header with KPI Button -->
+        <div class="company-header">
+            <button class="kpi-button" onclick="window.open('kpi.html', '_blank')">
+                <i class="fas fa-chart-line"></i> View KPI Dashboard
+            </button>
+            <div>
+                <div class="company-title">
+                    ON POINT GROUP
+                    <span class="connection-status status-checking ms-3" id="connectionStatus">
+                        <i class="fas fa-sync-alt fa-spin me-2"></i> Connecting...
+                    </span>
+                </div>
+                <div class="company-subtitle">
+                    Project Financial Management System
+                </div>
+            </div>
+            
+            <!-- Data Summary -->
+            <div class="data-summary d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-project-diagram me-2 text-primary"></i>
+                    <span id="projectCount" class="project-count">0</span> projects
+                </div>
+                <div>
+                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                    Total Budget: <strong id="totalValueDisplay">R 0</strong>
+                </div>
+                <div>
+                    <i class="fas fa-money-bill-wave me-2 text-success"></i>
+                    Actual Revenue: <strong id="totalActualDisplay">R 0</strong>
+                </div>
+                <div class="last-updated" id="lastUpdated">
+                    <i class="far fa-clock me-1"></i>Loading...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="nav-custom">
+            <div class="nav">
+                <button class="nav-link active" onclick="showTab('dashboard', this)">
+                    <i class="fas fa-chart-pie"></i> Dashboard
+                </button>
+                <button class="nav-link" onclick="showTab('dailyRevenue', this)">
+                    <i class="fas fa-calendar-day"></i> Daily Revenue
+                </button>
+                <button class="nav-link" onclick="showTab('orderbook', this)">
+                    <i class="fas fa-book"></i> Order Book <span class="badge bg-light text-dark ms-2" id="orderCount"></span>
+                </button>
+                <button class="nav-link" onclick="showTab('analysis', this)">
+                    <i class="fas fa-chart-bar"></i> Weekly/Monthly Analysis
+                </button>
+                <button class="nav-link" onclick="showTab('dataentry', this)">
+                    <i class="fas fa-edit"></i> Data Entry
+                </button>
+            </div>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Order Book</div>
+                    <div class="kpi-value" id="totalOrderBook">R 0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Confirmed</div>
+                    <div class="kpi-value" id="confirmedTotal">R 0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Forecast</div>
+                    <div class="kpi-value" id="forecastTotal">R 0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Actual Revenue</div>
+                    <div class="kpi-value" id="actualRevenue">R 0</div>
+                </div>
+            </div>
+            
+            <!-- Revenue by Sector -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">Revenue by Sector</div>
+                        <div class="card-body">
+                            <table class="sector-table" id="revenueBySector">
+                                <thead>
+                                    <tr>
+                                        <th>Sector</th>
+                                        <th>Margin</th>
+                                        <th>On Point</th>
+                                        <th>Aqua</th>
+                                        <th>Nkanyezi</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="revenueSectorBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">Gross Profit by Sector</div>
+                        <div class="card-body">
+                            <table class="sector-table" id="gpBySector">
+                                <thead>
+                                    <tr>
+                                        <th>Sector</th>
+                                        <th>On Point</th>
+                                        <th>Aqua</th>
+                                        <th>Nkanyezi</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gpSectorBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Revenue Tab -->
+        <div id="dailyRevenue" class="tab-content" style="display:none;">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-calendar-alt"></i> Daily Revenue Entry by Project Manager
+                        </div>
+                        <div class="card-body">
+                            <form id="dailyRevenueForm" onsubmit="event.preventDefault();">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date *</label>
+                                        <input type="date" class="form-control" id="revenueDate" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Project Manager *</label>
+                                        <select class="form-select" id="revenueManager" required onchange="loadManagerProjects()">
+                                            <option value="">Select Manager</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Project *</label>
+                                        <select class="form-select" id="revenueProject" required onchange="updateProjectBudget()">
+                                            <option value="">Select Project</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Category</label>
+                                        <input type="text" class="form-control" id="revenueCategory" readonly>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Daily Revenue (R) *</label>
+                                        <input type="number" class="form-control" id="dailyAmount" step="1000" min="0" required oninput="calculateVariance()">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Daily Budget (R)</label>
+                                        <input type="text" class="form-control" id="dailyBudget" readonly>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Variance (R)</label>
+                                        <input type="text" class="form-control" id="dailyVariance" readonly>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Notes</label>
+                                    <input type="text" class="form-control" id="revenueNotes">
+                                </div>
+                                <button type="button" class="btn btn-success w-100" onclick="submitDailyRevenue()">
+                                    <i class="fas fa-save me-2"></i> Save Daily Revenue
+                                </button>
+                            </form>
+
+                            <!-- Today's Stats -->
+                            <div class="daily-stats mt-4">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="todayTotal">R 0</div>
+                                    <div class="stat-label">Today's Total</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="todayBudget">R 0</div>
+                                    <div class="stat-label">Today's Budget</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="todayVariance">R 0</div>
+                                    <div class="stat-label">Today's Variance</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="todayAchievement">0%</div>
+                                    <div class="stat-label">Achievement</div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Entries -->
+                            <div class="mt-4">
+                                <h6>Recent Daily Entries</h6>
+                                <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Manager</th>
+                                                <th>Project</th>
+                                                <th>Amount</th>
+                                                <th>Budget</th>
+                                                <th>Variance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recentDailyTable"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Book Tab -->
+        <div id="orderbook" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-book"></i> Order Book - Revenue Model
+                    <button class="btn btn-sm btn-light float-end" onclick="exportToCSV()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table" id="orderBookTable">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Project Manager</th>
+                                    <th>Project</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th></th>
+                                    <th>Mar-26</th>
+                                    <th>Apr-26</th>
+                                    <th>May-26</th>
+                                    <th>Jun-26</th>
+                                    <th>Jul-26</th>
+                                    <th>Aug-26</th>
+                                    <th>Sep-26</th>
+                                    <th>Oct-26</th>
+                                    <th>Nov-26</th>
+                                    <th>Dec-26</th>
+                                    <th>Jan-27</th>
+                                    <th>Feb-27</th>
+                                    <th>Total</th>
+                                    <th>Check</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderBookBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue by Sector Section -->
+            <div class="report-section">
+                <h4 class="text-white mb-3">Revenue by Sector & Gross Profit Analysis</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Revenue by Sector</div>
+                            <div class="card-body">
+                                <table class="sector-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Sector</th>
+                                            <th>Margin</th>
+                                            <th>On Point</th>
+                                            <th>Aqua Telecoms</th>
+                                            <th>Nkanyezi</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="revenueSectorDetail"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Gross Profit by Sector</div>
+                            <div class="card-body">
+                                <table class="sector-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Sector</th>
+                                            <th>On Point</th>
+                                            <th>Aqua Telecoms</th>
+                                            <th>Nkanyezi</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gpSectorDetail"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Tab -->
+        <div id="analysis" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line"></i> Daily, Weekly & Monthly Analysis vs Budget
+                </div>
+                <div class="card-body">
+                    <!-- Filters -->
+                    <div class="analysis-filters">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Select Period</label>
+                                <select class="form-select" id="analysisPeriod" onchange="updateAnalysis()">
+                                    <option value="daily">Daily View</option>
+                                    <option value="weekly">Weekly View</option>
+                                    <option value="monthly">Monthly View</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Project Manager</label>
+                                <select class="form-select" id="analysisManager" onchange="updateAnalysis()">
+                                    <option value="all">All Managers</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Date/Week/Month</label>
+                                <input type="date" class="form-control" id="analysisDate" onchange="updateAnalysis()">
+                                <input type="week" class="form-control" id="analysisWeek" style="display:none;" onchange="updateAnalysis()">
+                                <select class="form-select" id="analysisMonth" style="display:none;" onchange="updateAnalysis()">
+                                    <option value="0">March 2026</option>
+                                    <option value="1">April 2026</option>
+                                    <option value="2">May 2026</option>
+                                    <option value="3">June 2026</option>
+                                    <option value="4">July 2026</option>
+                                    <option value="5">August 2026</option>
+                                    <option value="6">September 2026</option>
+                                    <option value="7">October 2026</option>
+                                    <option value="8">November 2026</option>
+                                    <option value="9">December 2026</option>
+                                    <option value="10">January 2027</option>
+                                    <option value="11">February 2027</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <div class="daily-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="periodBudget">R 0</div>
+                            <div class="stat-label">Period Budget</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="periodActual">R 0</div>
+                            <div class="stat-label">Period Actual</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="periodVariance">R 0</div>
+                            <div class="stat-label">Variance</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="periodAchievement">0%</div>
+                            <div class="stat-label">Achievement</div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Table -->
+                    <div class="table-container mt-3">
+                        <table class="table" id="analysisTable">
+                            <thead>
+                                <tr>
+                                    <th>Date/Period</th>
+                                    <th>Project Manager</th>
+                                    <th>Project</th>
+                                    <th>Budget</th>
+                                    <th>Actual</th>
+                                    <th>Variance</th>
+                                    <th>Achievement</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analysisBody">
+                                <tr><td colspan="8" class="text-center">Select period to view analysis</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Data Entry Tab -->
+        <div id="dataentry" class="tab-content" style="display:none;">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="form-container">
+                        <h4 class="mb-4"><i class="fas fa-pen"></i> Add New Project</h4>
+                        
+                        <form id="projectForm" onsubmit="return false;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Company *</label>
+                                    <select class="form-select" id="company" required>
+                                        <option value="Onpoint Group">Onpoint Group</option>
+                                        <option value="Aqua Telecoms">Aqua Telecoms</option>
+                                        <option value="Nkanyezi Projects">Nkanyezi Projects</option>
+                                        <option value="DI Solutions">DI Solutions</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Category *</label>
+                                    <select class="form-select" id="category" required>
+                                        <option value="Electrical">Electrical</option>
+                                        <option value="Civil">Civil</option>
+                                        <option value="Mechanical">Mechanical</option>
+                                        <option value="Roads">Roads</option>
+                                        <option value="General Buildings">General Buildings</option>
+                                        <option value="Telecoms">Telecoms</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Project Manager *</label>
+                                    <input type="text" class="form-control" id="manager" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Project Name *</label>
+                                    <input type="text" class="form-control" id="project" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Status *</label>
+                                    <select class="form-select" id="status" required>
+                                        <option value="Confirmed">Confirmed</option>
+                                        <option value="Forecast">Forecast</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Amount (R) *</label>
+                                    <input type="number" class="form-control" id="amount" step="1000" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Margin %</label>
+                                    <input type="number" class="form-control" id="margin" step="0.1" value="30">
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header bg-light text-dark">
+                                    Monthly Distribution (Mar 2026 - Feb 2027)
+                                </div>
+                                <div class="card-body">
+                                    <div class="monthly-grid">
+                                        <div><label>Mar-26</label><input type="number" class="form-control month-input" id="mar26" value="0"></div>
+                                        <div><label>Apr-26</label><input type="number" class="form-control month-input" id="apr26" value="0"></div>
+                                        <div><label>May-26</label><input type="number" class="form-control month-input" id="may26" value="0"></div>
+                                        <div><label>Jun-26</label><input type="number" class="form-control month-input" id="jun26" value="0"></div>
+                                        <div><label>Jul-26</label><input type="number" class="form-control month-input" id="jul26" value="0"></div>
+                                        <div><label>Aug-26</label><input type="number" class="form-control month-input" id="aug26" value="0"></div>
+                                        <div><label>Sep-26</label><input type="number" class="form-control month-input" id="sep26" value="0"></div>
+                                        <div><label>Oct-26</label><input type="number" class="form-control month-input" id="oct26" value="0"></div>
+                                        <div><label>Nov-26</label><input type="number" class="form-control month-input" id="nov26" value="0"></div>
+                                        <div><label>Dec-26</label><input type="number" class="form-control month-input" id="dec26" value="0"></div>
+                                        <div><label>Jan-27</label><input type="number" class="form-control month-input" id="jan27" value="0"></div>
+                                        <div><label>Feb-27</label><input type="number" class="form-control month-input" id="feb27" value="0"></div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between mt-3">
+                                        <button type="button" class="btn btn-outline-primary" onclick="distributeEvenly()">
+                                            <i class="fas fa-calculator"></i> Distribute Evenly
+                                        </button>
+                                        <strong>Total: R <span id="scheduledTotal">0</span></strong>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Notes</label>
+                                <textarea class="form-control" id="notes" rows="2"></textarea>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary w-100" onclick="submitProject()">
+                                <i class="fas fa-save me-2"></i> Save to Google Sheets
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==============================================
+        // CONFIGURATION - Google Sheets IDs
+        // ==============================================
+        var CONFIG = {
+            ordersSheetId: '1qXz55Luti1s-0dh8qCPwxupX14kCNhtyWPJF6dpUdF0',
+            ordersSheetName: 'Orders',
+            revenueSheetId: '16zsV_C-2pz5gyka2fjlSZZoC5cDZcR3-cokS4Cx1rDE',
+            revenueSheetName: 'DailyRevenue',
+            folderId: '1al8guXtgk-PJWwdNvd2umUXYv4AvwXSM',
+            scriptURL: 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'
+        };
+
+        // Global data stores
+        var projects = [];
+        var dailyRevenue = [];
+        var managers = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllData();
+            setDefaultDate();
+            setupPeriodToggle();
+            updateScheduledTotal();
+        });
+
+        function setDefaultDate() {
+            var today = new Date().toISOString().split('T')[0];
+            var revenueDate = document.getElementById('revenueDate');
+            var analysisDate = document.getElementById('analysisDate');
+            if (revenueDate) revenueDate.value = today;
+            if (analysisDate) analysisDate.value = today;
+        }
+
+        function setupPeriodToggle() {
+            var periodSelect = document.getElementById('analysisPeriod');
+            if (periodSelect) {
+                periodSelect.addEventListener('change', function(e) {
+                    var dateInput = document.getElementById('analysisDate');
+                    var weekInput = document.getElementById('analysisWeek');
+                    var monthInput = document.getElementById('analysisMonth');
+                    
+                    if (dateInput) dateInput.style.display = 'none';
+                    if (weekInput) weekInput.style.display = 'none';
+                    if (monthInput) monthInput.style.display = 'none';
+                    
+                    if (e.target.value === 'daily' && dateInput) {
+                        dateInput.style.display = 'block';
+                    } else if (e.target.value === 'weekly' && weekInput) {
+                        weekInput.style.display = 'block';
+                    } else if (e.target.value === 'monthly' && monthInput) {
+                        monthInput.style.display = 'block';
+                    }
+                    
+                    updateAnalysis();
+                });
+            }
+        }
+
+        async function loadAllData() {
+            showLoading('Loading data from Google Sheets...');
+            updateConnectionStatus('checking', 'Connecting...');
+            
+            try {
+                await loadProjects();
+                await loadDailyRevenue();
+                
+                if (projects.length === 0) {
+                    console.log('No projects found in Google Sheets, loading demo data');
+                    loadDemoData();
+                } else {
+                    extractManagers();
+                    refreshUI();
+                    updateConnectionStatus('connected', 'Connected to Google Sheets');
+                    showStatus('Data loaded successfully from Google Sheets', 'success');
+                }
+            } catch (error) {
+                console.error('Error loading from Google Sheets:', error);
+                updateConnectionStatus('disconnected', 'Using Demo Data');
+                loadDemoData();
+                showStatus('Using demo data - ' + error.message, 'info');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                var url = CONFIG.scriptURL + '?action=getProjects&sheetId=' + CONFIG.ordersSheetId;
+                console.log('Fetching projects from:', url);
+                var response = await fetch(url);
+                var data = await response.json();
+                console.log('Projects response:', data);
+                
+                if (data.success) {
+                    projects = data.data || [];
+                    console.log('Projects loaded:', projects.length);
+                } else {
+                    throw new Error(data.error || 'Failed to load projects');
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                throw error;
+            }
+        }
+
+        async function loadDailyRevenue() {
+            try {
+                var url = CONFIG.scriptURL + '?action=getRevenue&sheetId=' + CONFIG.revenueSheetId;
+                console.log('Fetching revenue from:', url);
+                var response = await fetch(url);
+                var data = await response.json();
+                console.log('Revenue response:', data);
+                
+                if (data.success) {
+                    dailyRevenue = data.data || [];
+                    console.log('Revenue loaded:', dailyRevenue.length);
+                } else {
+                    throw new Error(data.error || 'Failed to load revenue');
+                }
+            } catch (error) {
+                console.error('Error loading revenue:', error);
+                throw error;
+            }
+        }
+
+        function extractManagers() {
+            var managerSet = new Set();
+            for (var i = 0; i < projects.length; i++) {
+                if (projects[i].manager) {
+                    managerSet.add(projects[i].manager);
+                }
+            }
+            managers = Array.from(managerSet);
+            console.log('Managers extracted:', managers);
+            
+            var managerSelects = ['revenueManager', 'analysisManager'];
+            for (var s = 0; s < managerSelects.length; s++) {
+                var select = document.getElementById(managerSelects[s]);
+                if (select) {
+                    var options = '<option value="">Select Manager</option>';
+                    if (managerSelects[s] === 'analysisManager') {
+                        options += '<option value="all">All Managers</option>';
+                    }
+                    for (var m = 0; m < managers.length; m++) {
+                        options += '<option value="' + managers[m] + '">' + managers[m] + '</option>';
+                    }
+                    select.innerHTML = options;
+                }
+            }
+        }
+
+        function loadManagerProjects() {
+            var manager = document.getElementById('revenueManager') ? document.getElementById('revenueManager').value : '';
+            var projectSelect = document.getElementById('revenueProject');
+            
+            if (!projectSelect) return;
+            
+            projectSelect.innerHTML = '<option value="">Select Project</option>';
+            
+            if (!manager) return;
+            
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (p.manager === manager && !p.isSummary) {
+                    p.id = i + 1;
+                    var option = document.createElement('option');
+                    option.value = p.id;
+                    option.setAttribute('data-project', JSON.stringify(p));
+                    option.textContent = p.project + ' - R ' + (p.amount || 0).toLocaleString();
+                    projectSelect.appendChild(option);
+                }
+            }
+        }
+
+        function updateProjectBudget() {
+            var select = document.getElementById('revenueProject');
+            if (!select) return;
+            
+            var selected = select.options[select.selectedIndex];
+            var categoryField = document.getElementById('revenueCategory');
+            var budgetField = document.getElementById('dailyBudget');
+            
+            if (selected && selected.dataset.project && categoryField && budgetField) {
+                var project = JSON.parse(selected.dataset.project);
+                categoryField.value = project.category || '';
+                
+                var today = new Date();
+                var monthIndex = today.getMonth() - 2;
+                if (monthIndex >= 0 && monthIndex < 12) {
+                    var monthlyBudget = Number((project.months && project.months[monthIndex]) || 0);
+                    var dailyBudget = Math.round(monthlyBudget / 22);
+                    budgetField.value = 'R ' + dailyBudget.toLocaleString();
+                }
+                
+                calculateVariance();
+            }
+        }
+
+        function calculateVariance() {
+            var amount = parseFloat(document.getElementById('dailyAmount') ? document.getElementById('dailyAmount').value : 0) || 0;
+            var budgetText = document.getElementById('dailyBudget') ? document.getElementById('dailyBudget').value : 'R 0';
+            var budget = parseFloat(budgetText.replace(/[^0-9.-]+/g, '')) || 0;
+            
+            var variance = amount - budget;
+            var varianceField = document.getElementById('dailyVariance');
+            if (varianceField) {
+                varianceField.value = 'R ' + variance.toLocaleString();
+            }
+        }
+
+        async function submitDailyRevenue() {
+            var projectSelect = document.getElementById('revenueProject');
+            if (!projectSelect) return;
+            
+            var selected = projectSelect.options[projectSelect.selectedIndex];
+            
+            if (!selected || !selected.value) {
+                showStatus('Please select a project', 'error');
+                return;
+            }
+
+            var project = JSON.parse(selected.dataset.project || '{}');
+            var amount = parseFloat(document.getElementById('dailyAmount') ? document.getElementById('dailyAmount').value : 0) || 0;
+            
+            if (amount <= 0) {
+                showStatus('Please enter a valid amount', 'error');
+                return;
+            }
+
+            var revenueData = {
+                date: document.getElementById('revenueDate') ? document.getElementById('revenueDate').value : '',
+                projectId: project.id || '',
+                projectName: project.project || '',
+                manager: document.getElementById('revenueManager') ? document.getElementById('revenueManager').value : '',
+                category: project.category || '',
+                amount: amount,
+                notes: document.getElementById('revenueNotes') ? document.getElementById('revenueNotes').value : ''
+            };
+
+            showLoading('Saving daily revenue to Google Sheets...');
+
+            try {
+                var response = await fetch(CONFIG.scriptURL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'addRevenue',
+                        sheetId: CONFIG.revenueSheetId,
+                        revenue: revenueData
+                    })
+                });
+                
+                var result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Daily revenue saved to Google Sheets', 'success');
+                    if (document.getElementById('dailyAmount')) document.getElementById('dailyAmount').value = '';
+                    if (document.getElementById('revenueNotes')) document.getElementById('revenueNotes').value = '';
+                    await loadAllData();
+                } else {
+                    throw new Error(result.error || 'Failed to save revenue');
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                showStatus('Error saving to Google Sheets: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function submitProject() {
+            var projectData = {
+                company: document.getElementById('company') ? document.getElementById('company').value : '',
+                category: document.getElementById('category') ? document.getElementById('category').value : '',
+                manager: document.getElementById('manager') ? document.getElementById('manager').value : '',
+                project: document.getElementById('project') ? document.getElementById('project').value : '',
+                status: document.getElementById('status') ? document.getElementById('status').value : '',
+                amount: parseFloat(document.getElementById('amount') ? document.getElementById('amount').value : 0) || 0,
+                margin: parseFloat(document.getElementById('margin') ? document.getElementById('margin').value : 0) || 0,
+                notes: document.getElementById('notes') ? document.getElementById('notes').value : '',
+                months: [
+                    parseFloat(document.getElementById('mar26') ? document.getElementById('mar26').value : 0) || 0,
+                    parseFloat(document.getElementById('apr26') ? document.getElementById('apr26').value : 0) || 0,
+                    parseFloat(document.getElementById('may26') ? document.getElementById('may26').value : 0) || 0,
+                    parseFloat(document.getElementById('jun26') ? document.getElementById('jun26').value : 0) || 0,
+                    parseFloat(document.getElementById('jul26') ? document.getElementById('jul26').value : 0) || 0,
+                    parseFloat(document.getElementById('aug26') ? document.getElementById('aug26').value : 0) || 0,
+                    parseFloat(document.getElementById('sep26') ? document.getElementById('sep26').value : 0) || 0,
+                    parseFloat(document.getElementById('oct26') ? document.getElementById('oct26').value : 0) || 0,
+                    parseFloat(document.getElementById('nov26') ? document.getElementById('nov26').value : 0) || 0,
+                    parseFloat(document.getElementById('dec26') ? document.getElementById('dec26').value : 0) || 0,
+                    parseFloat(document.getElementById('jan27') ? document.getElementById('jan27').value : 0) || 0,
+                    parseFloat(document.getElementById('feb27') ? document.getElementById('feb27').value : 0) || 0
+                ]
+            };
+
+            showLoading('Saving project to Google Sheets...');
+
+            try {
+                var response = await fetch(CONFIG.scriptURL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'addProject',
+                        sheetId: CONFIG.ordersSheetId,
+                        project: projectData
+                    })
+                });
+                
+                var result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Project saved to Google Sheets', 'success');
+                    var form = document.getElementById('projectForm');
+                    if (form) form.reset();
+                    await loadAllData();
+                } else {
+                    throw new Error(result.error || 'Failed to save project');
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                showStatus('Error saving to Google Sheets: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updateTodayStats() {
+            var today = new Date().toISOString().split('T')[0];
+            var total = 0;
+            for (var i = 0; i < dailyRevenue.length; i++) {
+                if (dailyRevenue[i].date === today) {
+                    total += Number(dailyRevenue[i].amount) || 0;
+                }
+            }
+            
+            var budget = 0;
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (!p.isSummary) {
+                    var monthIndex = new Date().getMonth() - 2;
+                    if (monthIndex >= 0 && monthIndex < 12) {
+                        budget += (Number((p.months && p.months[monthIndex]) || 0)) / 22;
+                    }
+                }
+            }
+            
+            var variance = total - budget;
+            var achievement = budget > 0 ? (total / budget * 100).toFixed(1) : 0;
+            
+            var todayTotal = document.getElementById('todayTotal');
+            var todayBudget = document.getElementById('todayBudget');
+            var todayVariance = document.getElementById('todayVariance');
+            var todayAchievement = document.getElementById('todayAchievement');
+            
+            if (todayTotal) todayTotal.innerHTML = 'R ' + total.toLocaleString();
+            if (todayBudget) todayBudget.innerHTML = 'R ' + Math.round(budget).toLocaleString();
+            if (todayVariance) todayVariance.innerHTML = 'R ' + Math.round(variance).toLocaleString();
+            if (todayAchievement) todayAchievement.innerHTML = achievement + '%';
+        }
+
+        function updateRecentDailyTable() {
+            var tbody = document.getElementById('recentDailyTable');
+            if (!tbody) return;
+            
+            var html = '';
+            var start = Math.max(0, dailyRevenue.length - 10);
+            for (var i = dailyRevenue.length - 1; i >= start; i--) {
+                var r = dailyRevenue[i];
+                if (!r) continue;
+                
+                var project = null;
+                for (var j = 0; j < projects.length; j++) {
+                    if (projects[j].project === r.projectName) {
+                        project = projects[j];
+                        break;
+                    }
+                }
+                
+                var budget = 0;
+                if (project) {
+                    var date = new Date(r.date);
+                    var monthIndex = date.getMonth() - 2;
+                    if (monthIndex >= 0 && monthIndex < 12) {
+                        budget = ((project.months && project.months[monthIndex]) || 0) / 22;
+                    }
+                }
+                var variance = (Number(r.amount) || 0) - budget;
+                var varianceClass = variance >= 0 ? 'variance-positive' : 'variance-negative';
+                
+                html += '<tr>' +
+                    '<td>' + (r.date || '') + '</td>' +
+                    '<td>' + (r.manager || '') + '</td>' +
+                    '<td>' + (r.projectName || '') + '</td>' +
+                    '<td>R ' + (r.amount || 0).toLocaleString() + '</td>' +
+                    '<td>R ' + Math.round(budget).toLocaleString() + '</td>' +
+                    '<td class="' + varianceClass + '">R ' + Math.round(variance).toLocaleString() + '</td>' +
+                '</tr>';
+            }
+            
+            tbody.innerHTML = html || '<tr><td colspan="6" class="text-center">No entries</td></tr>';
+        }
+
+        function updateOrderBookTable() {
+            var tbody = document.getElementById('orderBookBody');
+            if (!tbody) return;
+            
+            var html = '';
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (p.isSummary) continue;
+                
+                var scheduled = 0;
+                if (p.months) {
+                    for (var m = 0; m < p.months.length; m++) {
+                        scheduled += p.months[m] || 0;
+                    }
+                }
+                var check = scheduled - (p.amount || 0);
+                var checkClass = check < 0 ? 'variance-negative' : 'variance-positive';
+                
+                html += '<tr>' +
+                    '<td>' + (p.category || '') + '</td>' +
+                    '<td>' + (p.manager || '') + '</td>' +
+                    '<td>' + (p.project || '') + '</td>' +
+                    '<td>';
+                if (p.status) {
+                    var statusLower = p.status.toLowerCase();
+                    html += '<span class="badge-' + statusLower + '">' + p.status + '</span>';
+                }
+                html += '</td>' +
+                    '<td>R ' + (p.amount || 0).toLocaleString() + '</td>' +
+                    '<td></td>';
+                
+                for (var m = 0; m < 12; m++) {
+                    var monthValue = (p.months && p.months[m]) || 0;
+                    html += '<td>' + (monthValue ? 'R ' + monthValue.toLocaleString() : '-') + '</td>';
+                }
+                
+                html += '<td>R ' + scheduled.toLocaleString() + '</td>' +
+                    '<td class="' + checkClass + '">R ' + check.toLocaleString() + '</td>' +
+                    '<td>' + (p.notes || '') + '</td>' +
+                '</tr>';
+            }
+            
+            tbody.innerHTML = html || '<tr><td colspan="21" class="text-center">No projects found</td></tr>';
+        }
+
+        function updateSectorAnalysis() {
+            var sectors = ['Electrical', 'Civil', 'Mechanical', 'Roads', 'General Buildings', 'Telecoms'];
+            var companies = ['Onpoint Group', 'Aqua Telecoms', 'Nkanyezi Projects'];
+            
+            var revenueBody = document.getElementById('revenueSectorDetail');
+            var gpBody = document.getElementById('gpSectorDetail');
+            
+            if (!revenueBody || !gpBody) return;
+            
+            var revenueHtml = '';
+            var gpHtml = '';
+            var totalRevenue = {'Onpoint Group': 0, 'Aqua Telecoms': 0, 'Nkanyezi Projects': 0};
+            var totalGP = {'Onpoint Group': 0, 'Aqua Telecoms': 0, 'Nkanyezi Projects': 0};
+            
+            for (var s = 0; s < sectors.length; s++) {
+                var sector = sectors[s];
+                var rowRevenue = {'Onpoint Group': 0, 'Aqua Telecoms': 0, 'Nkanyezi Projects': 0};
+                var rowGP = {'Onpoint Group': 0, 'Aqua Telecoms': 0, 'Nkanyezi Projects': 0};
+                var margin = 0;
+                
+                for (var c = 0; c < companies.length; c++) {
+                    var company = companies[c];
+                    for (var i = 0; i < projects.length; i++) {
+                        var p = projects[i];
+                        if (p.company === company && p.category === sector && !p.isSummary) {
+                            rowRevenue[company] += p.amount || 0;
+                            rowGP[company] += ((p.amount || 0) * ((p.margin || 0) / 100));
+                            if (p.margin) margin = p.margin;
+                        }
+                    }
+                    totalRevenue[company] += rowRevenue[company];
+                    totalGP[company] += rowGP[company];
+                }
+                
+                var totalSectorRevenue = (rowRevenue['Onpoint Group'] || 0) + (rowRevenue['Aqua Telecoms'] || 0) + (rowRevenue['Nkanyezi Projects'] || 0);
+                var totalSectorGP = (rowGP['Onpoint Group'] || 0) + (rowGP['Aqua Telecoms'] || 0) + (rowGP['Nkanyezi Projects'] || 0);
+                
+                if (totalSectorRevenue > 0) {
+                    revenueHtml += '<tr>' +
+                        '<td>' + sector + '</td>' +
+                        '<td>' + margin + '%</td>' +
+                        '<td>R ' + (rowRevenue['Onpoint Group'] || 0).toLocaleString() + '</td>' +
+                        '<td>R ' + (rowRevenue['Aqua Telecoms'] || 0).toLocaleString() + '</td>' +
+                        '<td>R ' + (rowRevenue['Nkanyezi Projects'] || 0).toLocaleString() + '</td>' +
+                        '<td>R ' + totalSectorRevenue.toLocaleString() + '</td>' +
+                    '</tr>';
+                    
+                    gpHtml += '<tr>' +
+                        '<td>' + sector + '</td>' +
+                        '<td>R ' + (rowGP['Onpoint Group'] || 0).toLocaleString() + '</td>' +
+                        '<td>R ' + (rowGP['Aqua Telecoms'] || 0).toLocaleString() + '</td>' +
+                        '<td>R ' + (rowGP['Nkanyezi Projects'] || 0).toLocaleString() + '</td>' +
+                        '<td>R ' + totalSectorGP.toLocaleString() + '</td>' +
+                    '</tr>';
+                }
+            }
+            
+            var grandTotalRevenue = (totalRevenue['Onpoint Group'] || 0) + (totalRevenue['Aqua Telecoms'] || 0) + (totalRevenue['Nkanyezi Projects'] || 0);
+            var grandTotalGP = (totalGP['Onpoint Group'] || 0) + (totalGP['Aqua Telecoms'] || 0) + (totalGP['Nkanyezi Projects'] || 0);
+            
+            revenueHtml += '<tr class="grand-total">' +
+                '<td><strong>Total</strong></td>' +
+                '<td></td>' +
+                '<td><strong>R ' + (totalRevenue['Onpoint Group'] || 0).toLocaleString() + '</strong></td>' +
+                '<td><strong>R ' + (totalRevenue['Aqua Telecoms'] || 0).toLocaleString() + '</strong></td>' +
+                '<td><strong>R ' + (totalRevenue['Nkanyezi Projects'] || 0).toLocaleString() + '</strong></td>' +
+                '<td><strong>R ' + grandTotalRevenue.toLocaleString() + '</strong></td>' +
+            '</tr>';
+            
+            gpHtml += '<tr class="grand-total">' +
+                '<td><strong>Total</strong></td>' +
+                '<td><strong>R ' + (totalGP['Onpoint Group'] || 0).toLocaleString() + '</strong></td>' +
+                '<td><strong>R ' + (totalGP['Aqua Telecoms'] || 0).toLocaleString() + '</strong></td>' +
+                '<td><strong>R ' + (totalGP['Nkanyezi Projects'] || 0).toLocaleString() + '</strong></td>' +
+                '<td><strong>R ' + grandTotalGP.toLocaleString() + '</strong></td>' +
+            '</tr>';
+            
+            revenueBody.innerHTML = revenueHtml;
+            gpBody.innerHTML = gpHtml;
+        }
+
+        function updateKPIs() {
+            console.log('Updating KPIs with projects:', projects.length);
+            
+            var confirmed = 0;
+            var forecast = 0;
+            
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (p.isSummary) continue;
+                
+                if (p.status === 'Confirmed') {
+                    confirmed += Number(p.amount) || 0;
+                } else if (p.status === 'Forecast') {
+                    forecast += Number(p.amount) || 0;
+                }
+            }
+            
+            var total = confirmed + forecast;
+            
+            var actual = 0;
+            for (var i = 0; i < dailyRevenue.length; i++) {
+                actual += Number(dailyRevenue[i].amount) || 0;
+            }
+            
+            console.log('Calculated - Confirmed:', confirmed, 'Forecast:', forecast, 'Total:', total, 'Actual:', actual);
+            
+            var totalOrderBook = document.getElementById('totalOrderBook');
+            var confirmedTotal = document.getElementById('confirmedTotal');
+            var forecastTotal = document.getElementById('forecastTotal');
+            var actualRevenue = document.getElementById('actualRevenue');
+            var totalValueDisplay = document.getElementById('totalValueDisplay');
+            var totalActualDisplay = document.getElementById('totalActualDisplay');
+            
+            if (totalOrderBook) totalOrderBook.innerText = 'R ' + total.toLocaleString();
+            if (confirmedTotal) confirmedTotal.innerText = 'R ' + confirmed.toLocaleString();
+            if (forecastTotal) forecastTotal.innerText = 'R ' + forecast.toLocaleString();
+            if (actualRevenue) actualRevenue.innerText = 'R ' + actual.toLocaleString();
+            if (totalValueDisplay) totalValueDisplay.innerText = 'R ' + total.toLocaleString();
+            if (totalActualDisplay) totalActualDisplay.innerText = 'R ' + actual.toLocaleString();
+            
+            var nonSummaryCount = 0;
+            for (var i = 0; i < projects.length; i++) {
+                if (!projects[i].isSummary) nonSummaryCount++;
+            }
+            
+            var orderCount = document.getElementById('orderCount');
+            var projectCount = document.getElementById('projectCount');
+            
+            if (orderCount) orderCount.innerText = nonSummaryCount;
+            if (projectCount) projectCount.innerText = nonSummaryCount;
+        }
+
+        function refreshUI() {
+            updateOrderBookTable();
+            updateRecentDailyTable();
+            updateSectorAnalysis();
+            updateKPIs();
+            updateTodayStats();
+            
+            var lastUpdated = document.getElementById('lastUpdated');
+            if (lastUpdated) {
+                lastUpdated.innerHTML = '<i class="far fa-clock me-1"></i>' + new Date().toLocaleTimeString();
+            }
+        }
+
+        function loadDemoData() {
+            console.log('Loading demo data with forecast projects');
+            
+            projects = [
+                { 
+                    company: 'Onpoint Group', 
+                    category: 'Electrical', 
+                    manager: 'Moses', 
+                    project: 'DBSA Generators', 
+                    status: 'Confirmed', 
+                    amount: 28400000, 
+                    margin: 45, 
+                    months: [7666667, 7666667, 7666667, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    isSummary: false 
+                },
+                { 
+                    company: 'Onpoint Group', 
+                    category: 'Civil', 
+                    manager: 'Johan', 
+                    project: 'DBSA Rooiwal', 
+                    status: 'Confirmed', 
+                    amount: 15000000, 
+                    margin: 20, 
+                    months: [4100000, 4100000, 4100000, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    isSummary: false 
+                },
+                { 
+                    company: 'Onpoint Group', 
+                    category: 'General Buildings', 
+                    manager: 'Rayman', 
+                    project: 'Coega Forecast', 
+                    status: 'Forecast', 
+                    amount: 25565217, 
+                    margin: 30, 
+                    months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    isSummary: false 
+                },
+                { 
+                    company: 'Onpoint Group', 
+                    category: 'Roads', 
+                    manager: 'Site Agent', 
+                    project: 'Tshwane', 
+                    status: 'Forecast', 
+                    amount: 30000000, 
+                    margin: 20, 
+                    months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    isSummary: false 
+                },
+                { 
+                    company: 'Aqua Telecoms', 
+                    category: 'Electrical', 
+                    manager: 'Stanley', 
+                    project: 'Stellenbosh', 
+                    status: 'Confirmed', 
+                    amount: 10034021, 
+                    margin: 50, 
+                    months: [0, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 0],
+                    isSummary: false 
+                },
+                { 
+                    company: 'Aqua Telecoms', 
+                    category: 'Telecoms', 
+                    manager: 'Govern', 
+                    project: 'Liquid ECPG Forecast', 
+                    status: 'Forecast', 
+                    amount: 41000000, 
+                    margin: 45, 
+                    months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    isSummary: false 
+                }
+            ];
+            
+            var today = new Date().toISOString().split('T')[0];
+            dailyRevenue = [
+                { date: today, projectId: 1, projectName: 'DBSA Generators', manager: 'Moses', amount: 350000 },
+                { date: today, projectId: 2, projectName: 'DBSA Rooiwal', manager: 'Johan', amount: 180000 }
+            ];
+            
+            extractManagers();
+            refreshUI();
+            console.log('Demo data loaded, projects:', projects.length);
+        }
+
+        function updateAnalysis() {
+            var period = document.getElementById('analysisPeriod') ? document.getElementById('analysisPeriod').value : '';
+            if (!period) return;
+            
+            if (period === 'daily') {
+                updateDailyAnalysis();
+            } else if (period === 'weekly') {
+                updateWeeklyAnalysis();
+            } else if (period === 'monthly') {
+                updateMonthlyAnalysis();
+            }
+        }
+
+        function updateDailyAnalysis() {
+            var date = document.getElementById('analysisDate') ? document.getElementById('analysisDate').value : '';
+            var manager = document.getElementById('analysisManager') ? document.getElementById('analysisManager').value : 'all';
+            
+            if (!date) return;
+            
+            var dayRevenue = [];
+            for (var i = 0; i < dailyRevenue.length; i++) {
+                if (dailyRevenue[i].date === date) {
+                    dayRevenue.push(dailyRevenue[i]);
+                }
+            }
+            
+            if (manager !== 'all') {
+                var filtered = [];
+                for (var i = 0; i < dayRevenue.length; i++) {
+                    if (dayRevenue[i].manager === manager) {
+                        filtered.push(dayRevenue[i]);
+                    }
+                }
+                dayRevenue = filtered;
+            }
+            
+            var dayBudget = 0;
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (!p.isSummary && (manager === 'all' || p.manager === manager)) {
+                    var monthIndex = new Date(date).getMonth() - 2;
+                    if (monthIndex >= 0 && monthIndex < 12) {
+                        dayBudget += ((p.months && p.months[monthIndex]) || 0) / 22;
+                    }
+                }
+            }
+            
+            var totalActual = 0;
+            for (var i = 0; i < dayRevenue.length; i++) {
+                totalActual += dayRevenue[i].amount || 0;
+            }
+            
+            var variance = totalActual - dayBudget;
+            var achievement = dayBudget > 0 ? (totalActual / dayBudget * 100).toFixed(1) : 0;
+            
+            var periodBudget = document.getElementById('periodBudget');
+            var periodActual = document.getElementById('periodActual');
+            var periodVariance = document.getElementById('periodVariance');
+            var periodAchievement = document.getElementById('periodAchievement');
+            
+            if (periodBudget) periodBudget.innerHTML = 'R ' + Math.round(dayBudget).toLocaleString();
+            if (periodActual) periodActual.innerHTML = 'R ' + totalActual.toLocaleString();
+            if (periodVariance) periodVariance.innerHTML = 'R ' + Math.round(variance).toLocaleString();
+            if (periodAchievement) periodAchievement.innerHTML = achievement + '%';
+            
+            var html = '';
+            var projectGroups = {};
+            
+            for (var i = 0; i < dayRevenue.length; i++) {
+                var r = dayRevenue[i];
+                var key = (r.manager || '') + '|' + (r.projectName || '');
+                if (!projectGroups[key]) {
+                    projectGroups[key] = {
+                        manager: r.manager || '',
+                        project: r.projectName || '',
+                        actual: 0
+                    };
+                }
+                projectGroups[key].actual += r.amount || 0;
+            }
+            
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (!p.isSummary && (manager === 'all' || p.manager === manager)) {
+                    var key = (p.manager || '') + '|' + (p.project || '');
+                    if (!projectGroups[key]) {
+                        projectGroups[key] = {
+                            manager: p.manager || '',
+                            project: p.project || '',
+                            actual: 0
+                        };
+                    }
+                    
+                    var monthIndex = new Date(date).getMonth() - 2;
+                    if (monthIndex >= 0 && monthIndex < 12) {
+                        projectGroups[key].budget = ((p.months && p.months[monthIndex]) || 0) / 22;
+                    } else {
+                        projectGroups[key].budget = 0;
+                    }
+                }
+            }
+            
+            for (var key in projectGroups) {
+                var g = projectGroups[key];
+                var variance = (g.actual || 0) - ((g.budget || 0));
+                var achievement = g.budget > 0 ? ((g.actual || 0) / g.budget * 100).toFixed(1) : 0;
+                var statusClass = 'danger';
+                if (achievement >= 100) statusClass = 'success';
+                else if (achievement >= 75) statusClass = 'warning';
+                
+                var statusText = 'Behind';
+                if (achievement >= 100) statusText = 'On Target';
+                else if (achievement >= 75) statusText = 'At Risk';
+                
+                html += '<tr>' +
+                    '<td>' + date + '</td>' +
+                    '<td>' + (g.manager || '') + '</td>' +
+                    '<td>' + (g.project || '') + '</td>' +
+                    '<td>R ' + Math.round(g.budget || 0).toLocaleString() + '</td>' +
+                    '<td>R ' + (g.actual || 0).toLocaleString() + '</td>' +
+                    '<td class="' + (variance >= 0 ? 'variance-positive' : 'variance-negative') + '">R ' + Math.round(variance).toLocaleString() + '</td>' +
+                    '<td>' + achievement + '%</td>' +
+                    '<td><span class="badge bg-' + statusClass + '">' + statusText + '</span></td>' +
+                '</tr>';
+            }
+            
+            var analysisBody = document.getElementById('analysisBody');
+            if (analysisBody) {
+                analysisBody.innerHTML = html || '<tr><td colspan="8" class="text-center">No data for selected date</td></tr>';
+            }
+        }
+
+        function updateWeeklyAnalysis() {
+            var weekValue = document.getElementById('analysisWeek') ? document.getElementById('analysisWeek').value : '';
+            if (!weekValue) return;
+            
+            var parts = weekValue.split('-W');
+            var year = parseInt(parts[0]);
+            var week = parseInt(parts[1]);
+            var startDate = getDateOfWeek(week, year);
+            
+            var weekDays = [];
+            var weekDates = [];
+            for (var i = 0; i < 7; i++) {
+                var date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                weekDays.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                weekDates.push(date.toISOString().split('T')[0]);
+            }
+            
+            var manager = document.getElementById('analysisManager') ? document.getElementById('analysisManager').value : 'all';
+            
+            var totalBudget = 0;
+            var totalActual = 0;
+            var html = '';
+            
+            for (var d = 0; d < weekDates.length; d++) {
+                var date = weekDates[d];
+                
+                var dayRevenue = [];
+                for (var i = 0; i < dailyRevenue.length; i++) {
+                    if (dailyRevenue[i].date === date) {
+                        dayRevenue.push(dailyRevenue[i]);
+                    }
+                }
+                
+                if (manager !== 'all') {
+                    var filtered = [];
+                    for (var i = 0; i < dayRevenue.length; i++) {
+                        if (dayRevenue[i].manager === manager) {
+                            filtered.push(dayRevenue[i]);
+                        }
+                    }
+                    dayRevenue = filtered;
+                }
+                
+                var dayActual = 0;
+                for (var i = 0; i < dayRevenue.length; i++) {
+                    dayActual += dayRevenue[i].amount || 0;
+                }
+                
+                var dayBudget = 0;
+                for (var i = 0; i < projects.length; i++) {
+                    var p = projects[i];
+                    if (!p.isSummary && (manager === 'all' || p.manager === manager)) {
+                        var monthIndex = new Date(date).getMonth() - 2;
+                        if (monthIndex >= 0 && monthIndex < 12) {
+                            dayBudget += ((p.months && p.months[monthIndex]) || 0) / 22;
+                        }
+                    }
+                }
+                
+                totalBudget += dayBudget;
+                totalActual += dayActual;
+                
+                var variance = dayActual - dayBudget;
+                var achievement = dayBudget > 0 ? (dayActual / dayBudget * 100).toFixed(1) : 0;
+                var statusClass = 'danger';
+                if (achievement >= 100) statusClass = 'success';
+                else if (achievement >= 75) statusClass = 'warning';
+                
+                var statusText = 'Behind';
+                if (achievement >= 100) statusText = 'On Target';
+                else if (achievement >= 75) statusText = 'At Risk';
+                
+                html += '<tr>' +
+                    '<td>' + weekDays[d] + ' (' + date + ')</td>' +
+                    '<td>' + (manager === 'all' ? 'All' : manager) + '</td>' +
+                    '<td>Daily Total</td>' +
+                    '<td>R ' + Math.round(dayBudget).toLocaleString() + '</td>' +
+                    '<td>R ' + dayActual.toLocaleString() + '</td>' +
+                    '<td class="' + (variance >= 0 ? 'variance-positive' : 'variance-negative') + '">R ' + Math.round(variance).toLocaleString() + '</td>' +
+                    '<td>' + achievement + '%</td>' +
+                    '<td><span class="badge bg-' + statusClass + '">' + statusText + '</span></td>' +
+                '</tr>';
+            }
+            
+            var totalVariance = totalActual - totalBudget;
+            var totalAchievement = totalBudget > 0 ? (totalActual / totalBudget * 100).toFixed(1) : 0;
+            
+            html += '<tr class="total-row">' +
+                '<td><strong>WEEK TOTAL</strong></td>' +
+                '<td></td>' +
+                '<td></td>' +
+                '<td><strong>R ' + Math.round(totalBudget).toLocaleString() + '</strong></td>' +
+                '<td><strong>R ' + totalActual.toLocaleString() + '</strong></td>' +
+                '<td class="' + (totalVariance >= 0 ? 'variance-positive' : 'variance-negative') + '"><strong>R ' + Math.round(totalVariance).toLocaleString() + '</strong></td>' +
+                '<td><strong>' + totalAchievement + '%</strong></td>' +
+                '<td></td>' +
+            '</tr>';
+            
+            var periodBudget = document.getElementById('periodBudget');
+            var periodActual = document.getElementById('periodActual');
+            var periodVariance = document.getElementById('periodVariance');
+            var periodAchievement = document.getElementById('periodAchievement');
+            
+            if (periodBudget) periodBudget.innerHTML = 'R ' + Math.round(totalBudget).toLocaleString();
+            if (periodActual) periodActual.innerHTML = 'R ' + totalActual.toLocaleString();
+            if (periodVariance) periodVariance.innerHTML = 'R ' + Math.round(totalVariance).toLocaleString();
+            if (periodAchievement) periodAchievement.innerHTML = totalAchievement + '%';
+            
+            var analysisBody = document.getElementById('analysisBody');
+            if (analysisBody) {
+                analysisBody.innerHTML = html;
+            }
+        }
+
+        function updateMonthlyAnalysis() {
+            var monthIndex = parseInt(document.getElementById('analysisMonth') ? document.getElementById('analysisMonth').value : '0');
+            var manager = document.getElementById('analysisManager') ? document.getElementById('analysisManager').value : 'all';
+            
+            var months = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+            var year = monthIndex <= 9 ? '2026' : '2027';
+            
+            var projectData = {};
+            
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (!p.isSummary && (manager === 'all' || p.manager === manager)) {
+                    var key = (p.manager || '') + '|' + (p.project || '');
+                    if (!projectData[key]) {
+                        projectData[key] = {
+                            manager: p.manager || '',
+                            project: p.project || '',
+                            budget: 0,
+                            actual: 0
+                        };
+                    }
+                    projectData[key].budget += (p.months && p.months[monthIndex]) || 0;
+                }
+            }
+            
+            for (var i = 0; i < dailyRevenue.length; i++) {
+                var r = dailyRevenue[i];
+                var rDate = new Date(r.date);
+                var rMonth = rDate.getMonth();
+                var rAdjustedMonth = (rMonth + 10) % 12;
+                
+                if (rAdjustedMonth === monthIndex && (manager === 'all' || r.manager === manager)) {
+                    var key = (r.manager || '') + '|' + (r.projectName || '');
+                    if (projectData[key]) {
+                        projectData[key].actual += r.amount || 0;
+                    }
+                }
+            }
+            
+            var totalBudget = 0;
+            var totalActual = 0;
+            var html = '';
+            
+            for (var key in projectData) {
+                var p = projectData[key];
+                var variance = (p.actual || 0) - (p.budget || 0);
+                var achievement = p.budget > 0 ? ((p.actual || 0) / p.budget * 100).toFixed(1) : 0;
+                var statusClass = 'danger';
+                if (achievement >= 100) statusClass = 'success';
+                else if (achievement >= 75) statusClass = 'warning';
+                
+                var statusText = 'Behind';
+                if (achievement >= 100) statusText = 'On Target';
+                else if (achievement >= 75) statusText = 'At Risk';
+                
+                totalBudget += p.budget || 0;
+                totalActual += p.actual || 0;
+                
+                html += '<tr>' +
+                    '<td>' + months[monthIndex] + ' ' + year + '</td>' +
+                    '<td>' + (p.manager || '') + '</td>' +
+                    '<td>' + (p.project || '') + '</td>' +
+                    '<td>R ' + (p.budget || 0).toLocaleString() + '</td>' +
+                    '<td>R ' + (p.actual || 0).toLocaleString() + '</td>' +
+                    '<td class="' + (variance >= 0 ? 'variance-positive' : 'variance-negative') + '">R ' + variance.toLocaleString() + '</td>' +
+                    '<td>' + achievement + '%</td>' +
+                    '<td><span class="badge bg-' + statusClass + '">' + statusText + '</span></td>' +
+                '</tr>';
+            }
+            
+            var totalVariance = totalActual - totalBudget;
+            var totalAchievement = totalBudget > 0 ? (totalActual / totalBudget * 100).toFixed(1) : 0;
+            
+            html += '<tr class="total-row">' +
+                '<td><strong>MONTH TOTAL</strong></td>' +
+                '<td></td>' +
+                '<td></td>' +
+                '<td><strong>R ' + totalBudget.toLocaleString() + '</strong></td>' +
+                '<td><strong>R ' + totalActual.toLocaleString() + '</strong></td>' +
+                '<td class="' + (totalVariance >= 0 ? 'variance-positive' : 'variance-negative') + '"><strong>R ' + totalVariance.toLocaleString() + '</strong></td>' +
+                '<td><strong>' + totalAchievement + '%</strong></td>' +
+                '<td></td>' +
+            '</tr>';
+            
+            var periodBudget = document.getElementById('periodBudget');
+            var periodActual = document.getElementById('periodActual');
+            var periodVariance = document.getElementById('periodVariance');
+            var periodAchievement = document.getElementById('periodAchievement');
+            
+            if (periodBudget) periodBudget.innerHTML = 'R ' + totalBudget.toLocaleString();
+            if (periodActual) periodActual.innerHTML = 'R ' + totalActual.toLocaleString();
+            if (periodVariance) periodVariance.innerHTML = 'R ' + totalVariance.toLocaleString();
+            if (periodAchievement) periodAchievement.innerHTML = totalAchievement + '%';
+            
+            var analysisBody = document.getElementById('analysisBody');
+            if (analysisBody) {
+                analysisBody.innerHTML = html || '<tr><td colspan="8" class="text-center">No data for selected month</td></tr>';
+            }
+        }
+
+        function getDateOfWeek(week, year) {
+            var date = new Date(year, 0, 1 + (week - 1) * 7);
+            date.setDate(date.getDate() + (1 - date.getDay()));
+            return date;
+        }
+
+        function distributeEvenly() {
+            var amount = parseFloat(document.getElementById('amount') ? document.getElementById('amount').value : 0) || 0;
+            var each = Math.round(amount / 12);
+            var monthIds = ['mar26','apr26','may26','jun26','jul26','aug26','sep26','oct26','nov26','dec26','jan27','feb27'];
+            
+            for (var i = 0; i < monthIds.length; i++) {
+                var el = document.getElementById(monthIds[i]);
+                if (el) el.value = each;
+            }
+            
+            updateScheduledTotal();
+        }
+
+        function updateScheduledTotal() {
+            var total = 0;
+            var monthIds = ['mar26','apr26','may26','jun26','jul26','aug26','sep26','oct26','nov26','dec26','jan27','feb27'];
+            
+            for (var i = 0; i < monthIds.length; i++) {
+                var el = document.getElementById(monthIds[i]);
+                if (el) {
+                    total += parseFloat(el.value) || 0;
+                }
+            }
+            
+            var scheduledTotal = document.getElementById('scheduledTotal');
+            if (scheduledTotal) {
+                scheduledTotal.innerText = total.toLocaleString();
+            }
+        }
+
+        function showTab(tabId, btn) {
+            var tabs = document.querySelectorAll('.tab-content');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].style.display = 'none';
+            }
+            var tab = document.getElementById(tabId);
+            if (tab) tab.style.display = 'block';
+            
+            var navLinks = document.querySelectorAll('.nav-link');
+            for (var i = 0; i < navLinks.length; i++) {
+                navLinks[i].classList.remove('active');
+            }
+            if (btn) btn.classList.add('active');
+            
+            if (tabId === 'analysis') {
+                updateAnalysis();
+            }
+        }
+
+        function updateConnectionStatus(status, message) {
+            var el = document.getElementById('connectionStatus');
+            if (!el) return;
+            
+            el.className = 'connection-status status-' + status;
+            var icon = 'fa-check-circle';
+            if (status === 'checking') icon = 'fa-sync-alt fa-spin';
+            if (status === 'disconnected') icon = 'fa-exclamation-circle';
+            
+            el.innerHTML = '<i class="fas ' + icon + ' me-2"></i> ' + message;
+        }
+
+        function showLoading(message) {
+            var overlay = document.getElementById('loadingOverlay');
+            var msgEl = document.getElementById('loadingMessage');
+            if (msgEl) msgEl.textContent = message || 'Loading...';
+            if (overlay) overlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        function showStatus(message, type) {
+            var statusDiv = document.createElement('div');
+            statusDiv.className = 'status-message status-' + type;
+            statusDiv.textContent = message;
+            document.body.appendChild(statusDiv);
+            setTimeout(function() {
+                statusDiv.remove();
+            }, 3000);
+        }
+
+        function exportToCSV() {
+            var csv = 'Category,Manager,Project,Status,Amount,Mar-26,Apr-26,May-26,Jun-26,Jul-26,Aug-26,Sep-26,Oct-26,Nov-26,Dec-26,Jan-27,Feb-27,Total,Check,Notes\n';
+            
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (p.isSummary) continue;
+                
+                var scheduled = 0;
+                if (p.months) {
+                    for (var m = 0; m < p.months.length; m++) {
+                        scheduled += p.months[m] || 0;
+                    }
+                }
+                var check = scheduled - (p.amount || 0);
+                
+                csv += (p.category || '') + ',' +
+                       (p.manager || '') + ',' +
+                       (p.project || '') + ',' +
+                       (p.status || '') + ',' +
+                       (p.amount || 0) + ',';
+                
+                if (p.months) {
+                    for (var m = 0; m < p.months.length; m++) {
+                        csv += (p.months[m] || 0);
+                        if (m < p.months.length - 1) csv += ',';
+                    }
+                }
+                
+                csv += ',' + scheduled + ',' + check + ',' + (p.notes || '') + '\n';
+            }
+            
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'orderbook.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
