@@ -890,7 +890,7 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Total Income (R) *</label>
-                                    <input type="number" class="form-control" id="totalIncome" step="1000" min="0" required>
+                                    <input type="number" class="form-control" id="totalIncome" step="1000" min="0" required onchange="updateMonthlyTotal()">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Margin % *</label>
@@ -997,7 +997,7 @@
             </div>
         </div>
         
-        <!-- Daily Revenue Tab -->
+        <!-- Daily Revenue Tab - UPDATED with Project as Input and Manager Dropdown -->
         <div id="dailyRevenue" class="tab-content" style="display:none;">
             <div class="row">
                 <div class="col-lg-8 mx-auto">
@@ -1023,14 +1023,34 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3 mb-3">
-                                        <label class="form-label">Project *</label>
-                                        <select class="form-select" id="revProject" required onchange="updateProjectDetails()">
-                                            <option value="">Select Project</option>
+                                        <label class="form-label">Project Manager *</label>
+                                        <select class="form-select" id="revManager" required onchange="updateProjectDetails()">
+                                            <option value="">Select Manager</option>
+                                            <option value="Moses">Moses</option>
+                                            <option value="Johan">Johan</option>
+                                            <option value="Siyanda">Siyanda</option>
+                                            <option value="Dave">Dave</option>
+                                            <option value="James">James</option>
+                                            <option value="Rayman">Rayman</option>
+                                            <option value="Timothy">Timothy</option>
+                                            <option value="Stanley">Stanley</option>
+                                            <option value="Brian">Brian</option>
+                                            <option value="EL CM">EL CM</option>
+                                            <option value="Goven">Goven</option>
+                                            <option value="Elroy">Elroy</option>
+                                            <option value="Mesh">Mesh</option>
+                                            <option value="Vusi">Vusi</option>
+                                            <option value="Tinotenda">Tinotenda</option>
+                                            <option value="Sydney">Sydney</option>
+                                            <option value="Graham">Graham</option>
+                                            <option value="Andrew">Andrew</option>
+                                            <option value="Phillip">Phillip</option>
+                                            <option value="Moeti">Moeti</option>
                                         </select>
                                     </div>
                                     <div class="col-md-3 mb-3">
-                                        <label class="form-label">Project Manager</label>
-                                        <input type="text" class="form-control" id="revManager" readonly>
+                                        <label class="form-label">Project Name *</label>
+                                        <input type="text" class="form-control" id="revProjectName" required placeholder="Enter project name" onchange="updateProjectDetails()">
                                     </div>
                                 </div>
                                 
@@ -1095,8 +1115,8 @@
                                             <tr>
                                                 <th>Date</th>
                                                 <th>Cost Centre</th>
-                                                <th>Project</th>
                                                 <th>Manager</th>
+                                                <th>Project</th>
                                                 <th>Amount</th>
                                                 <th>Budget</th>
                                                 <th>Variance</th>
@@ -1395,7 +1415,7 @@
             spreadsheetId: '1_t7JqItYFEy0cGcA927M-rM6jOZDO8Dh8X8vJlALSq0',
             sheetName: 'Bothwell',
             folderId: '1al8guXtgk-PJWwdNvd2umUXYv4AvwXSM',
-            scriptURL: 'https://script.google.com/macros/s/AKfycbzZ5dvBX_A3n9u3x20bEVmJrhFlQH9Bh4rbUFaN-H27ZSs5JuTYp16w1DMe_tRepIzG/exec' // Replace with your web app URL
+            scriptURL: 'https://script.google.com/macros/s/AKfycbwC2M5B5X5X5X5X5X5X5X5X5X5X5X5X5X5X5X/exec' // Replace with your web app URL
         };
 
         // Global data stores
@@ -1422,26 +1442,142 @@
         function initializeCharts() {
             // Initialize empty charts
             if (typeof ApexCharts !== 'undefined') {
+                // Revenue Chart
                 var revenueOptions = {
-                    chart: { type: 'bar', height: 350, toolbar: { show: true } },
-                    series: [{ name: 'Budget', data: [] }, { name: 'Actual', data: [] }],
-                    xaxis: { categories: [] },
-                    title: { text: 'Monthly Budget vs Actual', align: 'center' },
-                    colors: ['#1e3c72', '#28a745']
+                    chart: { 
+                        type: 'bar', 
+                        height: 350, 
+                        toolbar: { show: true },
+                        animations: { enabled: true }
+                    },
+                    series: [
+                        { name: 'Budget', data: [] },
+                        { name: 'Actual', data: [] }
+                    ],
+                    xaxis: { 
+                        categories: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+                        title: { text: 'Month' }
+                    },
+                    yaxis: {
+                        title: { text: 'Amount (R)' },
+                        labels: {
+                            formatter: function(val) {
+                                return 'R ' + (val/1000).toFixed(0) + 'k';
+                            }
+                        }
+                    },
+                    title: { 
+                        text: 'Monthly Budget vs Actual', 
+                        align: 'center',
+                        style: { fontSize: '16px', fontWeight: 'bold' }
+                    },
+                    colors: ['#1e3c72', '#28a745'],
+                    dataLabels: { 
+                        enabled: true,
+                        formatter: function(val) {
+                            return val > 0 ? 'R ' + (val/1000).toFixed(0) + 'k' : '';
+                        },
+                        offsetY: -20,
+                        style: { fontSize: '11px' }
+                    },
+                    tooltip: { 
+                        y: { 
+                            formatter: function(val) {
+                                return 'R ' + val.toLocaleString();
+                            } 
+                        } 
+                    },
+                    plotOptions: {
+                        bar: {
+                            columnWidth: '60%',
+                            endingShape: 'rounded'
+                        }
+                    },
+                    legend: { position: 'top' }
                 };
                 
                 var revenueChart = new ApexCharts(document.querySelector("#revenueChart"), revenueOptions);
                 revenueChart.render();
+                window.revenueChart = revenueChart;
                 
+                // Cost Centre Pie Chart
                 var pieOptions = {
-                    chart: { type: 'pie', height: 350 },
+                    chart: { 
+                        type: 'pie', 
+                        height: 350,
+                        animations: { enabled: true }
+                    },
                     series: [],
                     labels: [],
-                    title: { text: 'Revenue by Cost Centre', align: 'center' }
+                    title: { 
+                        text: 'Revenue by Cost Centre', 
+                        align: 'center',
+                        style: { fontSize: '16px', fontWeight: 'bold' }
+                    },
+                    tooltip: { 
+                        y: { 
+                            formatter: function(val) {
+                                return 'R ' + val.toLocaleString();
+                            } 
+                        } 
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function(val, opts) {
+                            return opts.w.globals.labels[opts.seriesIndex] + ': R ' + (opts.w.globals.series[opts.seriesIndex]/1000).toFixed(0) + 'k';
+                        }
+                    },
+                    legend: { position: 'bottom' }
                 };
                 
                 var pieChart = new ApexCharts(document.querySelector("#costCentreChart"), pieOptions);
                 pieChart.render();
+                window.pieChart = pieChart;
+                
+                // Analysis Chart
+                var analysisOptions = {
+                    chart: { 
+                        type: 'line', 
+                        height: 300,
+                        toolbar: { show: true },
+                        animations: { enabled: true }
+                    },
+                    series: [
+                        { name: 'Budget', data: [] },
+                        { name: 'Actual', data: [] }
+                    ],
+                    xaxis: { 
+                        categories: [],
+                        title: { text: 'Period' }
+                    },
+                    yaxis: {
+                        title: { text: 'Amount (R)' },
+                        labels: {
+                            formatter: function(val) {
+                                return 'R ' + (val/1000).toFixed(0) + 'k';
+                            }
+                        }
+                    },
+                    title: { 
+                        text: 'Performance Analysis', 
+                        align: 'center',
+                        style: { fontSize: '14px', fontWeight: 'bold' }
+                    },
+                    colors: ['#1e3c72', '#28a745'],
+                    stroke: { curve: 'smooth', width: 3 },
+                    markers: { size: 5 },
+                    tooltip: { 
+                        y: { 
+                            formatter: function(val) {
+                                return 'R ' + val.toLocaleString();
+                            } 
+                        } 
+                    }
+                };
+                
+                var analysisChart = new ApexCharts(document.querySelector("#analysisChart"), analysisOptions);
+                analysisChart.render();
+                window.analysisChart = analysisChart;
             }
         }
 
@@ -1462,18 +1598,16 @@
                     var weekInput = document.getElementById('analysisWeek');
                     var monthInput = document.getElementById('analysisMonth');
                     
-                    dateInput.style.display = 'none';
-                    weekInput.style.display = 'none';
-                    monthInput.style.display = 'none';
+                    if (dateInput) dateInput.style.display = 'none';
+                    if (weekInput) weekInput.style.display = 'none';
+                    if (monthInput) monthInput.style.display = 'none';
                     
-                    if (e.target.value === 'daily') {
+                    if (e.target.value === 'daily' && dateInput) {
                         dateInput.style.display = 'block';
-                    } else if (e.target.value === 'weekly') {
+                    } else if (e.target.value === 'weekly' && weekInput) {
                         weekInput.style.display = 'block';
-                    } else if (e.target.value === 'monthly') {
+                    } else if (e.target.value === 'monthly' && monthInput) {
                         monthInput.style.display = 'block';
-                    } else if (e.target.value === 'ytd') {
-                        // Hide all for YTD view
                     }
                     
                     updateAnalysis();
@@ -1482,7 +1616,7 @@
         }
 
         function populateManagerDropdowns() {
-            var managerSelects = ['analysisManager', 'projectManager'];
+            var managerSelects = ['analysisManager', 'projectManager', 'revManager'];
             
             for (var s = 0; s < managerSelects.length; s++) {
                 var select = document.getElementById(managerSelects[s]);
@@ -1563,57 +1697,71 @@
             }
         }
 
+        // UPDATED: Clear fields when cost centre changes
         function loadProjectsForRevenue() {
             var costCentre = document.getElementById('revCostCentre') ? document.getElementById('revCostCentre').value : '';
-            var projectSelect = document.getElementById('revProject');
-            
-            if (!projectSelect) return;
-            
-            projectSelect.innerHTML = '<option value="">Select Project</option>';
-            
-            if (!costCentre) return;
-            
-            for (var i = 0; i < projects.length; i++) {
-                var p = projects[i];
-                if (p.costCentre === costCentre && !p.isSummary) {
-                    p.id = i + 1;
-                    var option = document.createElement('option');
-                    option.value = p.id;
-                    option.setAttribute('data-project', JSON.stringify(p));
-                    option.textContent = p.projectName + ' - R ' + (p.totalIncome || 0).toLocaleString();
-                    projectSelect.appendChild(option);
-                }
-            }
-        }
-
-        function updateProjectDetails() {
-            var select = document.getElementById('revProject');
-            if (!select) return;
-            
-            var selected = select.options[select.selectedIndex];
             var managerField = document.getElementById('revManager');
+            var projectField = document.getElementById('revProjectName');
             var monthlyField = document.getElementById('revMonthlyTarget');
             var budgetField = document.getElementById('revDailyBudget');
             
-            if (selected && selected.dataset.project) {
-                var project = JSON.parse(selected.dataset.project);
-                
-                if (managerField) managerField.value = project.manager || '';
-                
-                var today = new Date();
-                var monthIndex = today.getMonth() - 2; // Adjust for March start
-                if (monthIndex < 0) monthIndex += 12;
-                
-                if (monthIndex >= 0 && monthIndex < 12) {
-                    var monthlyTarget = (project.months && project.months[monthIndex]) || 0;
-                    if (monthlyField) monthlyField.value = 'R ' + monthlyTarget.toLocaleString();
-                    
-                    var dailyBudget = monthlyTarget > 0 ? Math.round(monthlyTarget / 22) : 0;
-                    if (budgetField) budgetField.value = 'R ' + dailyBudget.toLocaleString();
-                }
-                
-                calculateDailyVariance();
+            // Clear fields
+            if (managerField) managerField.value = '';
+            if (projectField) projectField.value = '';
+            if (monthlyField) monthlyField.value = '';
+            if (budgetField) budgetField.value = 'R 0';
+            
+            document.getElementById('revVariance').value = 'R 0';
+            document.getElementById('revAmount').value = '';
+        }
+
+        // UPDATED: Find matching project and update budget
+        function updateProjectDetails() {
+            var costCentre = document.getElementById('revCostCentre') ? document.getElementById('revCostCentre').value : '';
+            var manager = document.getElementById('revManager') ? document.getElementById('revManager').value : '';
+            var projectName = document.getElementById('revProjectName') ? document.getElementById('revProjectName').value : '';
+            var monthlyField = document.getElementById('revMonthlyTarget');
+            var budgetField = document.getElementById('revDailyBudget');
+            
+            if (!budgetField) return;
+            
+            if (!costCentre || !manager || !projectName) {
+                if (monthlyField) monthlyField.value = '';
+                budgetField.value = 'R 0';
+                document.getElementById('revVariance').value = 'R 0';
+                return;
             }
+            
+            // Try to find matching project in the projects array
+            var matchingProject = null;
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (p.costCentre === costCentre && 
+                    p.manager === manager && 
+                    p.projectName.toLowerCase() === projectName.toLowerCase() && 
+                    !p.isSummary) {
+                    matchingProject = p;
+                    break;
+                }
+            }
+            
+            var today = new Date();
+            var monthIndex = today.getMonth() - 2; // Adjust for March start
+            if (monthIndex < 0) monthIndex += 12;
+            
+            if (matchingProject && monthIndex >= 0 && monthIndex < 12) {
+                var monthlyTarget = (matchingProject.months && matchingProject.months[monthIndex]) || 0;
+                if (monthlyField) monthlyField.value = 'R ' + monthlyTarget.toLocaleString();
+                
+                var dailyBudget = monthlyTarget > 0 ? Math.round(monthlyTarget / 22) : 0;
+                budgetField.value = 'R ' + dailyBudget.toLocaleString();
+            } else {
+                // Project not found or no monthly data
+                if (monthlyField) monthlyField.value = 'R 0';
+                budgetField.value = 'R 0';
+            }
+            
+            calculateDailyVariance();
         }
 
         function calculateDailyVariance() {
@@ -1695,31 +1843,52 @@
             }
         }
 
+        // UPDATED: Submit daily revenue with project as input
         async function submitDailyRevenue() {
-            var projectSelect = document.getElementById('revProject');
-            if (!projectSelect) return;
+            var costCentre = document.getElementById('revCostCentre') ? document.getElementById('revCostCentre').value : '';
+            var manager = document.getElementById('revManager') ? document.getElementById('revManager').value : '';
+            var projectName = document.getElementById('revProjectName') ? document.getElementById('revProjectName').value : '';
+            var amount = parseFloat(document.getElementById('revAmount') ? document.getElementById('revAmount').value : 0) || 0;
             
-            var selected = projectSelect.options[projectSelect.selectedIndex];
-            
-            if (!selected || !selected.value) {
-                showStatus('Please select a project', 'error');
+            if (!costCentre) {
+                showStatus('Please select a cost centre', 'error');
                 return;
             }
-
-            var project = JSON.parse(selected.dataset.project || '{}');
-            var amount = parseFloat(document.getElementById('revAmount') ? document.getElementById('revAmount').value : 0) || 0;
+            
+            if (!manager) {
+                showStatus('Please select a project manager', 'error');
+                return;
+            }
+            
+            if (!projectName) {
+                showStatus('Please enter a project name', 'error');
+                return;
+            }
             
             if (amount <= 0) {
                 showStatus('Please enter a valid amount', 'error');
                 return;
             }
 
+            // Find project ID if project exists
+            var projectId = '';
+            for (var i = 0; i < projects.length; i++) {
+                var p = projects[i];
+                if (p.costCentre === costCentre && 
+                    p.manager === manager && 
+                    p.projectName.toLowerCase() === projectName.toLowerCase() && 
+                    !p.isSummary) {
+                    projectId = p.id || (i + 1);
+                    break;
+                }
+            }
+
             var revenueData = {
                 date: document.getElementById('revDate') ? document.getElementById('revDate').value : '',
-                costCentre: document.getElementById('revCostCentre') ? document.getElementById('revCostCentre').value : '',
-                projectId: project.id || '',
-                projectName: project.projectName || '',
-                manager: project.manager || '',
+                costCentre: costCentre,
+                projectId: projectId,
+                projectName: projectName,
+                manager: manager,
                 amount: amount,
                 notes: document.getElementById('revNotes') ? document.getElementById('revNotes').value : ''
             };
@@ -1745,6 +1914,12 @@
                     showStatus('Daily revenue saved', 'success');
                     document.getElementById('revAmount').value = '';
                     document.getElementById('revNotes').value = '';
+                    document.getElementById('revProjectName').value = '';
+                    document.getElementById('revManager').value = '';
+                    document.getElementById('revCostCentre').value = '';
+                    document.getElementById('revMonthlyTarget').value = '';
+                    document.getElementById('revDailyBudget').value = 'R 0';
+                    document.getElementById('revVariance').value = 'R 0';
                     await loadAllData();
                 } else {
                     throw new Error(result.error || 'Failed to save revenue');
@@ -1826,6 +2001,7 @@
             document.getElementById('todayAchievement').innerHTML = achievement + '%';
         }
 
+        // UPDATED: Recent revenue table with correct fields
         function updateRecentRevenueTable() {
             var tbody = document.getElementById('recentRevenueTable');
             if (!tbody) return;
@@ -1865,8 +2041,8 @@
                 html += '<tr>' +
                     '<td>' + (r.date || '') + '</td>' +
                     '<td>' + (r.costCentre || '') + '</td>' +
-                    '<td>' + (r.projectName || '') + '</td>' +
                     '<td>' + (r.manager || '') + '</td>' +
+                    '<td>' + (r.projectName || '') + '</td>' +
                     '<td>R ' + (r.amount || 0).toLocaleString() + '</td>' +
                     '<td>R ' + Math.round(budget).toLocaleString() + '</td>' +
                     '<td class="' + varianceClass + '">R ' + Math.round(variance).toLocaleString() + '</td>' +
@@ -1913,7 +2089,7 @@
                 // Calculate YTD Actual
                 var ytdActual = 0;
                 var currentMonth = new Date().getMonth();
-                var adjustedMonth = (currentMonth + 10) % 12; // Adjust for March start
+                var adjustedMonth = (currentMonth + 10) % 12;
                 
                 for (var r = 0; r < dailyRevenue.length; r++) {
                     if (dailyRevenue[r].projectName === p.projectName && dailyRevenue[r].manager === p.manager) {
@@ -2318,86 +2494,80 @@
         function updateCharts() {
             if (typeof ApexCharts === 'undefined') return;
             
-            // Revenue Chart
-            var months = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
-            var budgetData = new Array(12).fill(0);
-            var actualData = new Array(12).fill(0);
-            
-            for (var i = 0; i < projects.length; i++) {
-                var p = projects[i];
-                if (p.isSummary || !p.months) continue;
+            try {
+                // Prepare monthly data
+                var months = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+                var budgetData = new Array(12).fill(0);
+                var actualData = new Array(12).fill(0);
                 
-                for (var m = 0; m < 12; m++) {
-                    budgetData[m] += p.months[m] || 0;
+                // Calculate budget from projects
+                for (var i = 0; i < projects.length; i++) {
+                    var p = projects[i];
+                    if (p.isSummary || !p.months) continue;
+                    
+                    for (var m = 0; m < 12; m++) {
+                        budgetData[m] += (p.months[m] || 0);
+                    }
                 }
-            }
-            
-            for (var r = 0; r < dailyRevenue.length; r++) {
-                var date = new Date(dailyRevenue[r].date);
-                var monthIndex = date.getMonth() - 2;
-                if (monthIndex < 0) monthIndex += 12;
                 
-                if (monthIndex >= 0 && monthIndex < 12) {
-                    actualData[monthIndex] += dailyRevenue[r].amount || 0;
+                // Calculate actual from daily revenue
+                for (var r = 0; r < dailyRevenue.length; r++) {
+                    var rev = dailyRevenue[r];
+                    if (rev && rev.date) {
+                        var date = new Date(rev.date);
+                        if (!isNaN(date.getTime())) {
+                            var monthIndex = date.getMonth() - 2; // Adjust for March start
+                            if (monthIndex < 0) monthIndex += 12;
+                            
+                            if (monthIndex >= 0 && monthIndex < 12) {
+                                actualData[monthIndex] += rev.amount || 0;
+                            }
+                        }
+                    }
                 }
-            }
-            
-            var revenueOptions = {
-                chart: { type: 'bar', height: 350, toolbar: { show: true } },
-                series: [
-                    { name: 'Budget', data: budgetData },
-                    { name: 'Actual', data: actualData }
-                ],
-                xaxis: { categories: months },
-                title: { text: 'Monthly Budget vs Actual', align: 'center' },
-                colors: ['#1e3c72', '#28a745'],
-                dataLabels: { enabled: true, formatter: function(val) { return 'R ' + (val/1000).toFixed(0) + 'k'; } },
-                tooltip: { y: { formatter: function(val) { return 'R ' + val.toLocaleString(); } } }
-            };
-            
-            var revenueChart = document.querySelector("#revenueChart");
-            if (revenueChart) {
-                if (revenueChart.chart) revenueChart.chart.destroy();
-                var chart = new ApexCharts(revenueChart, revenueOptions);
-                chart.render();
-                revenueChart.chart = chart;
-            }
-            
-            // Cost Centre Pie Chart
-            var ccData = {};
-            for (var c = 0; c < costCentres.length; c++) {
-                ccData[costCentres[c]] = 0;
-            }
-            
-            for (var i = 0; i < projects.length; i++) {
-                var p = projects[i];
-                if (p.isSummary || !p.costCentre) continue;
-                ccData[p.costCentre] += p.totalIncome || 0;
-            }
-            
-            var pieSeries = [];
-            var pieLabels = [];
-            for (var c in ccData) {
-                if (ccData[c] > 0) {
-                    pieSeries.push(ccData[c]);
-                    pieLabels.push(c);
+                
+                // Update Revenue Chart
+                if (window.revenueChart) {
+                    window.revenueChart.updateOptions({
+                        xaxis: { categories: months }
+                    });
+                    window.revenueChart.updateSeries([
+                        { name: 'Budget', data: budgetData },
+                        { name: 'Actual', data: actualData }
+                    ]);
                 }
-            }
-            
-            var pieOptions = {
-                chart: { type: 'pie', height: 350 },
-                series: pieSeries,
-                labels: pieLabels,
-                title: { text: 'Revenue by Cost Centre', align: 'center' },
-                tooltip: { y: { formatter: function(val) { return 'R ' + val.toLocaleString(); } } }
-            };
-            
-            var pieChart = document.querySelector("#costCentreChart");
-            if (pieChart) {
-                if (pieChart.chart) pieChart.chart.destroy();
-                var chart = new ApexCharts(pieChart, pieOptions);
-                chart.render();
-                pieChart.chart = chart;
+                
+                // Update Cost Centre Pie Chart
+                var ccData = {};
+                for (var c = 0; c < costCentres.length; c++) {
+                    ccData[costCentres[c]] = 0;
+                }
+                
+                for (var i = 0; i < projects.length; i++) {
+                    var p = projects[i];
+                    if (p.isSummary || !p.costCentre) continue;
+                    if (ccData.hasOwnProperty(p.costCentre)) {
+                        ccData[p.costCentre] += p.totalIncome || 0;
+                    }
+                }
+                
+                var pieSeries = [];
+                var pieLabels = [];
+                for (var cc in ccData) {
+                    if (ccData[cc] > 0) {
+                        pieSeries.push(ccData[cc]);
+                        pieLabels.push(cc);
+                    }
+                }
+                
+                if (window.pieChart) {
+                    window.pieChart.updateOptions({
+                        labels: pieLabels
+                    });
+                    window.pieChart.updateSeries(pieSeries);
+                }
+            } catch (error) {
+                console.error('Error updating charts:', error);
             }
         }
 
@@ -2538,6 +2708,9 @@
             }
             
             document.getElementById('analysisBody').innerHTML = html || '<tr><td colspan="9" class="text-center">No data for selected date</td></tr>';
+            
+            // Update analysis chart
+            updateAnalysisChart(view, costCentre, manager, date);
         }
 
         function updateWeeklyAnalysis(costCentre, manager) {
@@ -2829,6 +3002,106 @@
             document.getElementById('analysisBody').innerHTML = html;
         }
 
+        function updateAnalysisChart(view, costCentre, manager, date) {
+            if (typeof ApexCharts === 'undefined' || !window.analysisChart) return;
+            
+            try {
+                var categories = [];
+                var budgetData = [];
+                var actualData = [];
+                
+                if (view === 'daily') {
+                    // For daily view, show last 7 days
+                    var today = new Date();
+                    for (var i = 6; i >= 0; i--) {
+                        var d = new Date(today);
+                        d.setDate(today.getDate() - i);
+                        var dateStr = d.toISOString().split('T')[0];
+                        categories.push(dateStr);
+                        
+                        // Calculate budget and actual for this day
+                        var dayBudget = 0;
+                        var dayActual = 0;
+                        
+                        // Budget from projects
+                        for (var j = 0; j < projects.length; j++) {
+                            var p = projects[j];
+                            if (p.isSummary) continue;
+                            
+                            if (costCentre !== 'all' && p.costCentre !== costCentre) continue;
+                            if (manager !== 'all' && p.manager !== manager) continue;
+                            
+                            var monthIndex = d.getMonth() - 2;
+                            if (monthIndex < 0) monthIndex += 12;
+                            
+                            if (monthIndex >= 0 && monthIndex < 12) {
+                                var monthlyBudget = (p.months && p.months[monthIndex]) || 0;
+                                dayBudget += monthlyBudget > 0 ? monthlyBudget / 22 : 0;
+                            }
+                        }
+                        
+                        // Actual from daily revenue
+                        for (var r = 0; r < dailyRevenue.length; r++) {
+                            var rev = dailyRevenue[r];
+                            if (rev.date === dateStr) {
+                                if (costCentre !== 'all' && rev.costCentre !== costCentre) continue;
+                                if (manager !== 'all' && rev.manager !== manager) continue;
+                                dayActual += rev.amount || 0;
+                            }
+                        }
+                        
+                        budgetData.push(dayBudget);
+                        actualData.push(dayActual);
+                    }
+                } else if (view === 'monthly') {
+                    categories = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+                    budgetData = new Array(12).fill(0);
+                    actualData = new Array(12).fill(0);
+                    
+                    for (var i = 0; i < projects.length; i++) {
+                        var p = projects[i];
+                        if (p.isSummary || !p.months) continue;
+                        
+                        if (costCentre !== 'all' && p.costCentre !== costCentre) continue;
+                        if (manager !== 'all' && p.manager !== manager) continue;
+                        
+                        for (var m = 0; m < 12; m++) {
+                            budgetData[m] += (p.months[m] || 0);
+                        }
+                    }
+                    
+                    for (var r = 0; r < dailyRevenue.length; r++) {
+                        var rev = dailyRevenue[r];
+                        if (rev && rev.date) {
+                            if (costCentre !== 'all' && rev.costCentre !== costCentre) continue;
+                            if (manager !== 'all' && rev.manager !== manager) continue;
+                            
+                            var date = new Date(rev.date);
+                            if (!isNaN(date.getTime())) {
+                                var monthIndex = date.getMonth() - 2;
+                                if (monthIndex < 0) monthIndex += 12;
+                                
+                                if (monthIndex >= 0 && monthIndex < 12) {
+                                    actualData[monthIndex] += rev.amount || 0;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                window.analysisChart.updateOptions({
+                    xaxis: { categories: categories }
+                });
+                window.analysisChart.updateSeries([
+                    { name: 'Budget', data: budgetData },
+                    { name: 'Actual', data: actualData }
+                ]);
+                
+            } catch (error) {
+                console.error('Error updating analysis chart:', error);
+            }
+        }
+
         function getDateOfWeek(week, year) {
             var date = new Date(year, 0, 1 + (week - 1) * 7);
             date.setDate(date.getDate() + (1 - date.getDay()));
@@ -2840,6 +3113,7 @@
             updateRecentRevenueTable();
             updateDashboardKPIs();
             updateTodayStats();
+            updateCharts();
             
             var lastUpdated = document.getElementById('lastUpdated');
             if (lastUpdated) {
@@ -2852,31 +3126,31 @@
             
             projects = [
                 // Onpoint Group Projects
-                { costCentre: 'Onpoint Group', projectName: 'DBSA Generators', location: 'Pretoria', manager: 'Moses', status: 'Confirmed', totalIncome: 28400000, margin: 45, startDate: '2026-03-01', endDate: '2026-08-31', remarks: 'Generator installation', months: [7666667, 7666667, 7666667, 0, 0, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
-                { costCentre: 'Onpoint Group', projectName: 'Joe Gqabi', location: 'Johannesburg', manager: 'Dave', status: 'Confirmed', totalIncome: 68479374, margin: 20, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'To close by Feb less retention', months: [3800000, 3800000, 3800000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000], isSummary: false },
-                { costCentre: 'Onpoint Group', projectName: 'Temba', location: 'Temba', manager: 'James', status: 'Confirmed', totalIncome: 58800000, margin: 30, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Mechanical works', months: [4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000], isSummary: false },
-                { costCentre: 'Onpoint Group', projectName: 'Coega', location: 'Coega', manager: 'Rayman', status: 'Confirmed', totalIncome: 74434783, margin: 30, startDate: '2026-03-01', endDate: '2026-10-31', remarks: 'General buildings', months: [8373913, 8373913, 8373913, 8373913, 8373913, 8373913, 8373913, 8373913, 0, 0, 0, 0], isSummary: false },
-                { costCentre: 'Onpoint Group', projectName: 'Coega Forecast', location: 'Coega', manager: 'Rayman', status: 'Forecast', totalIncome: 25565217, margin: 30, startDate: '2026-11-01', endDate: '2027-02-28', remarks: 'Additional works', months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
-                { costCentre: 'Onpoint Group', projectName: 'COT Streetlights', location: 'Tshwane', manager: 'Brian', status: 'Confirmed', totalIncome: 3000000, margin: 45, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Streetlight maintenance', months: [250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000], isSummary: false },
-                { costCentre: 'Onpoint Group', projectName: 'COT Electrification', location: 'Tshwane', manager: 'Brian', status: 'Confirmed', totalIncome: 10000000, margin: 45, startDate: '2026-06-01', endDate: '2027-01-31', remarks: 'Electrification project', months: [0, 0, 0, 1000000, 1000000, 1000000, 2000000, 2000000, 1000000, 1000000, 1000000, 0], isSummary: false },
+                { id: 1, costCentre: 'Onpoint Group', projectName: 'DBSA Generators', location: 'Pretoria', manager: 'Moses', status: 'Confirmed', totalIncome: 28400000, margin: 45, startDate: '2026-03-01', endDate: '2026-08-31', remarks: 'Generator installation', months: [7666667, 7666667, 7666667, 0, 0, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
+                { id: 2, costCentre: 'Onpoint Group', projectName: 'Joe Gqabi', location: 'Johannesburg', manager: 'Dave', status: 'Confirmed', totalIncome: 68479374, margin: 20, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'To close by Feb less retention', months: [3800000, 3800000, 3800000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000], isSummary: false },
+                { id: 3, costCentre: 'Onpoint Group', projectName: 'Temba', location: 'Temba', manager: 'James', status: 'Confirmed', totalIncome: 58800000, margin: 30, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Mechanical works', months: [4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000, 4410000], isSummary: false },
+                { id: 4, costCentre: 'Onpoint Group', projectName: 'Coega', location: 'Coega', manager: 'Rayman', status: 'Confirmed', totalIncome: 74434783, margin: 30, startDate: '2026-03-01', endDate: '2026-10-31', remarks: 'General buildings', months: [8373913, 8373913, 8373913, 8373913, 8373913, 8373913, 8373913, 8373913, 0, 0, 0, 0], isSummary: false },
+                { id: 5, costCentre: 'Onpoint Group', projectName: 'Coega Forecast', location: 'Coega', manager: 'Rayman', status: 'Forecast', totalIncome: 25565217, margin: 30, startDate: '2026-11-01', endDate: '2027-02-28', remarks: 'Additional works', months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
+                { id: 6, costCentre: 'Onpoint Group', projectName: 'COT Streetlights', location: 'Tshwane', manager: 'Brian', status: 'Confirmed', totalIncome: 3000000, margin: 45, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Streetlight maintenance', months: [250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000, 250000], isSummary: false },
+                { id: 7, costCentre: 'Onpoint Group', projectName: 'COT Electrification', location: 'Tshwane', manager: 'Brian', status: 'Confirmed', totalIncome: 10000000, margin: 45, startDate: '2026-06-01', endDate: '2027-01-31', remarks: 'Electrification project', months: [0, 0, 0, 1000000, 1000000, 1000000, 2000000, 2000000, 1000000, 1000000, 1000000, 0], isSummary: false },
                 
                 // Aqua Telecoms Projects
-                { costCentre: 'Aqua Telecoms', projectName: 'Stellenbosh', location: 'Cape Town', manager: 'Stanley', status: 'Confirmed', totalIncome: 10034021, margin: 50, startDate: '2026-04-01', endDate: '2027-01-31', remarks: 'Electrical works', months: [0, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 0], isSummary: false },
-                { costCentre: 'Aqua Telecoms', projectName: 'Liquid ECPG', location: 'Gauteng', manager: 'Govern', status: 'Confirmed', totalIncome: 22000000, margin: 65, startDate: '2026-03-01', endDate: '2026-06-30', remarks: 'Telecoms infrastructure', months: [5500000, 5500000, 5500000, 5500000, 0, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
-                { costCentre: 'Aqua Telecoms', projectName: 'Liquid Gauteng SOD', location: 'Gauteng', manager: 'Mesh', status: 'Confirmed', totalIncome: 12000000, margin: 45, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'SOD project', months: [1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000], isSummary: false },
-                { costCentre: 'Aqua Telecoms', projectName: 'Telkom', location: 'National', manager: 'Tinotenda', status: 'Confirmed', totalIncome: 18000000, margin: 20, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Telkom infrastructure', months: [1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000], isSummary: false },
-                { costCentre: 'Aqua Telecoms', projectName: 'Centlec', location: 'Free State', manager: 'Stanley', status: 'Confirmed', totalIncome: 36000000, margin: 50, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Electrical distribution', months: [3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000], isSummary: false },
+                { id: 8, costCentre: 'Aqua Telecoms', projectName: 'Stellenbosh', location: 'Cape Town', manager: 'Stanley', status: 'Confirmed', totalIncome: 10034021, margin: 50, startDate: '2026-04-01', endDate: '2027-01-31', remarks: 'Electrical works', months: [0, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 0], isSummary: false },
+                { id: 9, costCentre: 'Aqua Telecoms', projectName: 'Liquid ECPG', location: 'Gauteng', manager: 'Govern', status: 'Confirmed', totalIncome: 22000000, margin: 65, startDate: '2026-03-01', endDate: '2026-06-30', remarks: 'Telecoms infrastructure', months: [5500000, 5500000, 5500000, 5500000, 0, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
+                { id: 10, costCentre: 'Aqua Telecoms', projectName: 'Liquid Gauteng SOD', location: 'Gauteng', manager: 'Mesh', status: 'Confirmed', totalIncome: 12000000, margin: 45, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'SOD project', months: [1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000], isSummary: false },
+                { id: 11, costCentre: 'Aqua Telecoms', projectName: 'Telkom', location: 'National', manager: 'Tinotenda', status: 'Confirmed', totalIncome: 18000000, margin: 20, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Telkom infrastructure', months: [1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000], isSummary: false },
+                { id: 12, costCentre: 'Aqua Telecoms', projectName: 'Centlec', location: 'Free State', manager: 'Stanley', status: 'Confirmed', totalIncome: 36000000, margin: 50, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Electrical distribution', months: [3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 3000000], isSummary: false },
                 
                 // Nkanyezi Projects
-                { costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Metering', location: 'Moqhaka', manager: 'Phillip', status: 'Confirmed', totalIncome: 1800000, margin: 45, startDate: '2026-03-01', endDate: '2026-08-31', remarks: 'Metering project', months: [300000, 300000, 300000, 300000, 300000, 300000, 0, 0, 0, 0, 0, 0], isSummary: false },
-                { costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Streetlights', location: 'Moqhaka', manager: 'Phillip', status: 'Confirmed', totalIncome: 3600000, margin: 45, startDate: '2026-06-01', endDate: '2026-11-30', remarks: 'Streetlight installation', months: [0, 0, 0, 600000, 600000, 600000, 600000, 600000, 600000, 0, 0, 0], isSummary: false },
-                { costCentre: 'Nkanyezi Projects', projectName: 'Eskom WC', location: 'Western Cape', manager: 'Phillip', status: 'Confirmed', totalIncome: 1200000, margin: 45, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Eskom maintenance', months: [100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000], isSummary: false },
-                { costCentre: 'Nkanyezi Projects', projectName: 'COE Buildings', location: 'Gauteng', manager: 'Moeti', status: 'Confirmed', totalIncome: 3000000, margin: 30, startDate: '2026-05-01', endDate: '2026-07-31', remarks: 'Building maintenance', months: [0, 0, 566667, 566667, 566667, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
-                { costCentre: 'Nkanyezi Projects', projectName: 'Midvaal Water', location: 'Midvaal', manager: 'Phillip', status: 'Confirmed', totalIncome: 500000, margin: 30, startDate: '2026-06-01', endDate: '2026-07-31', remarks: 'Water project', months: [0, 0, 0, 250000, 250000, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
+                { id: 13, costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Metering', location: 'Moqhaka', manager: 'Phillip', status: 'Confirmed', totalIncome: 1800000, margin: 45, startDate: '2026-03-01', endDate: '2026-08-31', remarks: 'Metering project', months: [300000, 300000, 300000, 300000, 300000, 300000, 0, 0, 0, 0, 0, 0], isSummary: false },
+                { id: 14, costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Streetlights', location: 'Moqhaka', manager: 'Phillip', status: 'Confirmed', totalIncome: 3600000, margin: 45, startDate: '2026-06-01', endDate: '2026-11-30', remarks: 'Streetlight installation', months: [0, 0, 0, 600000, 600000, 600000, 600000, 600000, 600000, 0, 0, 0], isSummary: false },
+                { id: 15, costCentre: 'Nkanyezi Projects', projectName: 'Eskom WC', location: 'Western Cape', manager: 'Phillip', status: 'Confirmed', totalIncome: 1200000, margin: 45, startDate: '2026-03-01', endDate: '2027-02-28', remarks: 'Eskom maintenance', months: [100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000], isSummary: false },
+                { id: 16, costCentre: 'Nkanyezi Projects', projectName: 'COE Buildings', location: 'Gauteng', manager: 'Moeti', status: 'Confirmed', totalIncome: 3000000, margin: 30, startDate: '2026-05-01', endDate: '2026-07-31', remarks: 'Building maintenance', months: [0, 0, 566667, 566667, 566667, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
+                { id: 17, costCentre: 'Nkanyezi Projects', projectName: 'Midvaal Water', location: 'Midvaal', manager: 'Phillip', status: 'Confirmed', totalIncome: 500000, margin: 30, startDate: '2026-06-01', endDate: '2026-07-31', remarks: 'Water project', months: [0, 0, 0, 250000, 250000, 0, 0, 0, 0, 0, 0, 0], isSummary: false },
                 
                 // DI Solutions
-                { costCentre: 'DI Solutions', projectName: 'Digital Transformation', location: 'Johannesburg', manager: 'Graham', status: 'Confirmed', totalIncome: 15000000, margin: 40, startDate: '2026-03-01', endDate: '2026-12-31', remarks: 'IT infrastructure', months: [1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 0, 0], isSummary: false },
-                { costCentre: 'DI Solutions', projectName: 'Cloud Migration', location: 'Cape Town', manager: 'Andrew', status: 'Forecast', totalIncome: 8000000, margin: 35, startDate: '2026-09-01', endDate: '2027-02-28', remarks: 'Cloud services', months: [0, 0, 0, 0, 0, 0, 0, 0, 1333333, 1333333, 1333333, 1333333], isSummary: false }
+                { id: 18, costCentre: 'DI Solutions', projectName: 'Digital Transformation', location: 'Johannesburg', manager: 'Graham', status: 'Confirmed', totalIncome: 15000000, margin: 40, startDate: '2026-03-01', endDate: '2026-12-31', remarks: 'IT infrastructure', months: [1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 1500000, 0, 0], isSummary: false },
+                { id: 19, costCentre: 'DI Solutions', projectName: 'Cloud Migration', location: 'Cape Town', manager: 'Andrew', status: 'Forecast', totalIncome: 8000000, margin: 35, startDate: '2026-09-01', endDate: '2027-02-28', remarks: 'Cloud services', months: [0, 0, 0, 0, 0, 0, 0, 0, 1333333, 1333333, 1333333, 1333333], isSummary: false }
             ];
             
             var today = new Date().toISOString().split('T')[0];
@@ -2888,7 +3162,11 @@
                 { date: '2026-03-17', costCentre: 'Onpoint Group', projectName: 'DBSA Generators', manager: 'Moses', amount: 320000 },
                 { date: '2026-03-17', costCentre: 'Aqua Telecoms', projectName: 'Liquid ECPG', manager: 'Govern', amount: 280000 },
                 { date: '2026-03-16', costCentre: 'Onpoint Group', projectName: 'Temba', manager: 'James', amount: 200000 },
-                { date: '2026-03-16', costCentre: 'Aqua Telecoms', projectName: 'Centlec', manager: 'Stanley', amount: 150000 }
+                { date: '2026-03-16', costCentre: 'Aqua Telecoms', projectName: 'Centlec', manager: 'Stanley', amount: 150000 },
+                { date: '2026-03-15', costCentre: 'Onpoint Group', projectName: 'Coega', manager: 'Rayman', amount: 380000 },
+                { date: '2026-03-15', costCentre: 'DI Solutions', projectName: 'Digital Transformation', manager: 'Graham', amount: 680000 },
+                { date: '2026-03-14', costCentre: 'Onpoint Group', projectName: 'COT Streetlights', manager: 'Brian', amount: 12000 },
+                { date: '2026-03-14', costCentre: 'Aqua Telecoms', projectName: 'Telkom', manager: 'Tinotenda', amount: 95000 }
             ];
             
             refreshAllUI();
@@ -2997,6 +3275,10 @@
             
             if (tabId === 'analysis') {
                 updateAnalysis();
+                var view = document.getElementById('analysisView') ? document.getElementById('analysisView').value : 'daily';
+                var costCentre = document.getElementById('analysisCostCentre') ? document.getElementById('analysisCostCentre').value : 'all';
+                var manager = document.getElementById('analysisManager') ? document.getElementById('analysisManager').value : 'all';
+                updateAnalysisChart(view, costCentre, manager);
             } else if (tabId === 'dailyRevenue') {
                 updateTodayStats();
                 updateRecentRevenueTable();
@@ -3004,7 +3286,9 @@
                 updateOrderBookTable();
             } else if (tabId === 'dashboard') {
                 updateDashboardKPIs();
-                updateCharts();
+                setTimeout(function() {
+                    updateCharts();
+                }, 100);
             }
         }
 
