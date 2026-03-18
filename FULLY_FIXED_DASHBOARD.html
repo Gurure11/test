@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onpoint Dashboard (Fully Fixed)</title>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<style>
+body { font-family: Arial; background:#f5f7fa; padding:20px; }
+.kpi { display:inline-block; margin:10px; padding:15px; background:white; border-radius:8px; }
+</style>
+</head>
+<body>
+
+<h2>Dashboard (Fully Fixed)</h2>
+
+<div class="kpi">YTD: <span id="kpiYTD">0</span></div>
+<div class="kpi">BTYE: <span id="kpiBTYE">0</span></div>
+<div class="kpi">GP: <span id="kpiGP">0</span></div>
+
+<div id="chart"></div>
+
+<script>
+const CONFIG = {
+  scriptURL: "PASTE_YOUR_SCRIPT_URL"
+};
+
+let projects = [];
+let dailyRevenue = [];
+
+function calculateYTD(name, manager){
+  return dailyRevenue
+    .filter(r=>r.projectName===name && r.manager===manager)
+    .reduce((s,r)=>s+(Number(r.amount)||0),0);
+}
+
+function calculateGP(total, margin){
+  return total * (margin/100);
+}
+
+function updateKPIs(){
+  let totalIncome=0, totalActual=0, totalGP=0;
+
+  projects.forEach(p=>{
+    let ytd = calculateYTD(p.projectName,p.manager);
+    totalIncome += Number(p.totalIncome||0);
+    totalActual += ytd;
+    totalGP += calculateGP(p.totalIncome,p.margin||0);
+  });
+
+  document.getElementById("kpiYTD").innerText = totalActual.toLocaleString();
+  document.getElementById("kpiBTYE").innerText = (totalIncome-totalActual).toLocaleString();
+  document.getElementById("kpiGP").innerText = Math.round(totalGP).toLocaleString();
+}
+
+function updateChart(){
+  let data = projects.map(p=>p.totalIncome||0);
+  let names = projects.map(p=>p.projectName);
+
+  new ApexCharts(document.querySelector("#chart"),{
+    chart:{type:'bar'},
+    series:[{data}],
+    xaxis:{categories:names}
+  }).render();
+}
+
+async function loadData(){
+  const res = await fetch(CONFIG.scriptURL+"?action=getAllData");
+  const data = await res.json();
+  projects = data.projects;
+  dailyRevenue = data.revenue;
+
+  updateKPIs();
+  updateChart();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
