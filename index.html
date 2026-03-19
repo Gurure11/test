@@ -1,83 +1,2388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Onpoint Dashboard (Fully Fixed)</title>
-
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-<style>
-body { font-family: Arial; background:#f5f7fa; padding:20px; }
-.kpi { display:inline-block; margin:10px; padding:15px; background:white; border-radius:8px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onpoint Group - Project Management System</title>
+    
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/apexcharts/dist/apexcharts.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1e3c72;
+            --secondary: #2a5298;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+        
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .company-header {
+            background: white;
+            border-radius: 30px;
+            padding: 25px 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-bottom: 5px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .company-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(30,60,114,0.05) 0%, rgba(42,82,152,0.1) 100%);
+            clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+        }
+        
+        .company-title {
+            color: var(--primary);
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+            position: relative;
+        }
+        
+        .company-subtitle {
+            color: #6c757d;
+            font-size: 18px;
+            font-weight: 400;
+        }
+        
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+        
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-checking {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .nav-custom {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .nav-custom .nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .nav-custom .nav-link {
+            color: #6c757d;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .nav-custom .nav-link:hover {
+            background: var(--gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        }
+        
+        .nav-custom .nav-link.active {
+            background: var(--gradient);
+            color: white;
+        }
+        
+        .nav-custom .nav-link i {
+            margin-right: 10px;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--primary);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(30,60,114,0.03) 0%, rgba(42,82,152,0.05) 100%);
+            border-radius: 50%;
+        }
+        
+        .kpi-icon {
+            font-size: 40px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--dark);
+            margin: 10px 0;
+            line-height: 1.2;
+        }
+        
+        .kpi-label {
+            color: #6c757d;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .kpi-trend {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            background: white;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: var(--gradient);
+            color: white;
+            border-radius: 0 !important;
+            padding: 20px 25px;
+            font-weight: 600;
+            font-size: 18px;
+            border: none;
+        }
+        
+        .card-header i {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            overflow-x: auto;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            font-size: 14px;
+            width: 100%;
+        }
+        
+        .table thead th {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 15px 10px;
+            white-space: nowrap;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .table tbody td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+        
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .company-row {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e9ecef 100%);
+            font-weight: 700;
+        }
+        
+        .company-row td {
+            color: var(--primary);
+            font-size: 15px;
+        }
+        
+        .total-row {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            font-weight: 800;
+        }
+        
+        .grand-total {
+            background: var(--gradient);
+            color: white !important;
+            font-weight: 800;
+        }
+        
+        .grand-total td {
+            color: white !important;
+        }
+        
+        .badge-confirmed {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .badge-forecast {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 25px;
+            padding: 35px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 12px 18px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(30,60,114,0.25);
+        }
+        
+        .monthly-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        @media (max-width: 1200px) {
+            .monthly-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .monthly-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .btn-primary {
+            background: var(--gradient);
+            border: none;
+            padding: 14px 35px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            padding: 14px 35px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            color: white;
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--gradient);
+            color: white;
+            border-color: transparent;
+        }
+        
+        .kpi-nav-btn {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            color: white;
+            transition: all 0.3s;
+            margin-left: 15px;
+        }
+        
+        .kpi-nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255,193,7,0.4);
+        }
+        
+        .status-message {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 20px 35px;
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideIn 0.3s;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .status-success { background: linear-gradient(135deg, #28a745, #20c997); }
+        .status-error { background: linear-gradient(135deg, #dc3545, #c82333); }
+        .status-info { background: linear-gradient(135deg, #17a2b8, #138496); }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.98);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: all 0.3s;
+            font-size: 24px;
+        }
+        
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+        }
+        
+        .daily-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .chart-container {
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .variance-positive {
+            color: #28a745;
+            font-weight: 700;
+        }
+        
+        .variance-negative {
+            color: #dc3545;
+            font-weight: 700;
+        }
+        
+        .analysis-filters {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .data-summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        
+        .project-count {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 20px;
+        }
+    </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div style="font-size: 18px; color: var(--primary); font-weight: 600;" id="loadingMessage">Loading data from Google Sheets...</div>
+        </div>
+    </div>
+    
+    <!-- Refresh Button -->
+    <div class="refresh-btn" onclick="loadAllData()" title="Refresh Data">
+        <i class="fas fa-sync-alt"></i>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header -->
+        <div class="company-header">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="company-title">
+                        ONPOINT GROUP
+                        <span class="connection-status status-checking" id="connectionStatus">
+                            <i class="fas fa-sync-alt fa-spin me-2"></i> Connecting...
+                        </span>
+                    </div>
+                    <div class="company-subtitle">
+                        Project Management System
+                    </div>
+                </div>
+                <div>
+                    <button class="kpi-nav-btn" onclick="window.location.href='kpi.html'">
+                        <i class="fas fa-chart-line me-2"></i>View KPI Dashboard
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Key Metrics Summary -->
+            <div class="data-summary d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <i class="fas fa-project-diagram me-2 text-primary"></i>
+                    <span class="project-count" id="totalProjects">0</span> Active Projects
+                </div>
+                <div>
+                    <i class="fas fa-check-circle me-2 text-success"></i>
+                    Confirmed: <strong id="totalConfirmedDisplay">R 0</strong>
+                </div>
+                <div>
+                    <i class="fas fa-chart-line me-2 text-warning"></i>
+                    Forecast: <strong id="totalForecastDisplay">R 0</strong>
+                </div>
+                <div>
+                    <i class="fas fa-chart-pie me-2 text-info"></i>
+                    YTD Actual: <strong id="ytdActualDisplay">R 0</strong>
+                </div>
+                <div>
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                    <span id="lastUpdated"><i class="far fa-clock me-1"></i>Loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="nav-custom">
+            <div class="nav">
+                <button class="nav-link active" onclick="showTab('dashboard', this)">
+                    <i class="fas fa-chart-pie"></i> Dashboard
+                </button>
+                <button class="nav-link" onclick="showTab('projects', this)">
+                    <i class="fas fa-tasks"></i> Project Entry
+                </button>
+                <button class="nav-link" onclick="showTab('dailyRevenue', this)">
+                    <i class="fas fa-calendar-day"></i> Daily Revenue
+                </button>
+                <button class="nav-link" onclick="showTab('orderbook', this)">
+                    <i class="fas fa-book"></i> Order Book
+                </button>
+                <button class="nav-link" onclick="showTab('analysis', this)">
+                    <i class="fas fa-chart-line"></i> Performance Analysis
+                </button>
+                <button class="nav-link" onclick="showTab('reports', this)">
+                    <i class="fas fa-file-alt"></i> Reports
+                </button>
+            </div>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <div class="kpi-label">Total Order Book</div>
+                    <div class="kpi-value" id="kpiTotalOrderBook">R 0</div>
+                    <div class="kpi-trend">
+                        <span class="text-muted">Confirmed + Forecast</span>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="kpi-icon"><i class="fas fa-check-circle text-success"></i></div>
+                    <div class="kpi-label">Confirmed</div>
+                    <div class="kpi-value" id="kpiConfirmed">R 0</div>
+                    <div class="kpi-trend">
+                        <span class="text-muted">Total Confirmed Projects</span>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="kpi-icon"><i class="fas fa-chart-line text-warning"></i></div>
+                    <div class="kpi-label">Forecast</div>
+                    <div class="kpi-value" id="kpiForecast">R 0</div>
+                    <div class="kpi-trend">
+                        <span class="text-muted">Total Forecast Projects</span>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="kpi-icon"><i class="fas fa-chart-pie text-info"></i></div>
+                    <div class="kpi-label">Group YTD Actual</div>
+                    <div class="kpi-value" id="kpiYTD">R 0</div>
+                    <div class="kpi-trend">
+                        <span class="text-muted">Year to Date Revenue</span>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="kpi-icon"><i class="fas fa-calendar-check text-primary"></i></div>
+                    <div class="kpi-label">Group BTYE</div>
+                    <div class="kpi-value" id="kpiBTYE">R 0</div>
+                    <div class="kpi-trend">
+                        <span class="text-muted">Budget to Year End</span>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="kpi-icon"><i class="fas fa-chart-bar text-success"></i></div>
+                    <div class="kpi-label">Gross Profit</div>
+                    <div class="kpi-value" id="kpiGP">R 0</div>
+                    <div class="kpi-trend">
+                        <span class="text-muted">Total GP All Projects</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Row -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-line"></i> Revenue Performance - Budget vs Actual
+                        </div>
+                        <div class="card-body">
+                            <div id="revenueChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-pie"></i> Revenue by Cost Centre
+                        </div>
+                        <div class="card-body">
+                            <div id="costCentreChart" class="chart-container" style="height: 350px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Revenue by Cost Centre Table -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-building"></i> Revenue by Cost Centre
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Cost Centre</th>
+                                            <th>Confirmed</th>
+                                            <th>Forecast</th>
+                                            <th>Total</th>
+                                            <th>YTD Actual</th>
+                                            <th>Variance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="costCentreTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-bar"></i> Gross Profit by Cost Centre
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Cost Centre</th>
+                                            <th>Gross Profit</th>
+                                            <th>Margin %</th>
+                                            <th>% of Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gpCostCentreTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Projects -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-star"></i> Top 10 Projects by Revenue
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Cost Centre</th>
+                                    <th>Project Name</th>
+                                    <th>Manager</th>
+                                    <th>Status</th>
+                                    <th>Total Income</th>
+                                    <th>YTD Actual</th>
+                                    <th>BTYE</th>
+                                    <th>Achievement</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topProjectsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Project Entry Tab -->
+        <div id="projects" class="tab-content" style="display:none;">
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="form-container">
+                        <h3 class="mb-4"><i class="fas fa-plus-circle text-primary me-2"></i>Add New Project</h3>
+                        
+                        <form id="projectForm" onsubmit="return false;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Cost Centre *</label>
+                                    <select class="form-select" id="costCentre" required>
+                                        <option value="">Select Cost Centre</option>
+                                        <option value="Onpoint Group">Onpoint Group</option>
+                                        <option value="Nkanyezi Projects">Nkanyezi Projects</option>
+                                        <option value="Aqua Telecoms">Aqua Telecoms</option>
+                                        <option value="DI Solutions">DI Solutions</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Project Manager *</label>
+                                    <select class="form-select" id="projectManager" required>
+                                        <option value="">Select Manager</option>
+                                        <option value="Moses">Moses</option>
+                                        <option value="Johan">Johan</option>
+                                        <option value="Siyanda">Siyanda</option>
+                                        <option value="Dave">Dave</option>
+                                        <option value="James">James</option>
+                                        <option value="Rayman">Rayman</option>
+                                        <option value="Timothy">Timothy</option>
+                                        <option value="Stanley">Stanley</option>
+                                        <option value="Brian">Brian</option>
+                                        <option value="EL CM">EL CM</option>
+                                        <option value="Goven">Goven</option>
+                                        <option value="Elroy">Elroy</option>
+                                        <option value="Mesh">Mesh</option>
+                                        <option value="Vusi">Vusi</option>
+                                        <option value="Tinotenda">Tinotenda</option>
+                                        <option value="Sydney">Sydney</option>
+                                        <option value="Graham">Graham</option>
+                                        <option value="Andrew">Andrew</option>
+                                        <option value="Phillip">Phillip</option>
+                                        <option value="Moeti">Moeti</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Project Name *</label>
+                                    <input type="text" class="form-control" id="projectName" required placeholder="Enter project name">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="form-control" id="location" placeholder="Enter project location">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Status *</label>
+                                    <select class="form-select" id="projectStatus" required>
+                                        <option value="Confirmed">Confirmed</option>
+                                        <option value="Forecast">Forecast</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Total Income (R) *</label>
+                                    <input type="number" class="form-control" id="totalIncome" step="1000" min="0" required onchange="updateMonthlyTotal()">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Margin % *</label>
+                                    <input type="number" class="form-control" id="margin" step="0.1" min="0" max="100" value="30" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Contract Start Date</label>
+                                    <input type="date" class="form-control" id="startDate">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Contract End Date</label>
+                                    <input type="date" class="form-control" id="endDate">
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header bg-light text-dark">
+                                    <i class="fas fa-calendar-alt me-2"></i>Monthly Target Income Spread
+                                </div>
+                                <div class="card-body">
+                                    <div class="monthly-grid">
+                                        <div>
+                                            <label class="form-label">Mar-26</label>
+                                            <input type="number" class="form-control month-input" id="mar26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Apr-26</label>
+                                            <input type="number" class="form-control month-input" id="apr26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">May-26</label>
+                                            <input type="number" class="form-control month-input" id="may26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Jun-26</label>
+                                            <input type="number" class="form-control month-input" id="jun26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Jul-26</label>
+                                            <input type="number" class="form-control month-input" id="jul26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Aug-26</label>
+                                            <input type="number" class="form-control month-input" id="aug26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Sep-26</label>
+                                            <input type="number" class="form-control month-input" id="sep26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Oct-26</label>
+                                            <input type="number" class="form-control month-input" id="oct26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Nov-26</label>
+                                            <input type="number" class="form-control month-input" id="nov26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Dec-26</label>
+                                            <input type="number" class="form-control month-input" id="dec26" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Jan-27</label>
+                                            <input type="number" class="form-control month-input" id="jan27" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Feb-27</label>
+                                            <input type="number" class="form-control month-input" id="feb27" value="0" onchange="updateMonthlyTotal()">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mt-4">
+                                        <button type="button" class="btn btn-outline-primary" onclick="distributeEvenly()">
+                                            <i class="fas fa-calculator me-2"></i>Distribute Evenly
+                                        </button>
+                                        <div>
+                                            <strong>Total Scheduled:</strong> 
+                                            <span class="text-primary fs-5 fw-bold ms-2" id="scheduledTotal">R 0</span>
+                                        </div>
+                                        <div>
+                                            <strong>Variance:</strong> 
+                                            <span class="text-danger fs-5 fw-bold ms-2" id="scheduledVariance">R 0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Remarks</label>
+                                <textarea class="form-control" id="remarks" rows="3" placeholder="Any additional notes or remarks"></textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-primary btn-lg" onclick="submitProject()">
+                                    <i class="fas fa-save me-2"></i>Save Project
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Daily Revenue Tab -->
+        <div id="dailyRevenue" class="tab-content" style="display:none;">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-calendar-day"></i> Daily Revenue Entry
+                        </div>
+                        <div class="card-body">
+                            <form id="dailyRevenueForm" onsubmit="return false;">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Date *</label>
+                                        <input type="date" class="form-control" id="revDate" required>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Cost Centre *</label>
+                                        <select class="form-select" id="revCostCentre" required onchange="loadProjectsForRevenue()">
+                                            <option value="">Select Cost Centre</option>
+                                            <option value="Onpoint Group">Onpoint Group</option>
+                                            <option value="Nkanyezi Projects">Nkanyezi Projects</option>
+                                            <option value="Aqua Telecoms">Aqua Telecoms</option>
+                                            <option value="DI Solutions">DI Solutions</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Project Manager *</label>
+                                        <select class="form-select" id="revManager" required>
+                                            <option value="">Select Manager</option>
+                                            <option value="Moses">Moses</option>
+                                            <option value="Johan">Johan</option>
+                                            <option value="Siyanda">Siyanda</option>
+                                            <option value="Dave">Dave</option>
+                                            <option value="James">James</option>
+                                            <option value="Rayman">Rayman</option>
+                                            <option value="Timothy">Timothy</option>
+                                            <option value="Stanley">Stanley</option>
+                                            <option value="Brian">Brian</option>
+                                            <option value="EL CM">EL CM</option>
+                                            <option value="Goven">Goven</option>
+                                            <option value="Elroy">Elroy</option>
+                                            <option value="Mesh">Mesh</option>
+                                            <option value="Vusi">Vusi</option>
+                                            <option value="Tinotenda">Tinotenda</option>
+                                            <option value="Sydney">Sydney</option>
+                                            <option value="Graham">Graham</option>
+                                            <option value="Andrew">Andrew</option>
+                                            <option value="Phillip">Phillip</option>
+                                            <option value="Moeti">Moeti</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Project Name *</label>
+                                        <input type="text" class="form-control" id="revProjectName" required placeholder="Enter project name">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Daily Revenue (R) *</label>
+                                        <input type="number" class="form-control" id="revAmount" step="1000" min="0" required oninput="calculateDailyVariance()">
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Monthly Target (R)</label>
+                                        <input type="text" class="form-control" id="revMonthlyTarget" readonly>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Daily Budget (R)</label>
+                                        <input type="text" class="form-control" id="revDailyBudget" readonly>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Variance (R)</label>
+                                        <input type="text" class="form-control" id="revVariance" readonly>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-9 mb-3">
+                                        <label class="form-label">Notes</label>
+                                        <input type="text" class="form-control" id="revNotes" placeholder="Optional notes">
+                                    </div>
+                                    <div class="col-md-3 mb-3 d-flex align-items-end">
+                                        <button type="button" class="btn btn-success w-100" onclick="submitDailyRevenue()">
+                                            <i class="fas fa-save me-2"></i>Save Revenue
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                            
+                            <!-- Today's Stats -->
+                            <div class="daily-stats">
+                                <div class="stat-card">
+                                    <div class="stat-label">Today's Total</div>
+                                    <div class="stat-value" id="todayTotal">R 0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Today's Budget</div>
+                                    <div class="stat-value" id="todayBudget">R 0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Today's Variance</div>
+                                    <div class="stat-value" id="todayVariance">R 0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Achievement</div>
+                                    <div class="stat-value" id="todayAchievement">0%</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Recent Entries -->
+                            <div class="mt-4">
+                                <h5 class="mb-3">Recent Daily Revenue Entries</h5>
+                                <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Cost Centre</th>
+                                                <th>Manager</th>
+                                                <th>Project</th>
+                                                <th>Amount</th>
+                                                <th>Budget</th>
+                                                <th>Variance</th>
+                                                <th>Achievement</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recentRevenueTable"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Book Tab -->
+        <div id="orderbook" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-book"></i> Order Book - All Projects
+                    <div class="float-end">
+                        <button class="btn btn-light btn-sm me-2" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel me-1"></i>Export
+                        </button>
+                        <button class="btn btn-light btn-sm" onclick="printReport()">
+                            <i class="fas fa-print me-1"></i>Print
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table" id="orderBookTable">
+                            <thead>
+                                <tr>
+                                    <th>Cost Centre</th>
+                                    <th>Project Manager</th>
+                                    <th>Project Name</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Total Income</th>
+                                    <th>Mar-26</th>
+                                    <th>Apr-26</th>
+                                    <th>May-26</th>
+                                    <th>Jun-26</th>
+                                    <th>Jul-26</th>
+                                    <th>Aug-26</th>
+                                    <th>Sep-26</th>
+                                    <th>Oct-26</th>
+                                    <th>Nov-26</th>
+                                    <th>Dec-26</th>
+                                    <th>Jan-27</th>
+                                    <th>Feb-27</th>
+                                    <th>Scheduled Total</th>
+                                    <th>Check</th>
+                                    <th>YTD Actual</th>
+                                    <th>BTYE</th>
+                                    <th>Margin %</th>
+                                    <th>Gross Profit</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderBookBody">
+                                <!-- Data populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary by Cost Centre -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-pie"></i> Summary by Cost Centre
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Cost Centre</th>
+                                            <th>Confirmed</th>
+                                            <th>Forecast</th>
+                                            <th>Total Order Book</th>
+                                            <th>YTD Actual</th>
+                                            <th>BTYE</th>
+                                            <th>Gross Profit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="costCentreSummaryTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-bar"></i> Performance by Manager
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Project Manager</th>
+                                            <th>Projects</th>
+                                            <th>Total Value</th>
+                                            <th>YTD Actual</th>
+                                            <th>Achievement</th>
+                                            <th>Gross Profit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="managerSummaryTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance Analysis Tab -->
+        <div id="analysis" class="tab-content" style="display:none;">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-line"></i> Performance Analysis
+                        </div>
+                        <div class="card-body">
+                            <!-- Filters -->
+                            <div class="analysis-filters">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="form-label">View By</label>
+                                        <select class="form-select" id="analysisView" onchange="updateAnalysis()">
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="ytd">Year to Date</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Cost Centre</label>
+                                        <select class="form-select" id="analysisCostCentre" onchange="updateAnalysis()">
+                                            <option value="all">All Cost Centres</option>
+                                            <option value="Onpoint Group">Onpoint Group</option>
+                                            <option value="Nkanyezi Projects">Nkanyezi Projects</option>
+                                            <option value="Aqua Telecoms">Aqua Telecoms</option>
+                                            <option value="DI Solutions">DI Solutions</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Project Manager</label>
+                                        <select class="form-select" id="analysisManager" onchange="updateAnalysis()">
+                                            <option value="all">All Managers</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Period</label>
+                                        <input type="date" class="form-control" id="analysisDate" onchange="updateAnalysis()">
+                                        <input type="week" class="form-control" id="analysisWeek" style="display:none;" onchange="updateAnalysis()">
+                                        <select class="form-select" id="analysisMonth" style="display:none;" onchange="updateAnalysis()">
+                                            <option value="0">March 2026</option>
+                                            <option value="1">April 2026</option>
+                                            <option value="2">May 2026</option>
+                                            <option value="3">June 2026</option>
+                                            <option value="4">July 2026</option>
+                                            <option value="5">August 2026</option>
+                                            <option value="6">September 2026</option>
+                                            <option value="7">October 2026</option>
+                                            <option value="8">November 2026</option>
+                                            <option value="9">December 2026</option>
+                                            <option value="10">January 2027</option>
+                                            <option value="11">February 2027</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                          // Display reports in table
+function displayReports(data) {
+    const tableBody = document.getElementById('reportsTableBody');
+    if (!tableBody) return;
 
-<h2>Dashboard (Fully Fixed)</h2>
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No reports found</td></tr>';
+        return;
+    }
 
-<div class="kpi">YTD: <span id="kpiYTD">0</span></div>
-<div class="kpi">BTYE: <span id="kpiBTYE">0</span></div>
-<div class="kpi">GP: <span id="kpiGP">0</span></div>
+    tableBody.innerHTML = '';
 
-<div id="chart"></div>
-
-<script>
-const CONFIG = {
-  scriptURL: "PASTE_YOUR_SCRIPT_URL"
-};
-
-let projects = [];
-let dailyRevenue = [];
-
-function calculateYTD(name, manager){
-  return dailyRevenue
-    .filter(r=>r.projectName===name && r.manager===manager)
-    .reduce((s,r)=>s+(Number(r.amount)||0),0);
+    data.forEach(report => {
+        const row = `
+            <tr>
+                <td>${report.id || 'N/A'}</td>
+                <td>${report.timestamp ? new Date(report.timestamp).toLocaleString() : 'N/A'}</td>
+                <td>${report.inspectorName || 'N/A'}</td>
+                <td>${report.vehicleReg || 'N/A'}</td>
+                <td>${report.itemsOK || 0}</td>
+                <td>${report.itemsRepair || 0}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="viewReport('${report.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="downloadPDF('${report.id}')">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tableBody.innerHTML += row;
+    });
 }
+                            
+                            <!-- Summary Cards -->
+                            <div class="daily-stats">
+                                <div class="stat-card">
+                                    <div class="stat-label">Budget</div>
+                                    <div class="stat-value" id="analysisBudget">R 0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Actual</div>
+                                    <div class="stat-value" id="analysisActual">R 0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Variance</div>
+                                    <div class="stat-value" id="analysisVariance">R 0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Achievement</div>
+                                    <div class="stat-value" id="analysisAchievement">0%</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Chart -->
+                            <div id="analysisChart" class="chart-container"></div>
+                            
+                            <!-- Analysis Table -->
+                            <div class="table-container mt-4">
+                                <table class="table" id="analysisTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Period</th>
+                                            <th>Cost Centre</th>
+                                            <th>Project Manager</th>
+                                            <th>Project</th>
+                                            <th>Budget</th>
+                                            <th>Actual</th>
+                                            <th>Variance</th>
+                                            <th>Achievement</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="analysisBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content" style="display:none;">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-file-pdf"></i> Generate Reports
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <button class="list-group-item list-group-item-action" onclick="generateReport('orderbook')">
+                                    <i class="fas fa-book me-2 text-primary"></i>Full Order Book Report
+                                </button>
+                                <button class="list-group-item list-group-item-action" onclick="generateReport('performance')">
+                                    <i class="fas fa-chart-line me-2 text-success"></i>Performance Summary
+                                </button>
+                                <button class="list-group-item list-group-item-action" onclick="generateReport('gp')">
+                                    <i class="fas fa-chart-pie me-2 text-info"></i>Gross Profit Analysis
+                                </button>
+                                <button class="list-group-item list-group-item-action" onclick="generateReport('manager')">
+                                    <i class="fas fa-user me-2 text-warning"></i>Manager Performance
+                                </button>
+                                <button class="list-group-item list-group-item-action" onclick="generateReport('costcentre')">
+                                    <i class="fas fa-building me-2 text-danger"></i>Cost Centre Analysis
+                                </button>
+                              <!-- Reports Tab -->
+<div id="reports" class="tab-content" style="display:none;">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-file-pdf"></i> Generate Reports
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('orderbook')">
+                            <i class="fas fa-book me-2 text-primary"></i>Full Order Book Report
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('performance')">
+                            <i class="fas fa-chart-line me-2 text-success"></i>Performance Summary
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('gp')">
+                            <i class="fas fa-chart-pie me-2 text-info"></i>Gross Profit Analysis
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('manager')">
+                            <i class="fas fa-user me-2 text-warning"></i>Manager Performance
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('costcentre')">
+                            <i class="fas fa-building me-2 text-danger"></i>Cost Centre Analysis
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar"></i> Group Performance Summary
+                </div>
+                <div class="card-body">
+                    <div id="reportChart" class="chart-container"></div>
+                    
+                    <!-- ADD THIS TABLE -->
+                    <div class="table-container mt-4">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Inspector</th>
+                                    <th>Vehicle</th>
+                                    <th>OK</th>
+                                    <th>Repair</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">Loading reports...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- END OF ADDED TABLE -->
+                    
+                    <div class="table-container mt-4">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Onpoint Group</th>
+                                    <th>Nkanyezi Projects</th>
+                                    <th>Aqua Telecoms</th>
+                                    <th>DI Solutions</th>
+                                    <th>Group Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groupPerformanceTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-bar"></i> Group Performance Summary
+                        </div>
+                        <div class="card-body">
+                            <div id="reportChart" class="chart-container"></div>
+                            
+                            <div class="table-container mt-4">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Onpoint Group</th>
+                                            <th>Nkanyezi Projects</th>
+                                            <th>Aqua Telecoms</th>
+                                            <th>DI Solutions</th>
+                                            <th>Group Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="groupPerformanceTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-function calculateGP(total, margin){
-  return total * (margin/100);
-}
+    <script>
+        // ==============================================
+        // GOOGLE SHEETS INTEGRATION SCRIPT
+        // ==============================================
+        
+        var projects = [];
+        var dailyRevenue = [];
+        
+        // CONFIG - Your Google Apps Script URL
+        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcUbj8xEI9j57FhAWFBF2OHOO5qlNtiw6MI8_q2RZYGvYo2599-TQ-2G_FghK1uWmJ1Q/exec';
 
-function updateKPIs(){
-  let totalIncome=0, totalActual=0, totalGP=0;
+        document.addEventListener('DOMContentLoaded', function () {
+            loadAllData();
+            setDefaultDates();
+            initializeCharts();
+        });
 
-  projects.forEach(p=>{
-    let ytd = calculateYTD(p.projectName,p.manager);
-    totalIncome += Number(p.totalIncome||0);
-    totalActual += ytd;
-    totalGP += calculateGP(p.totalIncome,p.margin||0);
-  });
+        // ==============================================
+        // UI HELPER FUNCTIONS
+        // ==============================================
+        
+        function showLoading(msg) {
+            var overlay = document.getElementById('loadingOverlay');
+            var text = document.getElementById('loadingMessage');
+            if (overlay) overlay.style.display = 'flex';
+            if (text) text.innerText = msg || 'Loading...';
+        }
 
-  document.getElementById("kpiYTD").innerText = totalActual.toLocaleString();
-  document.getElementById("kpiBTYE").innerText = (totalIncome-totalActual).toLocaleString();
-  document.getElementById("kpiGP").innerText = Math.round(totalGP).toLocaleString();
-}
+        function hideLoading() {
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
 
-function updateChart(){
-  let data = projects.map(p=>p.totalIncome||0);
-  let names = projects.map(p=>p.projectName);
+        function showStatus(message, type) {
+            console.log(type.toUpperCase() + ": " + message);
+            var statusDiv = document.createElement('div');
+            statusDiv.className = 'status-message status-' + type;
+            statusDiv.innerHTML = '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle') + ' me-2"></i>' + message;
+            document.body.appendChild(statusDiv);
+            setTimeout(function() { statusDiv.remove(); }, 3000);
+        }
 
-  new ApexCharts(document.querySelector("#chart"),{
-    chart:{type:'bar'},
-    series:[{data}],
-    xaxis:{categories:names}
-  }).render();
-}
+        function updateConnectionStatus(status, text) {
+            var el = document.getElementById('connectionStatus');
+            if (!el) return;
+            el.className = 'connection-status status-' + status;
+            el.innerHTML = text;
+        }
 
-async function loadData(){
-  const res = await fetch(CONFIG.scriptURL+"?action=getAllData");
-  const data = await res.json();
-  projects = data.projects;
-  dailyRevenue = data.revenue;
+        function setDefaultDates() {
+            var today = new Date().toISOString().split('T')[0];
+            var revDate = document.getElementById('revDate');
+            if (revDate) revDate.value = today;
+        }
 
-  updateKPIs();
-  updateChart();
-}
+        // ==============================================
+        // CHART INITIALIZATION
+        // ==============================================
+        
+        function initializeCharts() {
+            if (typeof ApexCharts !== 'undefined') {
+                // Revenue Chart (Bar Chart)
+                var revenueOptions = {
+                    chart: { 
+                        type: 'bar', 
+                        height: 350, 
+                        toolbar: { show: true },
+                        animations: { enabled: true }
+                    },
+                    series: [
+                        { name: 'Budget', data: [0,0,0,0,0,0,0,0,0,0,0,0] },
+                        { name: 'Actual', data: [0,0,0,0,0,0,0,0,0,0,0,0] }
+                    ],
+                    xaxis: { 
+                        categories: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+                        title: { text: 'Month' }
+                    },
+                    yaxis: {
+                        title: { text: 'Amount (R)' },
+                        labels: {
+                            formatter: function(val) {
+                                return 'R ' + (val/1000).toFixed(0) + 'k';
+                            }
+                        }
+                    },
+                    colors: ['#1e3c72', '#28a745'],
+                    tooltip: { 
+                        y: { 
+                            formatter: function(val) {
+                                return 'R ' + val.toLocaleString();
+                            } 
+                        } 
+                    }
+                };
+                
+                var revenueChart = new ApexCharts(document.querySelector("#revenueChart"), revenueOptions);
+                revenueChart.render();
+                window.revenueChart = revenueChart;
+                
+                // Cost Centre Pie Chart
+                var pieOptions = {
+                    chart: { 
+                        type: 'pie', 
+                        height: 350,
+                        animations: { enabled: true }
+                    },
+                    series: [0],
+                    labels: ['No Data'],
+                    tooltip: { 
+                        y: { 
+                            formatter: function(val) {
+                                return 'R ' + val.toLocaleString();
+                            } 
+                        } 
+                    }
+                };
+                
+                var pieChart = new ApexCharts(document.querySelector("#costCentreChart"), pieOptions);
+                pieChart.render();
+                window.pieChart = pieChart;
+                
+                // Analysis Chart
+                var analysisOptions = {
+                    chart: { 
+                        type: 'line', 
+                        height: 300,
+                        toolbar: { show: true },
+                        animations: { enabled: true }
+                    },
+                    series: [
+                        { name: 'Budget', data: [] },
+                        { name: 'Actual', data: [] }
+                    ],
+                    xaxis: { categories: [] },
+                    colors: ['#1e3c72', '#28a745'],
+                    stroke: { curve: 'smooth', width: 3 }
+                };
+                
+                var analysisChart = new ApexCharts(document.querySelector("#analysisChart"), analysisOptions);
+                analysisChart.render();
+                window.analysisChart = analysisChart;
+            }
+        }
 
-loadData();
-</script>
+        // ==============================================
+        // DATA LOADING FUNCTIONS
+        // ==============================================
+        
+        async function loadAllData() {
+            showLoading("Loading data from Google Sheets...");
+            updateConnectionStatus('checking', '<i class="fas fa-sync-alt fa-spin me-2"></i> Connecting...');
 
+            try {
+                // Initialize sheets first
+                await initializeSheets();
+                
+                // Load projects and revenue
+                await loadProjects();
+                await loadDailyRevenue();
+                
+                if (projects.length > 0 || dailyRevenue.length > 0) {
+                    refreshAllUI();
+                    updateCharts();
+                    updateConnectionStatus('connected', '<i class="fas fa-check-circle me-2"></i> Connected to Google Sheets');
+                    showStatus('Data loaded successfully', 'success');
+                } else {
+                    console.log('No data found, using demo data');
+                    loadDemoData();
+                    updateConnectionStatus('disconnected', '<i class="fas fa-exclamation-circle me-2"></i> No Data - Using Demo Mode');
+                }
+            } catch (e) {
+                console.error('Connection error:', e);
+                loadDemoData();
+                updateConnectionStatus('disconnected', '<i class="fas fa-exclamation-circle me-2"></i> Connection Failed - Demo Mode');
+                showStatus('Could not connect to Google Sheets: ' + e.message, 'error');
+            }
+
+            hideLoading();
+        }
+
+        async function initializeSheets() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=initializeSheets', {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                
+                const text = await response.text();
+                console.log('Initialize sheets response:', text);
+                
+                try {
+                    const data = JSON.parse(text);
+                    return data;
+                } catch (e) {
+                    console.log('Initialize sheets returned non-JSON response:', text.substring(0, 100));
+                    return { success: false, error: 'Invalid response' };
+                }
+            } catch (error) {
+                console.error('Error initializing sheets:', error);
+                throw error;
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                console.log('Fetching projects from:', SCRIPT_URL + '?action=getProjects');
+                
+                const response = await fetch(SCRIPT_URL + '?action=getProjects', {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                
+                const text = await response.text();
+                console.log('Projects response:', text.substring(0, 200));
+                
+                try {
+                    const data = JSON.parse(text);
+                    
+                    if (data.success) {
+                        projects = data.data || [];
+                        console.log('Projects loaded:', projects.length);
+                    } else {
+                        console.log('Projects error:', data.error);
+                        projects = [];
+                    }
+                } catch (e) {
+                    console.error('Failed to parse projects JSON:', e);
+                    projects = [];
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                projects = [];
+                throw error;
+            }
+        }
+
+        async function loadDailyRevenue() {
+            try {
+                console.log('Fetching revenue from:', SCRIPT_URL + '?action=getRevenue');
+                
+                const response = await fetch(SCRIPT_URL + '?action=getRevenue', {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                
+                const text = await response.text();
+                console.log('Revenue response:', text.substring(0, 200));
+                
+                try {
+                    const data = JSON.parse(text);
+                    
+                    if (data.success) {
+                        dailyRevenue = data.data || [];
+                        console.log('Revenue loaded:', dailyRevenue.length);
+                    } else {
+                        console.log('Revenue error:', data.error);
+                        dailyRevenue = [];
+                    }
+                } catch (e) {
+                    console.error('Failed to parse revenue JSON:', e);
+                    dailyRevenue = [];
+                }
+            } catch (error) {
+                console.error('Error loading revenue:', error);
+                dailyRevenue = [];
+                throw error;
+            }
+        }
+
+        // ==============================================
+        // FORM SUBMISSION FUNCTIONS
+        // ==============================================
+        
+        async function submitProject() {
+            var projectData = {
+                costCentre: document.getElementById('costCentre')?.value || '',
+                projectName: document.getElementById('projectName')?.value || '',
+                location: document.getElementById('location')?.value || '',
+                manager: document.getElementById('projectManager')?.value || '',
+                status: document.getElementById('projectStatus')?.value || 'Confirmed',
+                totalIncome: parseFloat(document.getElementById('totalIncome')?.value) || 0,
+                margin: parseFloat(document.getElementById('margin')?.value) || 0,
+                startDate: document.getElementById('startDate')?.value || '',
+                endDate: document.getElementById('endDate')?.value || '',
+                remarks: document.getElementById('remarks')?.value || '',
+                months: [
+                    parseFloat(document.getElementById('mar26')?.value) || 0,
+                    parseFloat(document.getElementById('apr26')?.value) || 0,
+                    parseFloat(document.getElementById('may26')?.value) || 0,
+                    parseFloat(document.getElementById('jun26')?.value) || 0,
+                    parseFloat(document.getElementById('jul26')?.value) || 0,
+                    parseFloat(document.getElementById('aug26')?.value) || 0,
+                    parseFloat(document.getElementById('sep26')?.value) || 0,
+                    parseFloat(document.getElementById('oct26')?.value) || 0,
+                    parseFloat(document.getElementById('nov26')?.value) || 0,
+                    parseFloat(document.getElementById('dec26')?.value) || 0,
+                    parseFloat(document.getElementById('jan27')?.value) || 0,
+                    parseFloat(document.getElementById('feb27')?.value) || 0
+                ]
+            };
+
+            if (!projectData.costCentre) { showStatus('Please select a cost centre', 'error'); return; }
+            if (!projectData.projectName) { showStatus('Please enter project name', 'error'); return; }
+            if (!projectData.manager) { showStatus('Please select a project manager', 'error'); return; }
+            if (!projectData.totalIncome || projectData.totalIncome <= 0) { showStatus('Please enter a valid total income', 'error'); return; }
+
+            showLoading('Saving project to Google Sheets...');
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'addProject');
+                formData.append('data', JSON.stringify({ project: projectData }));
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    redirect: 'follow'
+                });
+
+                const text = await response.text();
+                console.log('Submit project response:', text);
+
+                try {
+                    const data = JSON.parse(text);
+                    
+                    if (data.success) {
+                        showStatus('Project saved successfully', 'success');
+                        document.getElementById('projectForm').reset();
+                        updateMonthlyTotal();
+                        await loadAllData();
+                    } else {
+                        throw new Error(data.error || 'Failed to save project');
+                    }
+                } catch (e) {
+                    console.error('Failed to parse response:', e);
+                    projectData.id = Date.now();
+                    projects.push(projectData);
+                    refreshAllUI();
+                    showStatus('Saved locally - Google Sheets connection issue', 'info');
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                projectData.id = Date.now();
+                projects.push(projectData);
+                refreshAllUI();
+                showStatus('Saved locally - ' + error.message, 'info');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function submitDailyRevenue() {
+            var costCentre = document.getElementById('revCostCentre')?.value || '';
+            var manager = document.getElementById('revManager')?.value || '';
+            var projectName = document.getElementById('revProjectName')?.value || '';
+            var amount = parseFloat(document.getElementById('revAmount')?.value) || 0;
+
+            if (!costCentre || !manager || !projectName || amount <= 0) {
+                showStatus('Please fill all required fields', 'error');
+                return;
+            }
+
+            var projectId = '';
+            for (var i = 0; i < projects.length; i++) {
+                if (projects[i].projectName?.toLowerCase() === projectName.toLowerCase() && 
+                    projects[i].manager === manager) {
+                    projectId = projects[i].id || '';
+                    break;
+                }
+            }
+
+            var revenueData = {
+                date: document.getElementById('revDate')?.value || '',
+                costCentre: costCentre,
+                projectId: projectId,
+                projectName: projectName,
+                manager: manager,
+                amount: amount,
+                notes: document.getElementById('revNotes')?.value || ''
+            };
+
+            showLoading('Saving daily revenue...');
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'addRevenue');
+                formData.append('data', JSON.stringify({ revenue: revenueData }));
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    redirect: 'follow'
+                });
+
+                const text = await response.text();
+                console.log('Submit revenue response:', text);
+
+                try {
+                    const data = JSON.parse(text);
+                    
+                    if (data.success) {
+                        showStatus('Daily revenue saved', 'success');
+                        
+                        document.getElementById('revAmount').value = '';
+                        document.getElementById('revNotes').value = '';
+                        document.getElementById('revProjectName').value = '';
+                        document.getElementById('revManager').value = '';
+                        document.getElementById('revCostCentre').value = '';
+                        document.getElementById('revMonthlyTarget').value = '';
+                        document.getElementById('revDailyBudget').value = 'R 0';
+                        document.getElementById('revVariance').value = 'R 0';
+                        
+                        await loadAllData();
+                    } else {
+                        throw new Error(data.error || 'Failed to save revenue');
+                    }
+                } catch (e) {
+                    console.error('Failed to parse response:', e);
+                    revenueData.id = Date.now();
+                    dailyRevenue.push(revenueData);
+                    refreshAllUI();
+                    showStatus('Saved locally - Google Sheets connection issue', 'info');
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                revenueData.id = Date.now();
+                dailyRevenue.push(revenueData);
+                refreshAllUI();
+                showStatus('Saved locally - ' + error.message, 'info');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ==============================================
+        // ORDER BOOK FUNCTIONS - FIXED
+        // ==============================================
+        
+        function populateOrderBook() {
+            var tbody = document.getElementById('orderBookBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            projects.forEach(p => {
+                var row = `
+                    <tr>
+                        <td>${p.costCentre || ''}</td>
+                        <td>${p.manager || ''}</td>
+                        <td>${p.projectName || ''}</td>
+                        <td>${p.location || ''}</td>
+                        <td><span class="badge-${(p.status || '').toLowerCase()}">${p.status || ''}</span></td>
+                        <td>R ${(p.totalIncome || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[0] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[1] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[2] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[3] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[4] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[5] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[6] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[7] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[8] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[9] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[10] || 0).toLocaleString()}</td>
+                        <td>R ${(p.months?.[11] || 0).toLocaleString()}</td>
+                        <td>R ${((p.months || []).reduce((a,b) => a + (b || 0), 0)).toLocaleString()}</td>
+                        <td>R ${(((p.months || []).reduce((a,b) => a + (b || 0), 0)) - (p.totalIncome || 0)).toLocaleString()}</td>
+                        <td>R ${dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === p.manager).reduce((sum, r) => sum + (r.amount || 0), 0).toLocaleString()}</td>
+                        <td>R ${((p.totalIncome || 0) - dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === p.manager).reduce((sum, r) => sum + (r.amount || 0), 0)).toLocaleString()}</td>
+                        <td>${p.margin || 0}%</td>
+                        <td>R ${Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100)).toLocaleString()}</td>
+                        <td>${p.remarks || ''}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function getCostCentreSummary() {
+            var summary = {};
+
+            projects.forEach(p => {
+                var cc = p.costCentre || 'Unknown';
+
+                if (!summary[cc]) {
+                    summary[cc] = { total: 0, count: 0 };
+                }
+
+                summary[cc].total += Number(p.totalIncome || 0);
+                summary[cc].count++;
+            });
+
+            return summary;
+        }
+
+        function getManagerPerformance() {
+            var summary = {};
+
+            projects.forEach(p => {
+                var m = p.manager || 'Unknown';
+
+                if (!summary[m]) {
+                    summary[m] = { total: 0, count: 0 };
+                }
+
+                summary[m].total += Number(p.totalIncome || 0);
+                summary[m].count++;
+            });
+
+            return summary;
+        }
+
+        function updateCostCentreSummaryTable() {
+            var tbody = document.getElementById('costCentreSummaryTable');
+            if (!tbody) return;
+            
+            var summary = getCostCentreSummary();
+            var html = '';
+            
+            for (var cc in summary) {
+                html += '<tr>' +
+                    '<td>' + cc + '</td>' +
+                    '<td>' + summary[cc].count + '</td>' +
+                    '<td>R ' + summary[cc].total.toLocaleString() + '</td>' +
+                '</tr>';
+            }
+            
+            tbody.innerHTML = html || '<tr><td colspan="3" class="text-center">No data</td></tr>';
+        }
+
+        function updateManagerSummaryTable() {
+            var tbody = document.getElementById('managerSummaryTable');
+            if (!tbody) return;
+            
+            var summary = getManagerPerformance();
+            var html = '';
+            
+            for (var m in summary) {
+                html += '<tr>' +
+                    '<td>' + m + '</td>' +
+                    '<td>' + summary[m].count + '</td>' +
+                    '<td>R ' + summary[m].total.toLocaleString() + '</td>' +
+                '</tr>';
+            }
+            
+            tbody.innerHTML = html || '<tr><td colspan="3" class="text-center">No data</td></tr>';
+        }
+
+        // ==============================================
+        // REPORT FUNCTIONS - FIXED
+        // ==============================================
+        
+        function generateReport(type) {
+            let data = '';
+            let filename = '';
+
+            if (type === 'orderbook') {
+                data = 'Cost Centre,Project Manager,Project Name,Location,Status,Total Income,Mar-26,Apr-26,May-26,Jun-26,Jul-26,Aug-26,Sep-26,Oct-26,Nov-26,Dec-26,Jan-27,Feb-27,Scheduled Total,Check,YTD Actual,BTYE,Margin %,Gross Profit,Remarks\n';
+                projects.forEach(p => {
+                    var scheduled = (p.months || []).reduce((a,b) => a + (b || 0), 0);
+                    var ytdActual = dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === p.manager).reduce((sum, r) => sum + (r.amount || 0), 0);
+                    var check = scheduled - (p.totalIncome || 0);
+                    var btye = (p.totalIncome || 0) - ytdActual;
+                    var gp = Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100));
+                    
+                    data += `${p.costCentre || ''},${p.manager || ''},${p.projectName || ''},${p.location || ''},${p.status || ''},${p.totalIncome || 0}`;
+                    for (var m = 0; m < 12; m++) {
+                        data += `,${(p.months?.[m] || 0)}`;
+                    }
+                    data += `,${scheduled},${check},${ytdActual},${btye},${p.margin || 0},${gp},${p.remarks || ''}\n`;
+                });
+                filename = 'orderbook_report.csv';
+            }
+
+            if (type === 'manager') {
+                var summary = getManagerPerformance();
+                data = 'Manager,Projects,Total Income\n';
+                for (var m in summary) {
+                    data += `${m},${summary[m].count},${summary[m].total}\n`;
+                }
+                filename = 'manager_performance.csv';
+            }
+
+            if (type === 'costcentre') {
+                var summary = getCostCentreSummary();
+                data = 'Cost Centre,Projects,Total Income\n';
+                for (var c in summary) {
+                    data += `${c},${summary[c].count},${summary[c].total}\n`;
+                }
+                filename = 'costcentre_summary.csv';
+            }
+
+            if (type === 'performance') {
+                data = 'Metric,Value\n';
+                data += `Total Projects,${projects.length}\n`;
+                data += `Total Income,R ${projects.reduce((sum, p) => sum + (p.totalIncome || 0), 0).toLocaleString()}\n`;
+                data += `YTD Actual,R ${dailyRevenue.reduce((sum, r) => sum + (r.amount || 0), 0).toLocaleString()}\n`;
+                filename = 'performance_summary.csv';
+            }
+
+            if (type === 'gp') {
+                data = 'Cost Centre,Project,Gross Profit\n';
+                projects.forEach(p => {
+                    var gp = Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100));
+                    data += `${p.costCentre || ''},${p.projectName || ''},${gp}\n`;
+                });
+                filename = 'gross_profit_analysis.csv';
+            }
+
+            downloadCSV(data, filename);
+            showStatus(type + ' report generated', 'success');
+        }
+
+        function downloadCSV(data, filename) {
+            var blob = new Blob([data], { type: 'text/csv' });
+            var url = URL.createObjectURL(blob);
+
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+
+            URL.revokeObjectURL(url);
+        }
+
+        // ==============================================
+        // UI UPDATE FUNCTIONS - UPDATED
+        // ==============================================
+        
+        function refreshAllUI() {
+            console.log("Refreshing UI with", projects.length, "projects and", dailyRevenue.length, "revenue entries");
+            
+            // Calculate totals
+            var totalIncome = projects.reduce((sum, p) => sum + (p.totalIncome || 0), 0);
+            var confirmedIncome = projects.filter(p => p.status === 'Confirmed').reduce((sum, p) => sum + (p.totalIncome || 0), 0);
+            var forecastIncome = projects.filter(p => p.status === 'Forecast').reduce((sum, p) => sum + (p.totalIncome || 0), 0);
+            var totalActual = dailyRevenue.reduce((sum, r) => sum + (r.amount || 0), 0);
+            var totalGP = projects.reduce((sum, p) => sum + ((p.totalIncome || 0) * ((p.margin || 0) / 100)), 0);
+            
+            // Update KPI cards
+            document.getElementById('kpiTotalOrderBook').innerText = 'R ' + totalIncome.toLocaleString();
+            document.getElementById('kpiConfirmed').innerText = 'R ' + confirmedIncome.toLocaleString();
+            document.getElementById('kpiForecast').innerText = 'R ' + forecastIncome.toLocaleString();
+            document.getElementById('kpiYTD').innerText = 'R ' + totalActual.toLocaleString();
+            document.getElementById('kpiBTYE').innerText = 'R ' + (totalIncome - totalActual).toLocaleString();
+            document.getElementById('kpiGP').innerText = 'R ' + Math.round(totalGP).toLocaleString();
+            
+            document.getElementById('totalConfirmedDisplay').innerText = 'R ' + confirmedIncome.toLocaleString();
+            document.getElementById('totalForecastDisplay').innerText = 'R ' + forecastIncome.toLocaleString();
+            document.getElementById('ytdActualDisplay').innerText = 'R ' + totalActual.toLocaleString();
+            document.getElementById('totalProjects').innerText = projects.length.toString();
+            
+            var lastUpdated = document.getElementById('lastUpdated');
+            if (lastUpdated) {
+                lastUpdated.innerHTML = '<i class="far fa-clock me-1"></i>' + new Date().toLocaleTimeString();
+            }
+            
+            // Populate all tables
+            populateOrderBook();
+            updateCostCentreSummaryTable();
+            updateManagerSummaryTable();
+            updateRecentRevenueTable();
+        }
+
+        function updateRecentRevenueTable() {
+            var tbody = document.getElementById('recentRevenueTable');
+            if (!tbody) return;
+            
+            var recentHtml = '';
+            var sortedRevenue = [...dailyRevenue].sort((a, b) => new Date(b.date) - new Date(a.date));
+            sortedRevenue.slice(0, 20).forEach(r => {
+                recentHtml += '<tr>' +
+                    '<td>' + (r.date || '') + '</td>' +
+                    '<td>' + (r.costCentre || '') + '</td>' +
+                    '<td>' + (r.manager || '') + '</td>' +
+                    '<td>' + (r.projectName || '') + '</td>' +
+                    '<td>R ' + (r.amount || 0).toLocaleString() + '</td>' +
+                    '<td>-</td>' +
+                    '<td>-</td>' +
+                    '<td>-</td>' +
+                '</tr>';
+            });
+            
+            document.getElementById('recentRevenueTable').innerHTML = recentHtml || '<tr><td colspan="8" class="text-center">No entries found</td></tr>';
+        }
+
+        function updateCharts() {
+            if (!window.revenueChart || !window.pieChart) return;
+            
+            try {
+                // Prepare monthly data (Mar to Feb)
+                var budgetData = new Array(12).fill(0);
+                var actualData = new Array(12).fill(0);
+                
+                // Calculate budget from projects
+                projects.forEach(p => {
+                    if (p.months) {
+                        for (var m = 0; m < 12; m++) {
+                            budgetData[m] += (p.months[m] || 0);
+                        }
+                    }
+                });
+                
+                // Calculate actual from daily revenue
+                dailyRevenue.forEach(r => {
+                    if (r.date) {
+                        var date = new Date(r.date);
+                        if (!isNaN(date.getTime())) {
+                            var monthIndex = date.getMonth(); // 0-11 (Jan-Dec)
+                            // Adjust for Mar start (Mar = index 2)
+                            var adjustedIndex = (monthIndex + 10) % 12;
+                            actualData[adjustedIndex] += r.amount || 0;
+                        }
+                    }
+                });
+                
+                window.revenueChart.updateSeries([
+                    { name: 'Budget', data: budgetData },
+                    { name: 'Actual', data: actualData }
+                ]);
+                
+                // Update Cost Centre Pie Chart
+                var ccData = {};
+                projects.forEach(p => {
+                    if (!ccData[p.costCentre]) ccData[p.costCentre] = 0;
+                    ccData[p.costCentre] += p.totalIncome || 0;
+                });
+                
+                var pieSeries = [];
+                var pieLabels = [];
+                for (var cc in ccData) {
+                    if (ccData[cc] > 0) {
+                        pieSeries.push(ccData[cc]);
+                        pieLabels.push(cc);
+                    }
+                }
+                
+                if (pieSeries.length === 0) {
+                    pieSeries = [1];
+                    pieLabels = ['No Data'];
+                }
+                
+                window.pieChart.updateOptions({ labels: pieLabels });
+                window.pieChart.updateSeries(pieSeries);
+            } catch (error) {
+                console.error('Error updating charts:', error);
+            }
+        }
+
+        function loadDemoData() {
+            projects = [
+                { id: 1, costCentre: 'Onpoint Group', projectName: 'DBSA Generators', location: 'Pretoria', manager: 'Moses', status: 'Confirmed', totalIncome: 28400000, margin: 45, remarks: 'Generator installation', months: [7666667, 7666667, 7666667, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                { id: 2, costCentre: 'Onpoint Group', projectName: 'Joe Gqabi', location: 'Johannesburg', manager: 'Dave', status: 'Confirmed', totalIncome: 68479374, margin: 20, remarks: 'To close by Feb less retention', months: [3800000, 3800000, 3800000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000] },
+                { id: 3, costCentre: 'Aqua Telecoms', projectName: 'Stellenbosh', location: 'Cape Town', manager: 'Stanley', status: 'Confirmed', totalIncome: 10034021, margin: 50, remarks: 'Electrical works', months: [0, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 0] },
+                { id: 4, costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Metering', location: 'Moqhaka', manager: 'Phillip', status: 'Confirmed', totalIncome: 1800000, margin: 45, remarks: 'Metering project', months: [300000, 300000, 300000, 300000, 300000, 300000, 0, 0, 0, 0, 0, 0] }
+            ];
+            
+            var today = new Date().toISOString().split('T')[0];
+            dailyRevenue = [
+                { date: today, costCentre: 'Onpoint Group', projectName: 'DBSA Generators', manager: 'Moses', amount: 350000 },
+                { date: today, costCentre: 'Onpoint Group', projectName: 'Joe Gqabi', manager: 'Dave', amount: 180000 },
+                { date: '2026-03-17', costCentre: 'Aqua Telecoms', projectName: 'Stellenbosh', manager: 'Stanley', amount: 250000 },
+                { date: '2026-03-16', costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Metering', manager: 'Phillip', amount: 15000 }
+            ];
+            
+            refreshAllUI();
+            updateCharts();
+        }
+
+        function updateMonthlyTotal() {
+            var inputs = document.querySelectorAll('.month-input');
+            var total = 0;
+
+            inputs.forEach(function (input) {
+                total += parseFloat(input.value) || 0;
+            });
+
+            var totalEl = document.getElementById('scheduledTotal');
+            if (totalEl) totalEl.innerText = 'R ' + total.toLocaleString();
+
+            var income = parseFloat(document.getElementById('totalIncome')?.value) || 0;
+            var variance = income - total;
+
+            var varEl = document.getElementById('scheduledVariance');
+            if (varEl) {
+                varEl.innerText = 'R ' + variance.toLocaleString();
+                varEl.className = variance === 0 ? 'text-success' : 'text-danger';
+            }
+        }
+
+        function distributeEvenly() {
+            var income = parseFloat(document.getElementById('totalIncome')?.value) || 0;
+            var inputs = document.querySelectorAll('.month-input');
+
+            if (!inputs.length) return;
+
+            var value = income / inputs.length;
+
+            inputs.forEach(function (input) {
+                input.value = value.toFixed(0);
+            });
+
+            updateMonthlyTotal();
+        }
+
+        function loadProjectsForRevenue() {
+            document.getElementById('revMonthlyTarget').value = '';
+            document.getElementById('revDailyBudget').value = 'R 0';
+            document.getElementById('revVariance').value = 'R 0';
+            document.getElementById('revAmount').value = '';
+        }
+
+        function calculateDailyVariance() {
+            var amount = parseFloat(document.getElementById('revAmount')?.value) || 0;
+            var budgetText = document.getElementById('revDailyBudget')?.value || 'R 0';
+            var budget = parseFloat(budgetText.replace(/[^0-9.-]+/g, '')) || 0;
+
+            var variance = amount - budget;
+
+            var el = document.getElementById('revVariance');
+            if (el) el.value = 'R ' + variance.toLocaleString();
+        }
+
+        // ==============================================
+        // TAB NAVIGATION
+        // ==============================================
+        
+        function showTab(tabId, btn) {
+            var tabs = document.querySelectorAll('.tab-content');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].style.display = 'none';
+            }
+            var tab = document.getElementById(tabId);
+            if (tab) tab.style.display = 'block';
+            
+            var navLinks = document.querySelectorAll('.nav-link');
+            for (var i = 0; i < navLinks.length; i++) {
+                navLinks[i].classList.remove('active');
+            }
+            if (btn) btn.classList.add('active');
+            
+            // Update charts when switching to dashboard
+            if (tabId === 'dashboard') {
+                setTimeout(updateCharts, 100);
+            }
+            
+            // Update order book when switching to that tab
+            if (tabId === 'orderbook') {
+                populateOrderBook();
+                updateCostCentreSummaryTable();
+                updateManagerSummaryTable();
+            }
+        }
+
+        // ==============================================
+        // EXPORT FUNCTIONS
+        // ==============================================
+        
+        function exportToExcel() {
+            generateReport('orderbook');
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function updateAnalysis() {
+            showStatus('Analysis feature coming soon', 'info');
+        }
+    </script>
+
+    <!-- ApexCharts library -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </body>
 </html>
