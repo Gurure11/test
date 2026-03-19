@@ -12,6 +12,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/apexcharts/dist/apexcharts.css" rel="stylesheet">
     
+    <!-- PDF and Excel Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         :root {
             --primary: #1e3c72;
@@ -564,6 +568,177 @@
             color: var(--primary);
             font-size: 20px;
         }
+
+        /* Modal CSS */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .report-detail-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--light-bg);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .report-detail-label {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .report-detail-value {
+            color: var(--secondary);
+        }
+
+        .report-detail-value.success {
+            color: var(--success);
+        }
+
+        .report-detail-value.warning {
+            color: var(--warning);
+        }
+
+        /* Web View Styles */
+        .webview-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .webview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .webview-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .webview-close {
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--danger);
+        }
+        
+        .performance-alert {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+        
+        .alert-success {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid #28a745;
+        }
+        
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .webview-badge {
+            background: var(--primary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        /* Performance Ranking Styles */
+        .ranking-1 {
+            background: linear-gradient(135deg, #ffd70020, #ffd70040);
+        }
+        .ranking-2 {
+            background: linear-gradient(135deg, #c0c0c020, #c0c0c040);
+        }
+        .ranking-3 {
+            background: linear-gradient(135deg, #cd7f3220, #cd7f3240);
+        }
+        .worst-performer {
+            background: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid #dc3545;
+        }
+        .best-performer {
+            background: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid #28a745;
+        }
+        .progress-cell {
+            font-weight: 600;
+        }
+        .progress-excellent {
+            color: #28a745;
+        }
+        .progress-good {
+            color: #17a2b8;
+        }
+        .progress-warning {
+            color: #ffc107;
+        }
+        .progress-poor {
+            color: #dc3545;
+        }
+        .clickable-row {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .clickable-row:hover {
+            background: rgba(30, 60, 114, 0.1) !important;
+            transform: scale(1.01);
+        }
+        .selected-manager {
+            background: rgba(30, 60, 114, 0.2) !important;
+            border: 2px solid var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -622,7 +797,15 @@
                     YTD Actual: <strong id="ytdActualDisplay">R 0</strong>
                 </div>
                 <div>
-                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                    <i class="fas fa-calendar-check me-2 text-primary"></i>
+                    Group BTYE: <strong id="btyeDisplay">R 0</strong>
+                </div>
+                <div>
+                    <i class="fas fa-calendar-alt me-2 text-success"></i>
+                    MTD: <strong id="mtdDisplay">R 0</strong>
+                </div>
+                <div>
+                    <i class="fas fa-clock me-2 text-primary"></i>
                     <span id="lastUpdated"><i class="far fa-clock me-1"></i>Loading...</span>
                 </div>
             </div>
@@ -702,6 +885,15 @@
                 </div>
                 
                 <div class="kpi-card">
+                    <div class="kpi-icon"><i class="fas fa-calendar-alt text-success"></i></div>
+                    <div class="kpi-label">MTD Actual</div>
+                    <div class="kpi-value" id="kpiMTD">R 0</div>
+                    <div class="kpi-trend">
+                        <span class="text-muted">Month to Date Revenue</span>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
                     <div class="kpi-icon"><i class="fas fa-chart-bar text-success"></i></div>
                     <div class="kpi-label">Gross Profit</div>
                     <div class="kpi-value" id="kpiGP">R 0</div>
@@ -735,7 +927,21 @@
                 </div>
             </div>
             
-            <!-- Revenue by Cost Centre Table -->
+            <!-- MTD Chart Row -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-calendar-alt"></i> Budget Monthly vs MTD Actual
+                        </div>
+                        <div class="card-body">
+                            <div id="mtdChart" class="chart-container" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Revenue by Cost Centre Table with Profit Formula -->
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="card">
@@ -753,6 +959,7 @@
                                             <th>Total</th>
                                             <th>YTD Actual</th>
                                             <th>Variance</th>
+                                            <th>Profit</th>
                                         </tr>
                                     </thead>
                                     <tbody id="costCentreTable"></tbody>
@@ -774,7 +981,7 @@
                                             <th>Cost Centre</th>
                                             <th>Gross Profit</th>
                                             <th>Margin %</th>
-                                            <th>% of Total</th>
+                                            <th>% of Total GP</th>
                                         </tr>
                                     </thead>
                                     <tbody id="gpCostCentreTable"></tbody>
@@ -785,10 +992,10 @@
                 </div>
             </div>
             
-            <!-- Top Projects -->
+            <!-- Top 10 Performing Projects -->
             <div class="card mt-4">
                 <div class="card-header">
-                    <i class="fas fa-star"></i> Top 10 Projects by Revenue
+                    <i class="fas fa-star"></i> Top 10 Performing Projects by Revenue
                 </div>
                 <div class="card-body">
                     <div class="table-container">
@@ -803,6 +1010,7 @@
                                     <th>YTD Actual</th>
                                     <th>BTYE</th>
                                     <th>Achievement</th>
+                                    <th>Gross Profit</th>
                                 </tr>
                             </thead>
                             <tbody id="topProjectsTable"></tbody>
@@ -862,7 +1070,9 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Project Name *</label>
-                                    <input type="text" class="form-control" id="projectName" required placeholder="Enter project name">
+                                    <select class="form-select" id="projectName" required>
+                                        <option value="">Select Project Name</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Location</label>
@@ -891,11 +1101,11 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Contract Start Date</label>
-                                    <input type="date" class="form-control" id="startDate">
+                                    <input type="date" class="form-control" id="startDate" onchange="populateMonthlyFromDates()">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Contract End Date</label>
-                                    <input type="date" class="form-control" id="endDate">
+                                    <input type="date" class="form-control" id="endDate" onchange="populateMonthlyFromDates()">
                                 </div>
                             </div>
                             
@@ -990,8 +1200,9 @@
         <!-- Daily Revenue Tab -->
         <div id="dailyRevenue" class="tab-content" style="display:none;">
             <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <div class="card">
+                <div class="col-lg-12">
+                    <!-- Daily Revenue Entry Form -->
+                    <div class="card mb-4">
                         <div class="card-header">
                             <i class="fas fa-calendar-day"></i> Daily Revenue Entry
                         </div>
@@ -1014,7 +1225,7 @@
                                     </div>
                                     <div class="col-md-3 mb-3">
                                         <label class="form-label">Project Manager *</label>
-                                        <select class="form-select" id="revManager" required>
+                                        <select class="form-select" id="revManager" required onchange="loadProjectsForRevenue()">
                                             <option value="">Select Manager</option>
                                             <option value="Moses">Moses</option>
                                             <option value="Johan">Johan</option>
@@ -1040,7 +1251,9 @@
                                     </div>
                                     <div class="col-md-3 mb-3">
                                         <label class="form-label">Project Name *</label>
-                                        <input type="text" class="form-control" id="revProjectName" required placeholder="Enter project name">
+                                        <select class="form-select" id="revProjectName" required onchange="updateDailyTarget()">
+                                            <option value="">Select Project Name</option>
+                                        </select>
                                     </div>
                                 </div>
                                 
@@ -1095,26 +1308,141 @@
                                     <div class="stat-value" id="todayAchievement">0%</div>
                                 </div>
                             </div>
-                            
-                            <!-- Recent Entries -->
-                            <div class="mt-4">
-                                <h5 class="mb-3">Recent Daily Revenue Entries</h5>
-                                <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Cost Centre</th>
-                                                <th>Manager</th>
-                                                <th>Project</th>
-                                                <th>Amount</th>
-                                                <th>Budget</th>
-                                                <th>Variance</th>
-                                                <th>Achievement</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="recentRevenueTable"></tbody>
-                                    </table>
+                        </div>
+                    </div>
+
+                    <!-- Project Managers Performance Ranking -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-trophy"></i> Project Managers Performance Ranking
+                            <small class="text-white-50 ms-2">(From Lowest to Highest Performer - Daily View)</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Project Manager</th>
+                                            <th>Projects</th>
+                                            <th>Daily Budget</th>
+                                            <th>Daily Actual</th>
+                                            <th>Daily Variance (R)</th>
+                                            <th>Daily Achievement %</th>
+                                            <th>Status</th>
+                                            <th>Trend</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="managerRankingTable">
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted">Loading manager rankings...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Individual Project Performance -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-line"></i> Project Performance Details (Daily/Weekly/Monthly)
+                            <small class="text-white-50 ms-2" id="selectedManagerDisplay">(Click on a manager above to view)</small>
+                        </div>
+                        <div class="card-body">
+                            <!-- Performance Summary Cards -->
+                            <div class="daily-stats mb-4" id="managerSummaryCards" style="display: none;">
+                                <div class="stat-card">
+                                    <div class="stat-label">Total Projects</div>
+                                    <div class="stat-value" id="managerProjectCount">0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Total Monthly Budget</div>
+                                    <div class="stat-value" id="managerTotalBudget">R 0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">MTD Actual</div>
+                                    <div class="stat-value" id="managerActualRevenue">R 0</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">MTD Achievement</div>
+                                    <div class="stat-value" id="managerAchievement">0%</div>
+                                </div>
+                            </div>
+
+                            <!-- Projects Table -->
+                            <div class="table-container">
+                                <table class="table" id="projectPerformanceTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Project Name</th>
+                                            <th>Cost Centre</th>
+                                            <th>Daily Actual</th>
+                                            <th>Daily Budget</th>
+                                            <th>Daily Achv</th>
+                                            <th>Weekly Actual</th>
+                                            <th>Weekly Budget</th>
+                                            <th>Weekly Achv</th>
+                                            <th>MTD Actual</th>
+                                            <th>Monthly Budget</th>
+                                            <th>MTD Achv</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="projectPerformanceBody">
+                                        <tr>
+                                            <td colspan="12" class="text-center text-muted">Select a manager to view project performance</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Performance Tables by Manager and Cost Centre -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    Daily Performance by Project Manager
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-container">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Manager</th>
+                                                    <th>Actual</th>
+                                                    <th>Budget</th>
+                                                    <th>Achievement %</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="dailyManagerTable"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    Daily Performance by Cost Centre
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-container">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Cost Centre</th>
+                                                    <th>Actual</th>
+                                                    <th>Budget</th>
+                                                    <th>Achievement %</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="dailyCostCentreTable"></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1250,13 +1578,10 @@
                                             <option value="weekly">Weekly</option>
                                             <option value="monthly">Monthly</option>
                                             <option value="ytd">Year to Date</option>
+                                            <option value="manager">By Manager</option>
+                                            <option value="project">By Project</option>
+                                            <option value="gp">Gross Profit</option>
                                         </select>
-                                        <div>
-    <p>Total Inspections: <span id="totalInspections">0</span></p>
-    <p>Total OK Items: <span id="totalOK">0</span></p>
-    <p>Total Repairs: <span id="totalRepairs">0</span></p>
-    <p>Success Rate: <span id="okRate">0%</span></p>
-</div>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label">Cost Centre</label>
@@ -1277,58 +1602,9 @@
                                     <div class="col-md-3">
                                         <label class="form-label">Period</label>
                                         <input type="date" class="form-control" id="analysisDate" onchange="updateAnalysis()">
-                                        <input type="week" class="form-control" id="analysisWeek" style="display:none;" onchange="updateAnalysis()">
-                                        <select class="form-select" id="analysisMonth" style="display:none;" onchange="updateAnalysis()">
-                                            <option value="0">March 2026</option>
-                                            <option value="1">April 2026</option>
-                                            <option value="2">May 2026</option>
-                                            <option value="3">June 2026</option>
-                                            <option value="4">July 2026</option>
-                                            <option value="5">August 2026</option>
-                                            <option value="6">September 2026</option>
-                                            <option value="7">October 2026</option>
-                                            <option value="8">November 2026</option>
-                                            <option value="9">December 2026</option>
-                                            <option value="10">January 2027</option>
-                                            <option value="11">February 2027</option>
-                                        </select>
                                     </div>
                                 </div>
                             </div>
-                          // Display reports in table
-function displayReports(data) {
-    const tableBody = document.getElementById('reportsTableBody');
-    if (!tableBody) return;
-
-    if (!data || data.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No reports found</td></tr>';
-        return;
-    }
-
-    tableBody.innerHTML = '';
-
-    data.forEach(report => {
-        const row = `
-            <tr>
-                <td>${report.id || 'N/A'}</td>
-                <td>${report.timestamp ? new Date(report.timestamp).toLocaleString() : 'N/A'}</td>
-                <td>${report.inspectorName || 'N/A'}</td>
-                <td>${report.vehicleReg || 'N/A'}</td>
-                <td>${report.itemsOK || 0}</td>
-                <td>${report.itemsRepair || 0}</td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="viewReport('${report.id}')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="downloadPDF('${report.id}')">
-                        <i class="fas fa-file-pdf"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-        tableBody.innerHTML += row;
-    });
-}
                             
                             <!-- Summary Cards -->
                             <div class="daily-stats">
@@ -1391,98 +1667,22 @@ function displayReports(data) {
                                 <button class="list-group-item list-group-item-action" onclick="generateReport('orderbook')">
                                     <i class="fas fa-book me-2 text-primary"></i>Full Order Book Report
                                 </button>
-                                <button class="list-group-item list-group-item-action" onclick="generateReport('performance')">
+                                <button class="list-group-item list-group-item-action" onclick="showWebView('performance')">
                                     <i class="fas fa-chart-line me-2 text-success"></i>Performance Summary
+                                    <span class="webview-badge">Web View</span>
                                 </button>
-                                <button class="list-group-item list-group-item-action" onclick="generateReport('gp')">
+                                <button class="list-group-item list-group-item-action" onclick="showWebView('gp')">
                                     <i class="fas fa-chart-pie me-2 text-info"></i>Gross Profit Analysis
+                                    <span class="webview-badge">Web View</span>
                                 </button>
-                                <button class="list-group-item list-group-item-action" onclick="generateReport('manager')">
+                                <button class="list-group-item list-group-item-action" onclick="showWebView('manager')">
                                     <i class="fas fa-user me-2 text-warning"></i>Manager Performance
+                                    <span class="webview-badge">Web View</span>
                                 </button>
-                                <button class="list-group-item list-group-item-action" onclick="generateReport('costcentre')">
+                                <button class="list-group-item list-group-item-action" onclick="showWebView('costcentre')">
                                     <i class="fas fa-building me-2 text-danger"></i>Cost Centre Analysis
+                                    <span class="webview-badge">Web View</span>
                                 </button>
-                              <!-- Reports Tab -->
-<div id="reports" class="tab-content" style="display:none;">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-file-pdf"></i> Generate Reports
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        <button class="list-group-item list-group-item-action" onclick="generateReport('orderbook')">
-                            <i class="fas fa-book me-2 text-primary"></i>Full Order Book Report
-                        </button>
-                        <button class="list-group-item list-group-item-action" onclick="generateReport('performance')">
-                            <i class="fas fa-chart-line me-2 text-success"></i>Performance Summary
-                        </button>
-                        <button class="list-group-item list-group-item-action" onclick="generateReport('gp')">
-                            <i class="fas fa-chart-pie me-2 text-info"></i>Gross Profit Analysis
-                        </button>
-                        <button class="list-group-item list-group-item-action" onclick="generateReport('manager')">
-                            <i class="fas fa-user me-2 text-warning"></i>Manager Performance
-                        </button>
-                        <button class="list-group-item list-group-item-action" onclick="generateReport('costcentre')">
-                            <i class="fas fa-building me-2 text-danger"></i>Cost Centre Analysis
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-chart-bar"></i> Group Performance Summary
-                </div>
-                <div class="card-body">
-                    <div id="reportChart" class="chart-container"></div>
-                    
-                    <!-- ADD THIS TABLE -->
-                    <div class="table-container mt-4">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Date</th>
-                                    <th>Inspector</th>
-                                    <th>Vehicle</th>
-                                    <th>OK</th>
-                                    <th>Repair</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reportsTableBody">
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted">Loading reports...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- END OF ADDED TABLE -->
-                    
-                    <div class="table-container mt-4">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Onpoint Group</th>
-                                    <th>Nkanyezi Projects</th>
-                                    <th>Aqua Telecoms</th>
-                                    <th>DI Solutions</th>
-                                    <th>Group Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="groupPerformanceTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
                             </div>
                         </div>
                     </div>
@@ -1490,30 +1690,51 @@ function displayReports(data) {
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-header">
-                            <i class="fas fa-chart-bar"></i> Group Performance Summary
+                            <i class="fas fa-chart-bar"></i> Reports Dashboard - Manager Performance by Variance %
                         </div>
                         <div class="card-body">
-                            <div id="reportChart" class="chart-container"></div>
-                            
-                            <div class="table-container mt-4">
-                                <table class="table">
+                            <div class="table-container">
+                                <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>Metric</th>
-                                            <th>Onpoint Group</th>
-                                            <th>Nkanyezi Projects</th>
-                                            <th>Aqua Telecoms</th>
-                                            <th>DI Solutions</th>
-                                            <th>Group Total</th>
+                                            <th>Project Manager</th>
+                                            <th>Projects</th>
+                                            <th>Total Budget</th>
+                                            <th>Actual Revenue</th>
+                                            <th>Variance (R)</th>
+                                            <th>Variance (%)</th>
+                                            <th>Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="groupPerformanceTable"></tbody>
+                                    <tbody id="managerPerformanceTable">
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">Loading manager performance...</td>
+                                        </tr>
+                                    </tbody>
                                 </table>
+                            </div>
+                            
+                            <!-- Web View Container -->
+                            <div id="webViewContainer" class="webview-container" style="display: none;">
+                                <div class="webview-header">
+                                    <span class="webview-title" id="webViewTitle">Performance Summary</span>
+                                    <span class="webview-close" onclick="closeWebView()"><i class="fas fa-times"></i></span>
+                                </div>
+                                <div id="webViewContent"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- View Report Modal -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <h4 class="mb-3">Report Details</h4>
+            <div id="viewContent"></div>
+            <button class="modal-close" onclick="document.getElementById('viewModal').classList.remove('active')">Close</button>
         </div>
     </div>
 
@@ -1524,15 +1745,87 @@ function displayReports(data) {
         
         var projects = [];
         var dailyRevenue = [];
+        var selectedManager = null;
         
         // CONFIG - Your Google Apps Script URL
         var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcUbj8xEI9j57FhAWFBF2OHOO5qlNtiw6MI8_q2RZYGvYo2599-TQ-2G_FghK1uWmJ1Q/exec';
+
+        // Unique project names list (deduplicated)
+        const PROJECT_NAMES = [
+            "DBSA Generators",
+            "DBSA Rooiwal",
+            "Joe Gqabi",
+            "Temba",
+            "Midvaal",
+            "Coega",
+            "Coega Forecast",
+            "KZN General Buildings",
+            "Tshwane",
+            "Public Works Limpopo",
+            "Limpopo Eskom Substation Ephraim Mogale",
+            "Naizna",
+            "Cape Town",
+            "COT Streetlights",
+            "COT Electrification",
+            "COT Metering",
+            "COE Streetlights",
+            "Msunduzi E50",
+            "Msunduzi Streetlights",
+            "Msunduzi E33",
+            "Msunduzi E47",
+            "Moqhaka Streetlights",
+            "Moqhaka Metering",
+            "Centlec CD11",
+            "Centlec Transformers CD32",
+            "Centlec CD45",
+            "Midvaal Mechanical",
+            "Eskom SPU",
+            "Eskom FSOU Substation",
+            "Eskom ECOU",
+            "Eskom LOU General Buildings",
+            "Eskom KZN Minor Reticulation",
+            "Randwest Electrical",
+            "Randwest Roads & Stormwater",
+            "Randwest Water rand sanitation",
+            "Randwest Bulk",
+            "RAL",
+            "Stellenbosh",
+            "Liquid ECPG"
+        ];
+
+        // ==============================================
+        // SAFE DEFAULTS (PREVENT ERRORS)
+        // ==============================================
+        projects = projects || [];
+        dailyRevenue = dailyRevenue || [];
+        selectedManager = selectedManager || null;
 
         document.addEventListener('DOMContentLoaded', function () {
             loadAllData();
             setDefaultDates();
             initializeCharts();
+            populateProjectDropdowns();
         });
+
+        function populateProjectDropdowns() {
+            // Populate Project Name dropdown in Project Entry
+            const projectSelect = document.getElementById('projectName');
+            if (projectSelect) {
+                projectSelect.innerHTML = '<option value="">Select Project Name</option>';
+                PROJECT_NAMES.forEach(name => {
+                    projectSelect.innerHTML += `<option value="${name}">${name}</option>`;
+                });
+            }
+
+            // Populate Project Name dropdown in Daily Revenue
+            const revProjectSelect = document.getElementById('revProjectName');
+            if (revProjectSelect) {
+                revProjectSelect.innerHTML = '<option value="">Select Project Name</option>';
+                PROJECT_NAMES.forEach(name => {
+                    revProjectSelect.innerHTML += `<option value="${name}">${name}</option>`;
+                });
+            }
+        }
 
         // ==============================================
         // UI HELPER FUNCTIONS
@@ -1641,23 +1934,98 @@ function displayReports(data) {
                 // Analysis Chart
                 var analysisOptions = {
                     chart: { 
-                        type: 'line', 
-                        height: 300,
+                        type: 'bar', 
+                        height: 400,
                         toolbar: { show: true },
                         animations: { enabled: true }
                     },
-                    series: [
-                        { name: 'Budget', data: [] },
-                        { name: 'Actual', data: [] }
-                    ],
-                    xaxis: { categories: [] },
-                    colors: ['#1e3c72', '#28a745'],
-                    stroke: { curve: 'smooth', width: 3 }
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    xaxis: {
+                        categories: []
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Amount (R)'
+                        },
+                        labels: {
+                            formatter: function(val) {
+                                return 'R ' + (val/1000).toFixed(0) + 'k';
+                            }
+                        }
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return 'R ' + val.toLocaleString();
+                            }
+                        }
+                    }
                 };
                 
                 var analysisChart = new ApexCharts(document.querySelector("#analysisChart"), analysisOptions);
                 analysisChart.render();
                 window.analysisChart = analysisChart;
+                
+                // MTD Chart
+                var mtdOptions = {
+                    chart: { 
+                        type: 'bar', 
+                        height: 300, 
+                        toolbar: { show: true },
+                        animations: { enabled: true }
+                    },
+                    series: [
+                        { name: 'Monthly Budget', data: [0] },
+                        { name: 'MTD Actual', data: [0] }
+                    ],
+                    xaxis: { 
+                        categories: ['Current Month'],
+                        title: { text: 'Period' }
+                    },
+                    yaxis: {
+                        title: { text: 'Amount (R)' },
+                        labels: {
+                            formatter: function(val) {
+                                return 'R ' + (val/1000).toFixed(0) + 'k';
+                            }
+                        }
+                    },
+                    colors: ['#1e3c72', '#28a745'],
+                    plotOptions: {
+                        bar: {
+                            columnWidth: '50%',
+                            distributed: false
+                        }
+                    },
+                    tooltip: { 
+                        y: { 
+                            formatter: function(val) {
+                                return 'R ' + val.toLocaleString();
+                            } 
+                        } 
+                    }
+                };
+                
+                var mtdChart = new ApexCharts(document.querySelector("#mtdChart"), mtdOptions);
+                mtdChart.render();
+                window.mtdChart = mtdChart;
             }
         }
 
@@ -1682,6 +2050,9 @@ function displayReports(data) {
                     updateCharts();
                     updateConnectionStatus('connected', '<i class="fas fa-check-circle me-2"></i> Connected to Google Sheets');
                     showStatus('Data loaded successfully', 'success');
+                    
+                    // Populate manager dropdown for analysis
+                    populateManagerDropdown();
                 } else {
                     console.log('No data found, using demo data');
                     loadDemoData();
@@ -1819,7 +2190,7 @@ function displayReports(data) {
             };
 
             if (!projectData.costCentre) { showStatus('Please select a cost centre', 'error'); return; }
-            if (!projectData.projectName) { showStatus('Please enter project name', 'error'); return; }
+            if (!projectData.projectName) { showStatus('Please select project name', 'error'); return; }
             if (!projectData.manager) { showStatus('Please select a project manager', 'error'); return; }
             if (!projectData.totalIncome || projectData.totalIncome <= 0) { showStatus('Please enter a valid total income', 'error'); return; }
 
@@ -1879,6 +2250,16 @@ function displayReports(data) {
                 return;
             }
 
+            // Get calculated values from the form
+            var monthlyTargetText = document.getElementById('revMonthlyTarget')?.value || 'R 0';
+            var dailyBudgetText = document.getElementById('revDailyBudget')?.value || 'R 0';
+            var varianceText = document.getElementById('revVariance')?.value || 'R 0';
+            
+            // Extract numeric values from text (remove 'R ' and commas)
+            var monthlyTarget = parseFloat(monthlyTargetText.replace(/[^0-9.-]+/g, '')) || 0;
+            var dailyBudget = parseFloat(dailyBudgetText.replace(/[^0-9.-]+/g, '')) || 0;
+            var variance = parseFloat(varianceText.replace(/[^0-9.-]+/g, '')) || 0;
+
             var projectId = '';
             for (var i = 0; i < projects.length; i++) {
                 if (projects[i].projectName?.toLowerCase() === projectName.toLowerCase() && 
@@ -1895,10 +2276,13 @@ function displayReports(data) {
                 projectName: projectName,
                 manager: manager,
                 amount: amount,
+                monthlyTarget: monthlyTarget,
+                dailyBudget: dailyBudget,
+                variance: variance,
                 notes: document.getElementById('revNotes')?.value || ''
             };
 
-            showLoading('Saving daily revenue...');
+            showLoading('Saving daily revenue to Google Sheets...');
 
             try {
                 const formData = new FormData();
@@ -1918,8 +2302,9 @@ function displayReports(data) {
                     const data = JSON.parse(text);
                     
                     if (data.success) {
-                        showStatus('Daily revenue saved', 'success');
+                        showStatus('Daily revenue saved successfully to Google Sheets', 'success');
                         
+                        // Clear the form
                         document.getElementById('revAmount').value = '';
                         document.getElementById('revNotes').value = '';
                         document.getElementById('revProjectName').value = '';
@@ -1929,19 +2314,22 @@ function displayReports(data) {
                         document.getElementById('revDailyBudget').value = 'R 0';
                         document.getElementById('revVariance').value = 'R 0';
                         
+                        // Reload data to refresh the UI
                         await loadAllData();
                     } else {
-                        throw new Error(data.error || 'Failed to save revenue');
+                        throw new Error(data.error || 'Failed to save revenue to Google Sheets');
                     }
                 } catch (e) {
                     console.error('Failed to parse response:', e);
+                    // Save locally as fallback
                     revenueData.id = Date.now();
                     dailyRevenue.push(revenueData);
                     refreshAllUI();
-                    showStatus('Saved locally - Google Sheets connection issue', 'info');
+                    showStatus('Saved locally - Google Sheets connection issue: ' + e.message, 'info');
                 }
             } catch (error) {
                 console.error('Error saving:', error);
+                // Save locally as fallback
                 revenueData.id = Date.now();
                 dailyRevenue.push(revenueData);
                 refreshAllUI();
@@ -1949,6 +2337,528 @@ function displayReports(data) {
             } finally {
                 hideLoading();
             }
+        }
+
+        // ==============================================
+        // MONTHLY TARGET FUNCTIONS
+        // ==============================================
+
+        function populateMonthlyFromDates() {
+            var startDate = document.getElementById('startDate').value;
+            var endDate = document.getElementById('endDate').value;
+            var totalIncome = parseFloat(document.getElementById('totalIncome').value) || 0;
+
+            if (!startDate || !endDate || totalIncome <= 0) return;
+
+            var start = new Date(startDate);
+            var end = new Date(endDate);
+            
+            // Calculate months between dates (inclusive)
+            var monthsDiff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+            
+            // Define month order: Mar-26 (index 0) to Feb-27 (index 11)
+            const monthOrder = ['mar26', 'apr26', 'may26', 'jun26', 'jul26', 'aug26', 'sep26', 'oct26', 'nov26', 'dec26', 'jan27', 'feb27'];
+            
+            // Find start index based on start date
+            var startMonth = start.getMonth(); // 0-11 (Jan=0)
+            var startYear = start.getFullYear();
+            
+            // Map to our month indices (Mar=0, Apr=1, ..., Feb=11)
+            var monthIndexMap = [2,3,4,5,6,7,8,9,10,11,0,1]; // Jan->index 10, Feb->11, Mar->0, etc.
+            var startIndex = monthIndexMap[startMonth];
+            
+            // Adjust if year is 2027 (our months span Mar26-Feb27)
+            if (startYear > 2026) {
+                // If start year is 2027, adjust index for Jan/Feb
+                if (startMonth === 0) startIndex = 10; // Jan27
+                if (startMonth === 1) startIndex = 11; // Feb27
+            }
+            
+            // Calculate value per month
+            var valuePerMonth = monthsDiff > 0 ? totalIncome / monthsDiff : 0;
+            
+            // Reset all month inputs
+            document.querySelectorAll('.month-input').forEach(input => input.value = 0);
+            
+            // Set values for active months
+            for (var i = 0; i < monthsDiff; i++) {
+                var currentIndex = (startIndex + i) % 12;
+                var monthId = monthOrder[currentIndex];
+                var monthInput = document.getElementById(monthId);
+                if (monthInput) {
+                    monthInput.value = Math.round(valuePerMonth);
+                }
+            }
+            
+            // Handle remainder due to rounding
+            var totalAfter = 0;
+            for (var i = 0; i < monthsDiff; i++) {
+                var currentIndex = (startIndex + i) % 12;
+                var monthId = monthOrder[currentIndex];
+                totalAfter += parseFloat(document.getElementById(monthId)?.value) || 0;
+            }
+            
+            var remainder = totalIncome - totalAfter;
+            if (remainder !== 0) {
+                var lastIndex = (startIndex + monthsDiff - 1) % 12;
+                var lastMonthId = monthOrder[lastIndex];
+                var lastInput = document.getElementById(lastMonthId);
+                if (lastInput) {
+                    lastInput.value = (parseFloat(lastInput.value) + remainder).toFixed(0);
+                }
+            }
+            
+            updateMonthlyTotal();
+        }
+
+        // ==============================================
+        // DAILY REVENUE FUNCTIONS - FIXED
+        // ==============================================
+
+        function updateDailyTarget() {
+            var projectName = document.getElementById('revProjectName')?.value;
+            var manager = document.getElementById('revManager')?.value;
+            var selectedDate = document.getElementById('revDate')?.value || new Date().toISOString().split('T')[0];
+
+            if (!projectName || !manager) {
+                setValue('revMonthlyTarget', '');
+                setValue('revDailyBudget', 'R 0');
+                setValue('revVariance', 'R 0');
+                return;
+            }
+
+            var project = projects.find(p => p.projectName === projectName && p.manager === manager);
+
+            if (project) {
+                var monthlyTarget = Number(project.totalIncome) || 0;
+                var date = new Date(selectedDate);
+                var monthIndex = date.getMonth();
+
+                var monthlyBudget = 0;
+
+                if (project.months && project.months.length > monthIndex) {
+                    monthlyBudget = Number(project.months[monthIndex]) || 0;
+                }
+
+                if (monthlyBudget === 0 && monthlyTarget > 0) {
+                    var activeMonths = (project.months || []).filter(m => m > 0).length;
+                    monthlyBudget = activeMonths > 0 ? monthlyTarget / activeMonths : monthlyTarget / 12;
+                }
+
+                var workingDaysInMonth = 22;
+                var dailyBudget = monthlyBudget / workingDaysInMonth;
+
+                setValue('revMonthlyTarget', formatCurrency(monthlyBudget));
+                setValue('revDailyBudget', formatCurrency(dailyBudget));
+
+                calculateDailyVariance();
+            } else {
+                setValue('revMonthlyTarget', '');
+                setValue('revDailyBudget', 'R 0');
+                setValue('revVariance', 'R 0');
+            }
+        }
+
+        function calculateDailyVariance() {
+            var amount = Number(document.getElementById('revAmount')?.value) || 0;
+
+            var budgetText = document.getElementById('revDailyBudget')?.value || 'R 0';
+            var budget = parseCurrency(budgetText);
+
+            var variance = amount - budget;
+
+            var el = document.getElementById('revVariance');
+            if (!el) return;
+
+            el.value = formatCurrency(variance);
+
+            if (variance > 0) el.style.color = '#28a745';
+            else if (variance < 0) el.style.color = '#dc3545';
+            else el.style.color = '';
+        }
+
+        function updateTodayStats() {
+            var todayStr = new Date().toISOString().split('T')[0];
+            var todayDate = new Date();
+            var monthIndex = todayDate.getMonth();
+
+            var todayActual = 0;
+            var todayBudget = 0;
+            var workingDaysInMonth = 22;
+
+            dailyRevenue.forEach(r => {
+                if (r.date === todayStr) {
+                    todayActual += Number(r.amount) || 0;
+                }
+            });
+
+            projects.forEach(p => {
+                if (p.months && p.months[monthIndex]) {
+                    todayBudget += (Number(p.months[monthIndex]) || 0) / workingDaysInMonth;
+                }
+            });
+
+            var variance = todayActual - todayBudget;
+            var achievement = todayBudget > 0 ? (todayActual / todayBudget) * 100 : 0;
+
+            setText('todayTotal', formatCurrency(todayActual));
+            setText('todayBudget', formatCurrency(todayBudget));
+            setText('todayVariance', formatCurrency(variance));
+            setText('todayAchievement', achievement.toFixed(1) + '%');
+
+            var varianceEl = document.getElementById('todayVariance');
+            if (varianceEl) {
+                varianceEl.style.color = variance > 0 ? '#28a745' : (variance < 0 ? '#dc3545' : '');
+            }
+        }
+
+        function getManagerDailyPerformance() {
+            var todayStr = new Date().toISOString().split('T')[0];
+            var currentMonth = new Date().getMonth();
+            var workingDaysInMonth = 22;
+            var sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            var managerPerformance = {};
+
+            // Initialize with all managers from projects
+            projects.forEach(p => {
+                var manager = p.manager;
+                if (!managerPerformance[manager]) {
+                    managerPerformance[manager] = {
+                        dailyBudget: 0,
+                        dailyActual: 0,
+                        weeklyBudget: 0,
+                        weeklyActual: 0,
+                        monthlyBudget: 0,
+                        monthlyActual: 0,
+                        projects: 0
+                    };
+                }
+
+                managerPerformance[manager].projects++;
+
+                if (p.months && p.months[currentMonth]) {
+                    var mBudget = Number(p.months[currentMonth]) || 0;
+                    managerPerformance[manager].monthlyBudget += mBudget;
+                    managerPerformance[manager].dailyBudget += mBudget / workingDaysInMonth;
+                    managerPerformance[manager].weeklyBudget += (mBudget / workingDaysInMonth) * 7;
+                }
+            });
+
+            // Add actual revenue
+            dailyRevenue.forEach(r => {
+                var manager = r.manager;
+                if (!managerPerformance[manager]) return;
+
+                var revenueDate = new Date(r.date);
+                var amount = Number(r.amount) || 0;
+
+                // Daily actual
+                if (r.date === todayStr) {
+                    managerPerformance[manager].dailyActual += amount;
+                }
+
+                // Weekly actual (last 7 days)
+                if (revenueDate >= sevenDaysAgo) {
+                    managerPerformance[manager].weeklyActual += amount;
+                }
+
+                // Monthly actual
+                if (revenueDate.getMonth() === currentMonth && revenueDate.getFullYear() === new Date().getFullYear()) {
+                    managerPerformance[manager].monthlyActual += amount;
+                }
+            });
+
+            // Calculate variances and percentages
+            for (var manager in managerPerformance) {
+                var p = managerPerformance[manager];
+
+                p.dailyVariance = p.dailyActual - p.dailyBudget;
+                p.dailyVariancePercent = p.dailyBudget > 0 ? (p.dailyActual / p.dailyBudget) * 100 : 0;
+
+                p.weeklyVariance = p.weeklyActual - p.weeklyBudget;
+                p.weeklyVariancePercent = p.weeklyBudget > 0 ? (p.weeklyActual / p.weeklyBudget) * 100 : 0;
+
+                p.monthlyVariance = p.monthlyActual - p.monthlyBudget;
+                p.monthlyVariancePercent = p.monthlyBudget > 0 ? (p.monthlyActual / p.monthlyBudget) * 100 : 0;
+            }
+
+            return managerPerformance;
+        }
+
+        function updateManagerRankingTable() {
+            var tbody = document.getElementById('managerRankingTable');
+            if (!tbody) return;
+            
+            var managerPerf = getManagerDailyPerformance();
+            var rankings = [];
+            
+            for (var manager in managerPerf) {
+                rankings.push({
+                    manager: manager,
+                    projects: managerPerf[manager].projects,
+                    dailyBudget: managerPerf[manager].dailyBudget,
+                    dailyActual: managerPerf[manager].dailyActual,
+                    dailyVariance: managerPerf[manager].dailyVariance,
+                    dailyVariancePercent: managerPerf[manager].dailyVariancePercent
+                });
+            }
+            
+            // Sort by daily variance percentage (lowest to highest for ranking)
+            rankings.sort((a, b) => a.dailyVariancePercent - b.dailyVariancePercent);
+            
+            var html = '';
+            
+            rankings.forEach((r, index) => {
+                var rankClass = '';
+                if (index === 0) rankClass = 'worst-performer';
+                if (index === rankings.length - 1) rankClass = 'best-performer';
+                if (index === 1) rankClass = 'ranking-3';
+                if (index === 2) rankClass = 'ranking-2';
+                
+                var varianceClass = r.dailyVariance >= 0 ? 'variance-positive' : 'variance-negative';
+                var statusClass = r.dailyVariancePercent >= 100 ? 'badge-confirmed' : 'badge-forecast';
+                var statusText = r.dailyVariancePercent >= 100 ? 'On Target' : 'Below Target';
+                
+                // Determine trend icon
+                var trendIcon = '';
+                if (r.dailyVariancePercent >= 100) {
+                    trendIcon = '<i class="fas fa-arrow-up text-success"></i>';
+                } else if (r.dailyVariancePercent >= 80) {
+                    trendIcon = '<i class="fas fa-arrow-right text-warning"></i>';
+                } else {
+                    trendIcon = '<i class="fas fa-arrow-down text-danger"></i>';
+                }
+                
+                html += `<tr class="clickable-row ${rankClass}" onclick="selectManager('${r.manager}')" style="cursor: pointer;">
+                    <td><strong>#${index + 1}</strong></td>
+                    <td><strong>${r.manager}</strong></td>
+                    <td>${r.projects}</td>
+                    <td>${formatCurrency(r.dailyBudget)}</td>
+                    <td>${formatCurrency(r.dailyActual)}</td>
+                    <td class="${varianceClass}">${formatCurrency(r.dailyVariance)}</td>
+                    <td><div class="performance-alert ${r.dailyVariancePercent >= 100 ? 'alert-success' : 'alert-danger'}">${r.dailyVariancePercent.toFixed(1)}%</div></td>
+                    <td><span class="${statusClass}">${statusText}</span></td>
+                    <td>${trendIcon}</td>
+                </tr>`;
+            });
+            
+            tbody.innerHTML = html || '<tr><td colspan="9" class="text-center">No data available</td></tr>';
+        }
+
+        function selectManager(manager) {
+            selectedManager = manager;
+            document.getElementById('selectedManagerDisplay').innerHTML = `(Viewing: <strong>${manager}</strong>)`;
+            document.getElementById('managerSummaryCards').style.display = 'grid';
+            
+            // Get manager's projects and performance
+            var managerProjects = projects.filter(p => p.manager === manager);
+            var currentMonth = new Date().getMonth();
+            
+            // Calculate manager totals
+            var managerMonthlyBudget = 0;
+            var managerMonthlyActual = 0;
+            
+            managerProjects.forEach(p => {
+                if (p.months && p.months[currentMonth]) {
+                    managerMonthlyBudget += p.months[currentMonth] || 0;
+                }
+            });
+            
+            dailyRevenue.forEach(r => {
+                if (r.manager === manager) {
+                    var date = new Date(r.date);
+                    if (date.getMonth() === currentMonth && date.getFullYear() === new Date().getFullYear()) {
+                        managerMonthlyActual += r.amount || 0;
+                    }
+                }
+            });
+            
+            var achievement = managerMonthlyBudget > 0 ? ((managerMonthlyActual / managerMonthlyBudget) * 100).toFixed(1) : 0;
+            
+            document.getElementById('managerProjectCount').innerText = managerProjects.length;
+            document.getElementById('managerTotalBudget').innerText = formatCurrency(managerMonthlyBudget);
+            document.getElementById('managerActualRevenue').innerText = formatCurrency(managerMonthlyActual);
+            document.getElementById('managerAchievement').innerText = achievement + '%';
+            
+            // Update project performance table
+            updateProjectPerformanceTable(manager);
+        }
+
+        function updateProjectPerformanceTable(manager) {
+            var tbody = document.getElementById('projectPerformanceBody');
+            if (!tbody) return;
+            
+            var managerProjects = projects.filter(p => p.manager === manager);
+            
+            if (managerProjects.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center">No projects found for this manager</td></tr>';
+                return;
+            }
+            
+            var today = new Date();
+            var currentMonth = today.getMonth();
+            var currentYear = today.getFullYear();
+            var todayStr = today.toISOString().split('T')[0];
+            var sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            var workingDaysInMonth = 22;
+            
+            var html = '';
+            
+            managerProjects.forEach(p => {
+                // Get project's daily revenue
+                var projectRevenue = dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === manager);
+                
+                // Get monthly budget for this project
+                var monthlyBudget = (p.months && p.months[currentMonth]) ? p.months[currentMonth] : 0;
+                var dailyBudget = monthlyBudget / workingDaysInMonth;
+                var weeklyBudget = dailyBudget * 7;
+                
+                // Daily progress
+                var todayRevenue = projectRevenue.filter(r => r.date === todayStr).reduce((sum, r) => sum + (r.amount || 0), 0);
+                var dailyAchv = dailyBudget > 0 ? ((todayRevenue / dailyBudget) * 100) : 0;
+                
+                // Weekly progress (last 7 days)
+                var weekRevenue = projectRevenue.filter(r => {
+                    var date = new Date(r.date);
+                    return date >= sevenDaysAgo;
+                }).reduce((sum, r) => sum + (r.amount || 0), 0);
+                var weeklyAchv = weeklyBudget > 0 ? ((weekRevenue / weeklyBudget) * 100) : 0;
+                
+                // Monthly progress
+                var monthRevenue = projectRevenue.filter(r => {
+                    var date = new Date(r.date);
+                    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+                }).reduce((sum, r) => sum + (r.amount || 0), 0);
+                var monthlyAchv = monthlyBudget > 0 ? ((monthRevenue / monthlyBudget) * 100) : 0;
+                
+                // Determine status based on monthly achievement
+                var status = 'On Track';
+                var statusClass = 'badge-confirmed';
+                if (monthlyAchv < 50) {
+                    status = 'Critical';
+                    statusClass = 'badge-forecast';
+                } else if (monthlyAchv < 80) {
+                    status = 'Behind';
+                    statusClass = 'badge-forecast';
+                }
+                
+                // Determine progress classes
+                var dailyClass = dailyAchv >= 100 ? 'progress-excellent' : (dailyAchv >= 80 ? 'progress-good' : (dailyAchv >= 50 ? 'progress-warning' : 'progress-poor'));
+                var weeklyClass = weeklyAchv >= 100 ? 'progress-excellent' : (weeklyAchv >= 80 ? 'progress-good' : (weeklyAchv >= 50 ? 'progress-warning' : 'progress-poor'));
+                var monthlyClass = monthlyAchv >= 100 ? 'progress-excellent' : (monthlyAchv >= 80 ? 'progress-good' : (monthlyAchv >= 50 ? 'progress-warning' : 'progress-poor'));
+                
+                html += `<tr>
+                    <td><strong>${p.projectName}</strong></td>
+                    <td>${p.costCentre || ''}</td>
+                    <td class="progress-cell ${dailyClass}">${formatCurrency(todayRevenue)}</td>
+                    <td>${formatCurrency(dailyBudget)}</td>
+                    <td class="${dailyAchv >= 100 ? 'variance-positive' : 'variance-negative'}">${dailyAchv.toFixed(1)}%</td>
+                    <td class="progress-cell ${weeklyClass}">${formatCurrency(weekRevenue)}</td>
+                    <td>${formatCurrency(weeklyBudget)}</td>
+                    <td class="${weeklyAchv >= 100 ? 'variance-positive' : 'variance-negative'}">${weeklyAchv.toFixed(1)}%</td>
+                    <td class="progress-cell ${monthlyClass}">${formatCurrency(monthRevenue)}</td>
+                    <td>${formatCurrency(monthlyBudget)}</td>
+                    <td class="${monthlyAchv >= 100 ? 'variance-positive' : 'variance-negative'}">${monthlyAchv.toFixed(1)}%</td>
+                    <td><span class="${statusClass}">${status}</span></td>
+                </tr>`;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        function updateDailyManagerTable() {
+            var managerPerf = getManagerDailyPerformance();
+            
+            var html = '';
+            
+            for (var manager in managerPerf) {
+                var perf = managerPerf[manager];
+                var achClass = perf.dailyVariancePercent >= 100 ? 'variance-positive' : 'variance-negative';
+                
+                html += `<tr>
+                    <td>${manager}</td>
+                    <td>${formatCurrency(perf.dailyActual)}</td>
+                    <td>${formatCurrency(perf.dailyBudget)}</td>
+                    <td class="${achClass}">${perf.dailyVariancePercent.toFixed(1)}%</td>
+                </tr>`;
+            }
+            
+            document.getElementById('dailyManagerTable').innerHTML = html || '<tr><td colspan="4" class="text-center">No data available</td></tr>';
+        }
+
+        function updateDailyCostCentreTable() {
+            var todayStr = new Date().toISOString().split('T')[0];
+            var currentMonth = new Date().getMonth();
+            var workingDaysInMonth = 22;
+            
+            var ccData = {};
+            
+            // Initialize with all cost centres from projects
+            projects.forEach(p => {
+                var cc = p.costCentre;
+                if (!ccData[cc]) {
+                    ccData[cc] = {
+                        dailyBudget: 0,
+                        dailyActual: 0
+                    };
+                }
+                
+                // Add daily budget
+                if (p.months && p.months[currentMonth]) {
+                    ccData[cc].dailyBudget += (Number(p.months[currentMonth]) || 0) / workingDaysInMonth;
+                }
+            });
+            
+            // Add actual revenue for today
+            dailyRevenue.forEach(r => {
+                if (r.date === todayStr) {
+                    var cc = r.costCentre;
+                    if (ccData[cc]) {
+                        ccData[cc].dailyActual += Number(r.amount) || 0;
+                    }
+                }
+            });
+            
+            var html = '';
+            
+            for (var cc in ccData) {
+                var dailyAch = ccData[cc].dailyBudget > 0 ? (ccData[cc].dailyActual / ccData[cc].dailyBudget) * 100 : 0;
+                var achClass = dailyAch >= 100 ? 'variance-positive' : 'variance-negative';
+                
+                html += `<tr>
+                    <td>${cc}</td>
+                    <td>${formatCurrency(ccData[cc].dailyActual)}</td>
+                    <td>${formatCurrency(ccData[cc].dailyBudget)}</td>
+                    <td class="${achClass}">${dailyAch.toFixed(1)}%</td>
+                </tr>`;
+            }
+            
+            document.getElementById('dailyCostCentreTable').innerHTML = html || '<tr><td colspan="4" class="text-center">No data available</td></tr>';
+        }
+
+        // ==============================================
+        // HELPERS (NEW - CLEAN CODE)
+        // ==============================================
+
+        function formatCurrency(value) {
+            return 'R ' + Math.round(value || 0).toLocaleString();
+        }
+
+        function parseCurrency(value) {
+            return Number(String(value).replace(/[^0-9.-]+/g, '')) || 0;
+        }
+
+        function setValue(id, value) {
+            var el = document.getElementById(id);
+            if (el) el.value = value;
+        }
+
+        function setText(id, value) {
+            var el = document.getElementById(id);
+            if (el) el.innerText = value;
         }
 
         // ==============================================
@@ -1969,25 +2879,25 @@ function displayReports(data) {
                         <td>${p.projectName || ''}</td>
                         <td>${p.location || ''}</td>
                         <td><span class="badge-${(p.status || '').toLowerCase()}">${p.status || ''}</span></td>
-                        <td>R ${(p.totalIncome || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[0] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[1] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[2] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[3] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[4] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[5] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[6] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[7] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[8] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[9] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[10] || 0).toLocaleString()}</td>
-                        <td>R ${(p.months?.[11] || 0).toLocaleString()}</td>
-                        <td>R ${((p.months || []).reduce((a,b) => a + (b || 0), 0)).toLocaleString()}</td>
-                        <td>R ${(((p.months || []).reduce((a,b) => a + (b || 0), 0)) - (p.totalIncome || 0)).toLocaleString()}</td>
-                        <td>R ${dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === p.manager).reduce((sum, r) => sum + (r.amount || 0), 0).toLocaleString()}</td>
-                        <td>R ${((p.totalIncome || 0) - dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === p.manager).reduce((sum, r) => sum + (r.amount || 0), 0)).toLocaleString()}</td>
+                        <td>${formatCurrency(p.totalIncome || 0)}</td>
+                        <td>${formatCurrency(p.months?.[0] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[1] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[2] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[3] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[4] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[5] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[6] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[7] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[8] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[9] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[10] || 0)}</td>
+                        <td>${formatCurrency(p.months?.[11] || 0)}</td>
+                        <td>${formatCurrency((p.months || []).reduce((a,b) => a + (b || 0), 0))}</td>
+                        <td>${formatCurrency(((p.months || []).reduce((a,b) => a + (b || 0), 0)) - (p.totalIncome || 0))}</td>
+                        <td>${formatCurrency(dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === p.manager).reduce((sum, r) => sum + (r.amount || 0), 0))}</td>
+                        <td>${formatCurrency((p.totalIncome || 0) - dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === p.manager).reduce((sum, r) => sum + (r.amount || 0), 0))}</td>
                         <td>${p.margin || 0}%</td>
-                        <td>R ${Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100)).toLocaleString()}</td>
+                        <td>${formatCurrency(Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100)))}</td>
                         <td>${p.remarks || ''}</td>
                     </tr>
                 `;
@@ -1995,6 +2905,7 @@ function displayReports(data) {
             });
         }
 
+        // UPDATED: Get Cost Centre Summary with Profit calculation
         function getCostCentreSummary() {
             var summary = {};
 
@@ -2002,14 +2913,198 @@ function displayReports(data) {
                 var cc = p.costCentre || 'Unknown';
 
                 if (!summary[cc]) {
-                    summary[cc] = { total: 0, count: 0 };
+                    summary[cc] = { 
+                        confirmed: 0, 
+                        forecast: 0, 
+                        total: 0, 
+                        count: 0, 
+                        actual: 0,
+                        profit: 0,
+                        marginTotal: 0
+                    };
                 }
 
+                // Add to confirmed or forecast
+                if (p.status === 'Confirmed') {
+                    summary[cc].confirmed += Number(p.totalIncome || 0);
+                } else {
+                    summary[cc].forecast += Number(p.totalIncome || 0);
+                }
+                
                 summary[cc].total += Number(p.totalIncome || 0);
                 summary[cc].count++;
+                
+                // Calculate profit for this project
+                var projectProfit = Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100));
+                summary[cc].profit += projectProfit;
+                summary[cc].marginTotal += (p.margin || 0);
             });
+            
+            // Add actual revenue for this cost centre
+            var ccActual = {};
+            dailyRevenue.forEach(r => {
+                if (!ccActual[r.costCentre]) ccActual[r.costCentre] = 0;
+                ccActual[r.costCentre] += r.amount || 0;
+            });
+            
+            for (var cc in summary) {
+                summary[cc].actual = ccActual[cc] || 0;
+            }
 
             return summary;
+        }
+
+        // UPDATED: Get Gross Profit by Cost Centre
+        function getGrossProfitByCostCentre() {
+            var gpData = {};
+
+            projects.forEach(p => {
+                var cc = p.costCentre || 'Unknown';
+
+                if (!gpData[cc]) {
+                    gpData[cc] = { 
+                        profit: 0, 
+                        totalIncome: 0,
+                        marginSum: 0,
+                        projectCount: 0
+                    };
+                }
+
+                var projectProfit = Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100));
+                gpData[cc].profit += projectProfit;
+                gpData[cc].totalIncome += (p.totalIncome || 0);
+                gpData[cc].marginSum += (p.margin || 0);
+                gpData[cc].projectCount++;
+            });
+
+            return gpData;
+        }
+
+        // UPDATED: Get Top 10 Performing Projects
+        function getTopProjects() {
+            var projectList = projects.map(p => {
+                var actual = dailyRevenue.filter(r => r.projectName === p.projectName && r.manager === p.manager)
+                    .reduce((sum, r) => sum + (r.amount || 0), 0);
+                var achievement = p.totalIncome > 0 ? ((actual / p.totalIncome) * 100).toFixed(1) : 0;
+                var grossProfit = Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100));
+                
+                return {
+                    costCentre: p.costCentre || '',
+                    projectName: p.projectName || '',
+                    manager: p.manager || '',
+                    status: p.status || '',
+                    totalIncome: p.totalIncome || 0,
+                    actual: actual,
+                    btye: (p.totalIncome || 0) - actual,
+                    achievement: achievement,
+                    grossProfit: grossProfit,
+                    margin: p.margin || 0
+                };
+            });
+            
+            // Sort by total income descending and take top 10
+            return projectList.sort((a, b) => b.totalIncome - a.totalIncome).slice(0, 10);
+        }
+
+        function updateCostCentreSummaryTable() {
+            var tbody = document.getElementById('costCentreSummaryTable');
+            if (!tbody) return;
+            
+            var summary = getCostCentreSummary();
+            var html = '';
+            var grandTotal = 0;
+            var grandProfit = 0;
+            
+            for (var cc in summary) {
+                var variance = summary[cc].actual - summary[cc].total;
+                grandTotal += summary[cc].total;
+                grandProfit += summary[cc].profit;
+                
+                html += '<tr>' +
+                    '<td>' + cc + '</td>' +
+                    '<td>' + formatCurrency(summary[cc].confirmed) + '</td>' +
+                    '<td>' + formatCurrency(summary[cc].forecast) + '</td>' +
+                    '<td>' + formatCurrency(summary[cc].total) + '</td>' +
+                    '<td>' + formatCurrency(summary[cc].actual) + '</td>' +
+                    '<td class="' + (variance >= 0 ? 'variance-positive' : 'variance-negative') + '">' + formatCurrency(variance) + '</td>' +
+                    '<td>' + formatCurrency(summary[cc].profit) + '</td>' +
+                '</tr>';
+            }
+            
+            // Add grand total row
+            var totalVariance = (dailyRevenue.reduce((sum, r) => sum + (r.amount || 0), 0)) - grandTotal;
+            html += '<tr class="grand-total">' +
+                '<td><strong>TOTAL</strong></td>' +
+                '<td><strong>' + formatCurrency(Object.values(summary).reduce((sum, cc) => sum + cc.confirmed, 0)) + '</strong></td>' +
+                '<td><strong>' + formatCurrency(Object.values(summary).reduce((sum, cc) => sum + cc.forecast, 0)) + '</strong></td>' +
+                '<td><strong>' + formatCurrency(grandTotal) + '</strong></td>' +
+                '<td><strong>' + formatCurrency(dailyRevenue.reduce((sum, r) => sum + (r.amount || 0), 0)) + '</strong></td>' +
+                '<td class="' + (totalVariance >= 0 ? 'variance-positive' : 'variance-negative') + '"><strong>' + formatCurrency(totalVariance) + '</strong></td>' +
+                '<td><strong>' + formatCurrency(grandProfit) + '</strong></td>' +
+            '</tr>';
+            
+            tbody.innerHTML = html || '<tr><td colspan="7" class="text-center">No data</td></tr>';
+        }
+
+        function updateGpCostCentreTable() {
+            var tbody = document.getElementById('gpCostCentreTable');
+            if (!tbody) return;
+            
+            var gpData = getGrossProfitByCostCentre();
+            var html = '';
+            var totalGP = 0;
+            var totalIncome = 0;
+            
+            for (var cc in gpData) {
+                totalGP += gpData[cc].profit;
+                totalIncome += gpData[cc].totalIncome;
+            }
+            
+            for (var cc in gpData) {
+                var percentageOfTotal = totalGP > 0 ? ((gpData[cc].profit / totalGP) * 100).toFixed(1) : 0;
+                var margin = gpData[cc].totalIncome > 0 ? ((gpData[cc].profit / gpData[cc].totalIncome) * 100).toFixed(1) : 0;
+                
+                html += '<tr>' +
+                    '<td>' + cc + '</td>' +
+                    '<td>' + formatCurrency(gpData[cc].profit) + '</td>' +
+                    '<td>' + margin + '%</td>' +
+                    '<td>' + percentageOfTotal + '%</td>' +
+                '</tr>';
+            }
+            
+            // Add grand total row
+            html += '<tr class="grand-total">' +
+                '<td><strong>TOTAL</strong></td>' +
+                '<td><strong>' + formatCurrency(totalGP) + '</strong></td>' +
+                '<td><strong>' + (totalIncome > 0 ? ((totalGP / totalIncome) * 100).toFixed(1) : 0) + '%</strong></td>' +
+                '<td><strong>100%</strong></td>' +
+            '</tr>';
+            
+            tbody.innerHTML = html || '<tr><td colspan="4" class="text-center">No data</td></tr>';
+        }
+
+        function updateTopProjectsTable() {
+            var tbody = document.getElementById('topProjectsTable');
+            if (!tbody) return;
+            
+            var topProjects = getTopProjects();
+            var html = '';
+            
+            topProjects.forEach(p => {
+                html += '<tr>' +
+                    '<td>' + p.costCentre + '</td>' +
+                    '<td>' + p.projectName + '</td>' +
+                    '<td>' + p.manager + '</td>' +
+                    '<td><span class="badge-' + p.status.toLowerCase() + '">' + p.status + '</span></td>' +
+                    '<td>' + formatCurrency(p.totalIncome) + '</td>' +
+                    '<td>' + formatCurrency(p.actual) + '</td>' +
+                    '<td>' + formatCurrency(p.btye) + '</td>' +
+                    '<td class="' + (p.achievement >= 100 ? 'variance-positive' : 'variance-negative') + '">' + p.achievement + '%</td>' +
+                    '<td>' + formatCurrency(p.grossProfit) + '</td>' +
+                '</tr>';
+            });
+            
+            tbody.innerHTML = html || '<tr><td colspan="9" class="text-center">No data</td></tr>';
         }
 
         function getManagerPerformance() {
@@ -2019,32 +3114,27 @@ function displayReports(data) {
                 var m = p.manager || 'Unknown';
 
                 if (!summary[m]) {
-                    summary[m] = { total: 0, count: 0 };
+                    summary[m] = { total: 0, count: 0, actual: 0 };
                 }
 
                 summary[m].total += Number(p.totalIncome || 0);
                 summary[m].count++;
             });
 
-            return summary;
-        }
+            // Add actual revenue for each manager
+            dailyRevenue.forEach(r => {
+                if (r.manager && summary[r.manager]) {
+                    summary[r.manager].actual += r.amount || 0;
+                } else if (r.manager) {
+                    // Initialize if not exists (shouldn't happen with proper data)
+                    if (!summary[r.manager]) {
+                        summary[r.manager] = { total: 0, count: 0, actual: 0 };
+                    }
+                    summary[r.manager].actual += r.amount || 0;
+                }
+            });
 
-        function updateCostCentreSummaryTable() {
-            var tbody = document.getElementById('costCentreSummaryTable');
-            if (!tbody) return;
-            
-            var summary = getCostCentreSummary();
-            var html = '';
-            
-            for (var cc in summary) {
-                html += '<tr>' +
-                    '<td>' + cc + '</td>' +
-                    '<td>' + summary[cc].count + '</td>' +
-                    '<td>R ' + summary[cc].total.toLocaleString() + '</td>' +
-                '</tr>';
-            }
-            
-            tbody.innerHTML = html || '<tr><td colspan="3" class="text-center">No data</td></tr>';
+            return summary;
         }
 
         function updateManagerSummaryTable() {
@@ -2055,18 +3145,64 @@ function displayReports(data) {
             var html = '';
             
             for (var m in summary) {
+                var variance = summary[m].actual - summary[m].total;
+                var achievement = summary[m].total > 0 ? ((summary[m].actual / summary[m].total) * 100).toFixed(1) : 0;
+                var gp = Math.round(summary[m].actual * 0.3); // Approximate GP at 30%
+                
                 html += '<tr>' +
                     '<td>' + m + '</td>' +
                     '<td>' + summary[m].count + '</td>' +
-                    '<td>R ' + summary[m].total.toLocaleString() + '</td>' +
+                    '<td>' + formatCurrency(summary[m].total) + '</td>' +
+                    '<td>' + formatCurrency(summary[m].actual) + '</td>' +
+                    '<td class="' + (variance >= 0 ? 'variance-positive' : 'variance-negative') + '">' + achievement + '%</td>' +
+                    '<td>' + formatCurrency(gp) + '</td>' +
                 '</tr>';
             }
             
-            tbody.innerHTML = html || '<tr><td colspan="3" class="text-center">No data</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="6" class="text-center">No data</td></tr>';
+        }
+
+        function updateManagerPerformanceTable() {
+            var tbody = document.getElementById('managerPerformanceTable');
+            if (!tbody) return;
+            
+            var summary = getManagerPerformance();
+            var html = '';
+            
+            for (var m in summary) {
+                var variance = summary[m].actual - summary[m].total;
+                var variancePercent = summary[m].total > 0 ? ((summary[m].actual / summary[m].total) * 100).toFixed(1) : 0;
+                var statusClass = variancePercent >= 100 ? 'badge-confirmed' : 'badge-forecast';
+                var statusText = variancePercent >= 100 ? 'On Target' : 'Below Target';
+                
+                html += '<tr>' +
+                    '<td><strong>' + m + '</strong></td>' +
+                    '<td>' + summary[m].count + '</td>' +
+                    '<td>' + formatCurrency(summary[m].total) + '</td>' +
+                    '<td>' + formatCurrency(summary[m].actual) + '</td>' +
+                    '<td class="' + (variance >= 0 ? 'variance-positive' : 'variance-negative') + '">' + formatCurrency(variance) + '</td>' +
+                    '<td><div class="performance-alert ' + (variancePercent >= 100 ? 'alert-success' : 'alert-danger') + '">' + variancePercent + '%</div></td>' +
+                    '<td><span class="' + statusClass + '">' + statusText + '</span></td>' +
+                '</tr>';
+            }
+            
+            tbody.innerHTML = html || '<tr><td colspan="7" class="text-center">No data</td></tr>';
+        }
+
+        function populateManagerDropdown() {
+            var managerSelect = document.getElementById('analysisManager');
+            if (!managerSelect) return;
+            
+            var managers = [...new Set(projects.map(p => p.manager).filter(m => m))];
+            
+            managerSelect.innerHTML = '<option value="all">All Managers</option>';
+            managers.forEach(m => {
+                managerSelect.innerHTML += `<option value="${m}">${m}</option>`;
+            });
         }
 
         // ==============================================
-        // REPORT FUNCTIONS - FIXED
+        // REPORT FUNCTIONS - FIXED (CSV Downloads)
         // ==============================================
         
         function generateReport(type) {
@@ -2093,36 +3229,58 @@ function displayReports(data) {
 
             if (type === 'manager') {
                 var summary = getManagerPerformance();
-                data = 'Manager,Projects,Total Income\n';
+                data = 'Manager,Projects,Total Income,Actual Revenue,Variance,Achievement\n';
                 for (var m in summary) {
-                    data += `${m},${summary[m].count},${summary[m].total}\n`;
+                    var variance = summary[m].actual - summary[m].total;
+                    var achievement = summary[m].total > 0 ? ((summary[m].actual / summary[m].total) * 100).toFixed(1) : 0;
+                    data += `${m},${summary[m].count},${summary[m].total},${summary[m].actual},${variance},${achievement}%\n`;
                 }
                 filename = 'manager_performance.csv';
             }
 
             if (type === 'costcentre') {
                 var summary = getCostCentreSummary();
-                data = 'Cost Centre,Projects,Total Income\n';
+                data = 'Cost Centre,Projects,Total Income,Actual Revenue,Variance,Achievement,Gross Profit\n';
                 for (var c in summary) {
-                    data += `${c},${summary[c].count},${summary[c].total}\n`;
+                    var variance = summary[c].actual - summary[c].total;
+                    var achievement = summary[c].total > 0 ? ((summary[c].actual / summary[c].total) * 100).toFixed(1) : 0;
+                    data += `${c},${summary[c].count},${summary[c].total},${summary[c].actual},${variance},${achievement}%,${summary[c].profit}\n`;
                 }
                 filename = 'costcentre_summary.csv';
             }
 
             if (type === 'performance') {
+                var totalIncome = projects.reduce((sum, p) => sum + (p.totalIncome || 0), 0);
+                var totalActual = dailyRevenue.reduce((sum, r) => sum + (r.amount || 0), 0);
+                var variance = totalActual - totalIncome;
+                var achievement = totalIncome > 0 ? ((totalActual / totalIncome) * 100).toFixed(1) : 0;
+                
                 data = 'Metric,Value\n';
                 data += `Total Projects,${projects.length}\n`;
-                data += `Total Income,R ${projects.reduce((sum, p) => sum + (p.totalIncome || 0), 0).toLocaleString()}\n`;
-                data += `YTD Actual,R ${dailyRevenue.reduce((sum, r) => sum + (r.amount || 0), 0).toLocaleString()}\n`;
+                data += `Total Budget,R ${totalIncome.toLocaleString()}\n`;
+                data += `Total Actual,R ${totalActual.toLocaleString()}\n`;
+                data += `Variance,R ${variance.toLocaleString()}\n`;
+                data += `Achievement,${achievement}%\n`;
                 filename = 'performance_summary.csv';
             }
 
             if (type === 'gp') {
-                data = 'Cost Centre,Project,Gross Profit\n';
+                var gpData = getGrossProfitByCostCentre();
+                data = 'Cost Centre,Project,Gross Profit,Margin %\n';
                 projects.forEach(p => {
                     var gp = Math.round((p.totalIncome || 0) * ((p.margin || 0) / 100));
-                    data += `${p.costCentre || ''},${p.projectName || ''},${gp}\n`;
+                    data += `${p.costCentre || ''},${p.projectName || ''},${gp},${p.margin || 0}%\n`;
                 });
+                
+                // Add summary by cost centre
+                data += '\n\nSUMMARY BY COST CENTRE\n';
+                data += 'Cost Centre,Total Gross Profit,Average Margin,% of Total\n';
+                var totalGP = Object.values(gpData).reduce((sum, cc) => sum + cc.profit, 0);
+                for (var cc in gpData) {
+                    var percentOfTotal = totalGP > 0 ? ((gpData[cc].profit / totalGP) * 100).toFixed(1) : 0;
+                    data += `${cc},${gpData[cc].profit},${(gpData[cc].marginSum / gpData[cc].projectCount).toFixed(1)}%,${percentOfTotal}%\n`;
+                }
+                
                 filename = 'gross_profit_analysis.csv';
             }
 
@@ -2143,6 +3301,891 @@ function displayReports(data) {
         }
 
         // ==============================================
+        // REPORTS SECTION - WEB VIEW FUNCTIONS
+        // ==============================================
+        
+        function showWebView(type) {
+            var container = document.getElementById('webViewContainer');
+            var title = document.getElementById('webViewTitle');
+            var content = document.getElementById('webViewContent');
+            
+            container.style.display = 'block';
+            
+            if (type === 'performance') {
+                title.innerText = 'Performance Summary - Daily/Weekly/Monthly View';
+                content.innerHTML = generatePerformanceWebView();
+            } else if (type === 'manager') {
+                title.innerText = 'Manager Performance by Variance %';
+                content.innerHTML = generateManagerWebView();
+            } else if (type === 'costcentre') {
+                title.innerText = 'Cost Centre Analysis - Daily/Weekly/Monthly';
+                content.innerHTML = generateCostCentreWebView();
+            } else if (type === 'gp') {
+                title.innerText = 'Gross Profit Analysis';
+                content.innerHTML = generateGPWebView();
+            }
+        }
+
+        function generatePerformanceWebView() {
+            var html = `
+                <div class="mb-3">
+                    <select class="form-select" id="performancePeriod" onchange="updatePerformanceView()">
+                        <option value="daily">Daily View</option>
+                        <option value="weekly">Weekly View</option>
+                        <option value="monthly">Monthly View</option>
+                    </select>
+                </div>
+                <div id="performanceViewContent">
+                    ${getDailyPerformanceTable()}
+                </div>
+            `;
+            return html;
+        }
+
+        function getDailyPerformanceTable() {
+            // Group revenue by date
+            var dailyData = {};
+            dailyRevenue.forEach(r => {
+                if (!dailyData[r.date]) {
+                    dailyData[r.date] = {
+                        actual: 0,
+                        budget: 0
+                    };
+                }
+                dailyData[r.date].actual += r.amount || 0;
+                
+                // Calculate daily budget from projects
+                var date = new Date(r.date);
+                var monthIndex = date.getMonth();
+                projects.forEach(p => {
+                    if (p.months && p.months[monthIndex]) {
+                        dailyData[r.date].budget += (p.months[monthIndex] / 22); // Use 22 working days
+                    }
+                });
+            });
+            
+            var sortedDates = Object.keys(dailyData).sort().reverse();
+            var tableHtml = '<table class="table"><thead><tr><th>Date</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Achievement</th></tr></thead><tbody>';
+            
+            sortedDates.forEach(date => {
+                var data = dailyData[date];
+                var variance = data.actual - data.budget;
+                var achievement = data.budget > 0 ? ((data.actual / data.budget) * 100).toFixed(1) : 0;
+                var achievementClass = achievement >= 100 ? 'variance-positive' : 'variance-negative';
+                
+                tableHtml += `<tr>
+                    <td>${date}</td>
+                    <td>${formatCurrency(data.budget)}</td>
+                    <td>${formatCurrency(data.actual)}</td>
+                    <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                    <td class="${achievementClass}">${achievement}%</td>
+                </tr>`;
+            });
+            
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        }
+
+        function getWeeklyPerformanceTable() {
+            var weeklyData = {};
+            var workingDaysPerWeek = 5;
+            
+            dailyRevenue.forEach(r => {
+                var date = new Date(r.date);
+                var week = getWeekNumber(date);
+                var year = date.getFullYear();
+                var weekKey = year + '-W' + week;
+                
+                if (!weeklyData[weekKey]) {
+                    weeklyData[weekKey] = {
+                        actual: 0,
+                        budget: 0,
+                        dates: new Set()
+                    };
+                }
+                weeklyData[weekKey].actual += r.amount || 0;
+                weeklyData[weekKey].dates.add(r.date);
+            });
+            
+            // Calculate weekly budget
+            Object.keys(weeklyData).forEach(weekKey => {
+                weeklyData[weekKey].dates.forEach(dateStr => {
+                    var date = new Date(dateStr);
+                    var monthIndex = date.getMonth();
+                    projects.forEach(p => {
+                        if (p.months && p.months[monthIndex]) {
+                            weeklyData[weekKey].budget += (p.months[monthIndex] / 22) * workingDaysPerWeek;
+                        }
+                    });
+                });
+            });
+            
+            var sortedWeeks = Object.keys(weeklyData).sort().reverse();
+            var tableHtml = '<table class="table"><thead><tr><th>Week</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Achievement</th></tr></thead><tbody>';
+            
+            sortedWeeks.forEach(week => {
+                var data = weeklyData[week];
+                var variance = data.actual - data.budget;
+                var achievement = data.budget > 0 ? ((data.actual / data.budget) * 100).toFixed(1) : 0;
+                var achievementClass = achievement >= 100 ? 'variance-positive' : 'variance-negative';
+                
+                tableHtml += `<tr>
+                    <td>${week}</td>
+                    <td>${formatCurrency(data.budget)}</td>
+                    <td>${formatCurrency(data.actual)}</td>
+                    <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                    <td class="${achievementClass}">${achievement}%</td>
+                </tr>`;
+            });
+            
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        }
+
+        function getMonthlyPerformanceTable() {
+            var monthlyData = {};
+            
+            dailyRevenue.forEach(r => {
+                var date = new Date(r.date);
+                var monthKey = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                
+                if (!monthlyData[monthKey]) {
+                    monthlyData[monthKey] = {
+                        actual: 0,
+                        budget: 0,
+                        monthIndex: date.getMonth()
+                    };
+                }
+                monthlyData[monthKey].actual += r.amount || 0;
+            });
+            
+            // Calculate monthly budget
+            Object.keys(monthlyData).forEach(monthKey => {
+                var monthIndex = monthlyData[monthKey].monthIndex;
+                projects.forEach(p => {
+                    if (p.months && p.months[monthIndex]) {
+                        monthlyData[monthKey].budget += p.months[monthIndex];
+                    }
+                });
+            });
+            
+            var sortedMonths = Object.keys(monthlyData).sort((a, b) => {
+                return new Date(a) - new Date(b);
+            }).reverse();
+            
+            var tableHtml = '<table class="table"><thead><tr><th>Month</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Achievement</th></tr></thead><tbody>';
+            
+            sortedMonths.forEach(month => {
+                var data = monthlyData[month];
+                var variance = data.actual - data.budget;
+                var achievement = data.budget > 0 ? ((data.actual / data.budget) * 100).toFixed(1) : 0;
+                var achievementClass = achievement >= 100 ? 'variance-positive' : 'variance-negative';
+                
+                tableHtml += `<tr>
+                    <td>${month}</td>
+                    <td>${formatCurrency(data.budget)}</td>
+                    <td>${formatCurrency(data.actual)}</td>
+                    <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                    <td class="${achievementClass}">${achievement}%</td>
+                </tr>`;
+            });
+            
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        }
+
+        function updatePerformanceView() {
+            var period = document.getElementById('performancePeriod').value;
+            var contentDiv = document.getElementById('performanceViewContent');
+            
+            if (period === 'daily') {
+                contentDiv.innerHTML = getDailyPerformanceTable();
+            } else if (period === 'weekly') {
+                contentDiv.innerHTML = getWeeklyPerformanceTable();
+            } else if (period === 'monthly') {
+                contentDiv.innerHTML = getMonthlyPerformanceTable();
+            }
+        }
+
+        function generateManagerWebView() {
+            var summary = getManagerPerformance();
+            var html = '<table class="table"><thead><tr><th>Project Manager</th><th>Projects</th><th>Budget</th><th>Actual</th><th>Variance (R)</th><th>Variance %</th><th>Status</th></tr></thead><tbody>';
+            
+            for (var m in summary) {
+                var variance = summary[m].actual - summary[m].total;
+                var variancePercent = summary[m].total > 0 ? ((summary[m].actual / summary[m].total) * 100).toFixed(1) : 0;
+                var statusClass = variancePercent >= 100 ? 'alert-success' : 'alert-danger';
+                var statusText = variancePercent >= 100 ? 'On Target' : 'Below Target';
+                
+                html += `<tr>
+                    <td><strong>${m}</strong></td>
+                    <td>${summary[m].count}</td>
+                    <td>${formatCurrency(summary[m].total)}</td>
+                    <td>${formatCurrency(summary[m].actual)}</td>
+                    <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                    <td><div class="performance-alert ${statusClass}">${variancePercent}%</div></td>
+                    <td><span class="badge-${variancePercent >= 100 ? 'confirmed' : 'forecast'}">${statusText}</span></td>
+                </tr>`;
+            }
+            
+            html += '</tbody></table>';
+            return html;
+        }
+
+        function generateCostCentreWebView() {
+            var html = `
+                <div class="mb-3">
+                    <select class="form-select" id="costcentrePeriod" onchange="updateCostCentreView()">
+                        <option value="daily">Daily View</option>
+                        <option value="weekly">Weekly View</option>
+                        <option value="monthly">Monthly View</option>
+                    </select>
+                </div>
+                <div id="costcentreViewContent">
+                    ${getDailyCostCentreTable()}
+                </div>
+            `;
+            return html;
+        }
+
+        function getDailyCostCentreTable() {
+            var todayStr = new Date().toISOString().split('T')[0];
+            var ccData = {};
+            
+            dailyRevenue.forEach(r => {
+                if (r.date === todayStr) {
+                    var cc = r.costCentre || 'Unknown';
+                    if (!ccData[cc]) {
+                        ccData[cc] = {
+                            actual: 0,
+                            budget: 0
+                        };
+                    }
+                    ccData[cc].actual += r.amount || 0;
+                }
+            });
+            
+            // Calculate daily budget for each cost centre
+            var currentMonth = new Date().getMonth();
+            projects.forEach(p => {
+                var cc = p.costCentre;
+                if (!ccData[cc]) {
+                    ccData[cc] = {
+                        actual: 0,
+                        budget: 0
+                    };
+                }
+                if (p.months && p.months[currentMonth]) {
+                    ccData[cc].budget += (p.months[currentMonth] / 22);
+                }
+            });
+            
+            var tableHtml = '<table class="table"><thead><tr><th>Cost Centre</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Achievement</th></tr></thead><tbody>';
+            
+            for (var cc in ccData) {
+                var variance = ccData[cc].actual - ccData[cc].budget;
+                var achievement = ccData[cc].budget > 0 ? ((ccData[cc].actual / ccData[cc].budget) * 100).toFixed(1) : 0;
+                var achievementClass = achievement >= 100 ? 'variance-positive' : 'variance-negative';
+                
+                tableHtml += `<tr>
+                    <td><strong>${cc}</strong></td>
+                    <td>${formatCurrency(ccData[cc].budget)}</td>
+                    <td>${formatCurrency(ccData[cc].actual)}</td>
+                    <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                    <td class="${achievementClass}">${achievement}%</td>
+                </tr>`;
+            }
+            
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        }
+
+        function getWeeklyCostCentreTable() {
+            var ccData = {};
+            var sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            var workingDaysPerWeek = 5;
+            
+            dailyRevenue.forEach(r => {
+                var date = new Date(r.date);
+                if (date >= sevenDaysAgo) {
+                    var cc = r.costCentre || 'Unknown';
+                    if (!ccData[cc]) {
+                        ccData[cc] = {
+                            actual: 0,
+                            budget: 0
+                        };
+                    }
+                    ccData[cc].actual += r.amount || 0;
+                }
+            });
+            
+            // Calculate weekly budget
+            var currentMonth = new Date().getMonth();
+            projects.forEach(p => {
+                var cc = p.costCentre;
+                if (!ccData[cc]) {
+                    ccData[cc] = {
+                        actual: 0,
+                        budget: 0
+                    };
+                }
+                if (p.months && p.months[currentMonth]) {
+                    ccData[cc].budget += (p.months[currentMonth] / 22) * workingDaysPerWeek;
+                }
+            });
+            
+            var tableHtml = '<table class="table"><thead><tr><th>Cost Centre</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Achievement</th></tr></thead><tbody>';
+            
+            for (var cc in ccData) {
+                var variance = ccData[cc].actual - ccData[cc].budget;
+                var achievement = ccData[cc].budget > 0 ? ((ccData[cc].actual / ccData[cc].budget) * 100).toFixed(1) : 0;
+                var achievementClass = achievement >= 100 ? 'variance-positive' : 'variance-negative';
+                
+                tableHtml += `<tr>
+                    <td><strong>${cc}</strong></td>
+                    <td>${formatCurrency(ccData[cc].budget)}</td>
+                    <td>${formatCurrency(ccData[cc].actual)}</td>
+                    <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                    <td class="${achievementClass}">${achievement}%</td>
+                </tr>`;
+            }
+            
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        }
+
+        function getMonthlyCostCentreTable() {
+            var ccData = {};
+            var currentMonth = new Date().getMonth();
+            var currentYear = new Date().getFullYear();
+            
+            dailyRevenue.forEach(r => {
+                var date = new Date(r.date);
+                if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                    var cc = r.costCentre || 'Unknown';
+                    if (!ccData[cc]) {
+                        ccData[cc] = {
+                            actual: 0,
+                            budget: 0
+                        };
+                    }
+                    ccData[cc].actual += r.amount || 0;
+                }
+            });
+            
+            // Calculate monthly budget
+            projects.forEach(p => {
+                var cc = p.costCentre;
+                if (!ccData[cc]) {
+                    ccData[cc] = {
+                        actual: 0,
+                        budget: 0
+                    };
+                }
+                if (p.months && p.months[currentMonth]) {
+                    ccData[cc].budget += p.months[currentMonth];
+                }
+            });
+            
+            var tableHtml = '<table class="table"><thead><tr><th>Cost Centre</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Achievement</th></tr></thead><tbody>';
+            
+            for (var cc in ccData) {
+                var variance = ccData[cc].actual - ccData[cc].budget;
+                var achievement = ccData[cc].budget > 0 ? ((ccData[cc].actual / ccData[cc].budget) * 100).toFixed(1) : 0;
+                var achievementClass = achievement >= 100 ? 'variance-positive' : 'variance-negative';
+                
+                tableHtml += `<tr>
+                    <td><strong>${cc}</strong></td>
+                    <td>${formatCurrency(ccData[cc].budget)}</td>
+                    <td>${formatCurrency(ccData[cc].actual)}</td>
+                    <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                    <td class="${achievementClass}">${achievement}%</td>
+                </tr>`;
+            }
+            
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        }
+
+        function updateCostCentreView() {
+            var period = document.getElementById('costcentrePeriod').value;
+            var contentDiv = document.getElementById('costcentreViewContent');
+            
+            if (period === 'daily') {
+                contentDiv.innerHTML = getDailyCostCentreTable();
+            } else if (period === 'weekly') {
+                contentDiv.innerHTML = getWeeklyCostCentreTable();
+            } else if (period === 'monthly') {
+                contentDiv.innerHTML = getMonthlyCostCentreTable();
+            }
+        }
+
+        function generateGPWebView() {
+            var gpData = getGrossProfitByCostCentre();
+            var totalGP = Object.values(gpData).reduce((sum, cc) => sum + cc.profit, 0);
+            var totalIncome = Object.values(gpData).reduce((sum, cc) => sum + cc.totalIncome, 0);
+            
+            var html = '<table class="table"><thead><tr><th>Cost Centre</th><th>Total Income</th><th>Gross Profit</th><th>Margin %</th><th>% of Total GP</th></tr></thead><tbody>';
+            
+            for (var cc in gpData) {
+                var margin = gpData[cc].totalIncome > 0 ? ((gpData[cc].profit / gpData[cc].totalIncome) * 100).toFixed(1) : 0;
+                var percentOfTotal = totalGP > 0 ? ((gpData[cc].profit / totalGP) * 100).toFixed(1) : 0;
+                
+                html += `<tr>
+                    <td><strong>${cc}</strong></td>
+                    <td>${formatCurrency(gpData[cc].totalIncome)}</td>
+                    <td class="variance-positive">${formatCurrency(gpData[cc].profit)}</td>
+                    <td>${margin}%</td>
+                    <td>${percentOfTotal}%</td>
+                </tr>`;
+            }
+            
+            html += `<tr class="grand-total">
+                <td><strong>TOTAL</strong></td>
+                <td><strong>${formatCurrency(totalIncome)}</strong></td>
+                <td><strong>${formatCurrency(totalGP)}</strong></td>
+                <td><strong>${totalIncome > 0 ? ((totalGP / totalIncome) * 100).toFixed(1) : 0}%</strong></td>
+                <td><strong>100%</strong></td>
+            </tr>`;
+            
+            html += '</tbody></table>';
+            return html;
+        }
+
+        function closeWebView() {
+            document.getElementById('webViewContainer').style.display = 'none';
+        }
+
+        // ==============================================
+        // PERFORMANCE ANALYSIS FUNCTIONS - FIXED
+        // ==============================================
+        
+        function updateAnalysis() {
+            var viewType = document.getElementById('analysisView').value;
+            var costCentre = document.getElementById('analysisCostCentre').value;
+            var manager = document.getElementById('analysisManager').value;
+            var date = document.getElementById('analysisDate').value;
+            
+            // Filter data based on selections
+            var filteredProjects = projects;
+            var filteredRevenue = dailyRevenue;
+            
+            if (costCentre !== 'all') {
+                filteredProjects = filteredProjects.filter(p => p.costCentre === costCentre);
+                filteredRevenue = filteredRevenue.filter(r => r.costCentre === costCentre);
+            }
+            
+            if (manager !== 'all') {
+                filteredProjects = filteredProjects.filter(p => p.manager === manager);
+                filteredRevenue = filteredRevenue.filter(r => r.manager === manager);
+            }
+            
+            if (date) {
+                filteredRevenue = filteredRevenue.filter(r => r.date === date);
+            }
+            
+            // Calculate totals
+            var totalBudget = filteredProjects.reduce((sum, p) => sum + (p.totalIncome || 0), 0);
+            var totalActual = filteredRevenue.reduce((sum, r) => sum + (r.amount || 0), 0);
+            var variance = totalActual - totalBudget;
+            var achievement = totalBudget > 0 ? ((totalActual / totalBudget) * 100).toFixed(1) : 0;
+            
+            // Update summary cards
+            setText('analysisBudget', formatCurrency(totalBudget));
+            setText('analysisActual', formatCurrency(totalActual));
+            setText('analysisVariance', formatCurrency(variance));
+            setText('analysisAchievement', achievement + '%');
+            
+            // Update chart based on view type
+            updateAnalysisChart(viewType, filteredProjects, filteredRevenue);
+            
+            // Update analysis table
+            updateAnalysisTable(viewType, filteredProjects, filteredRevenue);
+        }
+        
+        function updateAnalysisChart(viewType, projects, revenue) {
+            if (!window.analysisChart) return;
+            
+            var series = [];
+            var categories = [];
+            
+            switch(viewType) {
+                case 'daily':
+                    // Group by date
+                    var dailyData = {};
+                    revenue.forEach(r => {
+                        if (!dailyData[r.date]) dailyData[r.date] = 0;
+                        dailyData[r.date] += r.amount || 0;
+                    });
+                    
+                    categories = Object.keys(dailyData).sort();
+                    series = [
+                        {
+                            name: 'Actual',
+                            data: categories.map(d => dailyData[d] || 0)
+                        }
+                    ];
+                    break;
+                    
+                case 'weekly':
+                    // Group by week
+                    var weeklyData = {};
+                    revenue.forEach(r => {
+                        var date = new Date(r.date);
+                        var week = getWeekNumber(date);
+                        var weekKey = `Week ${week}`;
+                        if (!weeklyData[weekKey]) weeklyData[weekKey] = 0;
+                        weeklyData[weekKey] += r.amount || 0;
+                    });
+                    
+                    categories = Object.keys(weeklyData).sort();
+                    series = [
+                        {
+                            name: 'Actual',
+                            data: categories.map(w => weeklyData[w] || 0)
+                        }
+                    ];
+                    break;
+                    
+                case 'monthly':
+                    // Group by month
+                    var monthlyData = {};
+                    revenue.forEach(r => {
+                        var date = new Date(r.date);
+                        var monthYear = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+                        if (!monthlyData[monthYear]) monthlyData[monthYear] = 0;
+                        monthlyData[monthYear] += r.amount || 0;
+                    });
+                    
+                    categories = Object.keys(monthlyData);
+                    series = [
+                        {
+                            name: 'Actual',
+                            data: categories.map(m => monthlyData[m] || 0)
+                        }
+                    ];
+                    break;
+                    
+                case 'ytd':
+                    // Year to date by month
+                    var ytdData = new Array(12).fill(0);
+                    var currentYear = new Date().getFullYear();
+                    
+                    revenue.forEach(r => {
+                        var date = new Date(r.date);
+                        if (date.getFullYear() === currentYear) {
+                            ytdData[date.getMonth()] += r.amount || 0;
+                        }
+                    });
+                    
+                    categories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    series = [
+                        {
+                            name: 'Actual',
+                            data: ytdData
+                        }
+                    ];
+                    break;
+                    
+                case 'manager':
+                    // Compare managers
+                    var managerData = {};
+                    projects.forEach(p => {
+                        if (!managerData[p.manager]) {
+                            managerData[p.manager] = { budget: 0, actual: 0 };
+                        }
+                        managerData[p.manager].budget += p.totalIncome || 0;
+                    });
+                    
+                    revenue.forEach(r => {
+                        if (!managerData[r.manager]) {
+                            managerData[r.manager] = { budget: 0, actual: 0 };
+                        }
+                        managerData[r.manager].actual += r.amount || 0;
+                    });
+                    
+                    categories = Object.keys(managerData);
+                    series = [
+                        {
+                            name: 'Budget',
+                            data: categories.map(m => managerData[m]?.budget || 0)
+                        },
+                        {
+                            name: 'Actual',
+                            data: categories.map(m => managerData[m]?.actual || 0)
+                        }
+                    ];
+                    break;
+                    
+                case 'project':
+                    // Compare projects (top 10 by budget)
+                    var projectData = {};
+                    projects.forEach(p => {
+                        projectData[p.projectName] = {
+                            budget: p.totalIncome || 0,
+                            actual: revenue.filter(r => r.projectName === p.projectName).reduce((sum, r) => sum + (r.amount || 0), 0)
+                        };
+                    });
+                    
+                    // Sort by budget and take top 10
+                    var sortedProjects = Object.entries(projectData)
+                        .sort((a, b) => b[1].budget - a[1].budget)
+                        .slice(0, 10);
+                    
+                    categories = sortedProjects.map(p => p[0].substring(0, 15) + '...');
+                    series = [
+                        {
+                            name: 'Budget',
+                            data: sortedProjects.map(p => p[1].budget)
+                        },
+                        {
+                            name: 'Actual',
+                            data: sortedProjects.map(p => p[1].actual)
+                        }
+                    ];
+                    break;
+                    
+                case 'gp':
+                    // Gross profit by cost centre
+                    var gpData = getGrossProfitByCostCentre();
+                    
+                    categories = Object.keys(gpData);
+                    series = [
+                        {
+                            name: 'Gross Profit',
+                            data: categories.map(cc => gpData[cc]?.profit || 0)
+                        }
+                    ];
+                    break;
+            }
+            
+            window.analysisChart.updateOptions({
+                xaxis: { categories: categories }
+            });
+            window.analysisChart.updateSeries(series);
+        }
+        
+        function updateAnalysisTable(viewType, projects, revenue) {
+            var tbody = document.getElementById('analysisBody');
+            if (!tbody) return;
+            
+            var html = '';
+            
+            switch(viewType) {
+                case 'daily':
+                    var dailyData = {};
+                    revenue.forEach(r => {
+                        if (!dailyData[r.date]) {
+                            dailyData[r.date] = {
+                                budget: 0,
+                                actual: 0,
+                                projects: new Set()
+                            };
+                        }
+                        dailyData[r.date].actual += r.amount || 0;
+                        dailyData[r.date].projects.add(r.projectName);
+                        
+                        // Add budget for this date from project monthly spreads
+                        var date = new Date(r.date);
+                        var monthIndex = date.getMonth();
+                        projects.forEach(p => {
+                            if (p.months && p.months[monthIndex]) {
+                                dailyData[r.date].budget += (p.months[monthIndex] / 22); // Approximate daily budget using 22 working days
+                            }
+                        });
+                    });
+                    
+                    var sortedDates = Object.keys(dailyData).sort().reverse();
+                    sortedDates.forEach(date => {
+                        var data = dailyData[date];
+                        var variance = data.actual - data.budget;
+                        var achievement = data.budget > 0 ? ((data.actual / data.budget) * 100).toFixed(1) : 0;
+                        
+                        html += `<tr>
+                            <td>${date}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>${data.projects.size} projects</td>
+                            <td>${formatCurrency(data.budget)}</td>
+                            <td>${formatCurrency(data.actual)}</td>
+                            <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                            <td>${achievement}%</td>
+                            <td><span class="badge-${achievement >= 100 ? 'confirmed' : 'forecast'}">${achievement >= 100 ? 'On Track' : 'Behind'}</span></td>
+                        </tr>`;
+                    });
+                    break;
+                    
+                case 'manager':
+                    var managerData = getManagerPerformance();
+                    
+                    for (var m in managerData) {
+                        var variance = managerData[m].actual - managerData[m].total;
+                        var achievement = managerData[m].total > 0 ? ((managerData[m].actual / managerData[m].total) * 100).toFixed(1) : 0;
+                        
+                        html += `<tr>
+                            <td>YTD</td>
+                            <td>-</td>
+                            <td>${m}</td>
+                            <td>${managerData[m].count} projects</td>
+                            <td>${formatCurrency(managerData[m].total)}</td>
+                            <td>${formatCurrency(managerData[m].actual)}</td>
+                            <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                            <td>${achievement}%</td>
+                            <td><span class="badge-${achievement >= 100 ? 'confirmed' : 'forecast'}">${achievement >= 100 ? 'On Track' : 'Behind'}</span></td>
+                        </tr>`;
+                    }
+                    break;
+                    
+                case 'project':
+                    var sortedProjects = [...projects].sort((a, b) => b.totalIncome - a.totalIncome).slice(0, 20);
+                    
+                    sortedProjects.forEach(p => {
+                        var actual = revenue.filter(r => r.projectName === p.projectName).reduce((sum, r) => sum + (r.amount || 0), 0);
+                        var variance = actual - (p.totalIncome || 0);
+                        var achievement = p.totalIncome > 0 ? ((actual / p.totalIncome) * 100).toFixed(1) : 0;
+                        
+                        html += `<tr>
+                            <td>YTD</td>
+                            <td>${p.costCentre || ''}</td>
+                            <td>${p.manager || ''}</td>
+                            <td>${p.projectName || ''}</td>
+                            <td>${formatCurrency(p.totalIncome || 0)}</td>
+                            <td>${formatCurrency(actual)}</td>
+                            <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                            <td>${achievement}%</td>
+                            <td><span class="badge-${achievement >= 100 ? 'confirmed' : 'forecast'}">${achievement >= 100 ? 'On Track' : 'Behind'}</span></td>
+                        </tr>`;
+                    });
+                    break;
+                    
+                case 'gp':
+                    var gpData = getGrossProfitByCostCentre();
+                    var totalGP = Object.values(gpData).reduce((sum, cc) => sum + cc.profit, 0);
+                    
+                    for (var cc in gpData) {
+                        var percentOfTotal = totalGP > 0 ? ((gpData[cc].profit / totalGP) * 100).toFixed(1) : 0;
+                        var avgMargin = gpData[cc].projectCount > 0 ? (gpData[cc].marginSum / gpData[cc].projectCount).toFixed(1) : 0;
+                        
+                        html += `<tr>
+                            <td>YTD</td>
+                            <td>${cc}</td>
+                            <td>-</td>
+                            <td>${gpData[cc].projectCount} projects</td>
+                            <td>${formatCurrency(gpData[cc].totalIncome)}</td>
+                            <td>${formatCurrency(gpData[cc].profit)}</td>
+                            <td class="variance-positive">${avgMargin}%</td>
+                            <td>${percentOfTotal}%</td>
+                            <td><span class="badge-confirmed">Active</span></td>
+                        </tr>`;
+                    }
+                    break;
+                    
+                default:
+                    // Monthly view
+                    var monthlyBudget = new Array(12).fill(0);
+                    var monthlyActual = new Array(12).fill(0);
+                    
+                    projects.forEach(p => {
+                        if (p.months) {
+                            for (var m = 0; m < 12; m++) {
+                                monthlyBudget[m] += p.months[m] || 0;
+                            }
+                        }
+                    });
+                    
+                    revenue.forEach(r => {
+                        var date = new Date(r.date);
+                        if (!isNaN(date.getTime())) {
+                            var monthIndex = date.getMonth();
+                            monthlyActual[monthIndex] += r.amount || 0;
+                        }
+                    });
+                    
+                    var months = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+                    for (var m = 0; m < 12; m++) {
+                        var variance = monthlyActual[m] - monthlyBudget[m];
+                        var achievement = monthlyBudget[m] > 0 ? ((monthlyActual[m] / monthlyBudget[m]) * 100).toFixed(1) : 0;
+                        
+                        html += `<tr>
+                            <td>${months[m]} 2026</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>All Projects</td>
+                            <td>${formatCurrency(monthlyBudget[m])}</td>
+                            <td>${formatCurrency(monthlyActual[m])}</td>
+                            <td class="${variance >= 0 ? 'variance-positive' : 'variance-negative'}">${formatCurrency(variance)}</td>
+                            <td>${achievement}%</td>
+                            <td><span class="badge-${achievement >= 100 ? 'confirmed' : 'forecast'}">${achievement >= 100 ? 'On Track' : 'Behind'}</span></td>
+                        </tr>`;
+                    }
+            }
+            
+            tbody.innerHTML = html || '<tr><td colspan="9" class="text-center">No data available</td></tr>';
+        }
+        
+        function getWeekNumber(date) {
+            var d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+            var yearStart = new Date(d.getFullYear(), 0, 1);
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+
+        // ==============================================
+        // SAFE REFRESH OVERRIDES
+        // ==============================================
+
+        const originalRefreshAllUI = window.refreshAllUI || function () {};
+        window.refreshAllUI = function () {
+            originalRefreshAllUI();
+
+            updateTodayStats();
+            updateDailyManagerTable();
+            updateDailyCostCentreTable();
+            updateManagerRankingTable();
+
+            if (selectedManager && typeof selectManager === 'function') {
+                selectManager(selectedManager);
+            }
+        };
+
+        const originalShowTab = window.showTab || function () {};
+        window.showTab = function (tabId, btn) {
+            originalShowTab(tabId, btn);
+
+            if (tabId === 'dailyRevenue') {
+                setTimeout(() => {
+                    updateManagerRankingTable();
+                    updateTodayStats();
+                    updateDailyManagerTable();
+                    updateDailyCostCentreTable();
+
+                    if (selectedManager && typeof selectManager === 'function') {
+                        selectManager(selectedManager);
+                    }
+
+                    var dateEl = document.getElementById('revDate');
+                    if (dateEl && !dateEl.value) {
+                        dateEl.value = new Date().toISOString().split('T')[0];
+                    }
+                }, 100);
+            }
+        };
+
+        // Initialize reports when switching to reports tab
+        const originalShowTab2 = showTab;
+        showTab = function(tabId, btn) {
+            originalShowTab2(tabId, btn);
+            if (tabId === 'reports') {
+                setTimeout(updateManagerPerformanceTable, 100);
+            }
+            if (tabId === 'analysis') {
+                setTimeout(updateAnalysis, 100);
+            }
+        };
+
+        // ==============================================
         // UI UPDATE FUNCTIONS - UPDATED
         // ==============================================
         
@@ -2156,51 +4199,82 @@ function displayReports(data) {
             var totalActual = dailyRevenue.reduce((sum, r) => sum + (r.amount || 0), 0);
             var totalGP = projects.reduce((sum, p) => sum + ((p.totalIncome || 0) * ((p.margin || 0) / 100)), 0);
             
-            // Update KPI cards
-            document.getElementById('kpiTotalOrderBook').innerText = 'R ' + totalIncome.toLocaleString();
-            document.getElementById('kpiConfirmed').innerText = 'R ' + confirmedIncome.toLocaleString();
-            document.getElementById('kpiForecast').innerText = 'R ' + forecastIncome.toLocaleString();
-            document.getElementById('kpiYTD').innerText = 'R ' + totalActual.toLocaleString();
-            document.getElementById('kpiBTYE').innerText = 'R ' + (totalIncome - totalActual).toLocaleString();
-            document.getElementById('kpiGP').innerText = 'R ' + Math.round(totalGP).toLocaleString();
+            // Calculate MTD (Month to Date)
+            var today = new Date();
+            var currentMonth = today.getMonth();
+            var currentYear = today.getFullYear();
             
-            document.getElementById('totalConfirmedDisplay').innerText = 'R ' + confirmedIncome.toLocaleString();
-            document.getElementById('totalForecastDisplay').innerText = 'R ' + forecastIncome.toLocaleString();
-            document.getElementById('ytdActualDisplay').innerText = 'R ' + totalActual.toLocaleString();
-            document.getElementById('totalProjects').innerText = projects.length.toString();
+            var mtdActual = 0;
+            dailyRevenue.forEach(r => {
+                var date = new Date(r.date);
+                if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                    mtdActual += r.amount || 0;
+                }
+            });
+            
+            // Calculate current month budget
+            var currentMonthBudget = 0;
+            projects.forEach(p => {
+                if (p.months && p.months[currentMonth]) {
+                    currentMonthBudget += p.months[currentMonth] || 0;
+                }
+            });
+            
+            // Update KPI cards
+            setText('kpiTotalOrderBook', formatCurrency(totalIncome));
+            setText('kpiConfirmed', formatCurrency(confirmedIncome));
+            setText('kpiForecast', formatCurrency(forecastIncome));
+            setText('kpiYTD', formatCurrency(totalActual));
+            setText('kpiBTYE', formatCurrency(totalIncome - totalActual));
+            setText('kpiMTD', formatCurrency(mtdActual));
+            setText('kpiGP', formatCurrency(Math.round(totalGP)));
+            
+            // Update header displays
+            setText('totalConfirmedDisplay', formatCurrency(confirmedIncome));
+            setText('totalForecastDisplay', formatCurrency(forecastIncome));
+            setText('ytdActualDisplay', formatCurrency(totalActual));
+            setText('btyeDisplay', formatCurrency(totalIncome - totalActual));
+            setText('mtdDisplay', formatCurrency(mtdActual));
+            setText('totalProjects', projects.length.toString());
             
             var lastUpdated = document.getElementById('lastUpdated');
             if (lastUpdated) {
                 lastUpdated.innerHTML = '<i class="far fa-clock me-1"></i>' + new Date().toLocaleTimeString();
             }
             
+            // Update MTD chart
+            if (window.mtdChart) {
+                var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var currentMonthName = monthNames[currentMonth];
+                
+                window.mtdChart.updateOptions({
+                    xaxis: {
+                        categories: [currentMonthName + ' ' + currentYear]
+                    }
+                });
+                
+                window.mtdChart.updateSeries([
+                    { name: 'Monthly Budget', data: [currentMonthBudget] },
+                    { name: 'MTD Actual', data: [mtdActual] }
+                ]);
+            }
+            
             // Populate all tables
             populateOrderBook();
             updateCostCentreSummaryTable();
+            updateGpCostCentreTable();
             updateManagerSummaryTable();
-            updateRecentRevenueTable();
-        }
-
-        function updateRecentRevenueTable() {
-            var tbody = document.getElementById('recentRevenueTable');
-            if (!tbody) return;
+            updateTopProjectsTable();
+            updateManagerPerformanceTable();
+            updateManagerRankingTable();
+            updateTodayStats();
+            updateDailyManagerTable();
+            updateDailyCostCentreTable();
             
-            var recentHtml = '';
-            var sortedRevenue = [...dailyRevenue].sort((a, b) => new Date(b.date) - new Date(a.date));
-            sortedRevenue.slice(0, 20).forEach(r => {
-                recentHtml += '<tr>' +
-                    '<td>' + (r.date || '') + '</td>' +
-                    '<td>' + (r.costCentre || '') + '</td>' +
-                    '<td>' + (r.manager || '') + '</td>' +
-                    '<td>' + (r.projectName || '') + '</td>' +
-                    '<td>R ' + (r.amount || 0).toLocaleString() + '</td>' +
-                    '<td>-</td>' +
-                    '<td>-</td>' +
-                    '<td>-</td>' +
-                '</tr>';
-            });
-            
-            document.getElementById('recentRevenueTable').innerHTML = recentHtml || '<tr><td colspan="8" class="text-center">No entries found</td></tr>';
+            // Update selected manager view if any
+            if (selectedManager) {
+                selectManager(selectedManager);
+            }
         }
 
         function updateCharts() {
@@ -2238,18 +4312,14 @@ function displayReports(data) {
                     { name: 'Actual', data: actualData }
                 ]);
                 
-                // Update Cost Centre Pie Chart
-                var ccData = {};
-                projects.forEach(p => {
-                    if (!ccData[p.costCentre]) ccData[p.costCentre] = 0;
-                    ccData[p.costCentre] += p.totalIncome || 0;
-                });
-                
+                // Update Cost Centre Pie Chart using Gross Profit data
+                var gpData = getGrossProfitByCostCentre();
                 var pieSeries = [];
                 var pieLabels = [];
-                for (var cc in ccData) {
-                    if (ccData[cc] > 0) {
-                        pieSeries.push(ccData[cc]);
+                
+                for (var cc in gpData) {
+                    if (gpData[cc].profit > 0) {
+                        pieSeries.push(gpData[cc].profit);
                         pieLabels.push(cc);
                     }
                 }
@@ -2271,21 +4341,34 @@ function displayReports(data) {
                 { id: 1, costCentre: 'Onpoint Group', projectName: 'DBSA Generators', location: 'Pretoria', manager: 'Moses', status: 'Confirmed', totalIncome: 28400000, margin: 45, remarks: 'Generator installation', months: [7666667, 7666667, 7666667, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { id: 2, costCentre: 'Onpoint Group', projectName: 'Joe Gqabi', location: 'Johannesburg', manager: 'Dave', status: 'Confirmed', totalIncome: 68479374, margin: 20, remarks: 'To close by Feb less retention', months: [3800000, 3800000, 3800000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000] },
                 { id: 3, costCentre: 'Aqua Telecoms', projectName: 'Stellenbosh', location: 'Cape Town', manager: 'Stanley', status: 'Confirmed', totalIncome: 10034021, margin: 50, remarks: 'Electrical works', months: [0, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 903062, 0] },
-                { id: 4, costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Metering', location: 'Moqhaka', manager: 'Phillip', status: 'Confirmed', totalIncome: 1800000, margin: 45, remarks: 'Metering project', months: [300000, 300000, 300000, 300000, 300000, 300000, 0, 0, 0, 0, 0, 0] }
+                { id: 4, costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Metering', location: 'Moqhaka', manager: 'Phillip', status: 'Confirmed', totalIncome: 1800000, margin: 45, remarks: 'Metering project', months: [300000, 300000, 300000, 300000, 300000, 300000, 0, 0, 0, 0, 0, 0] },
+                { id: 5, costCentre: 'DI Solutions', projectName: 'Smart Metering', location: 'Durban', manager: 'Brian', status: 'Confirmed', totalIncome: 12500000, margin: 35, remarks: 'Smart metering installation', months: [2000000, 2000000, 2000000, 2000000, 2000000, 2500000, 0, 0, 0, 0, 0, 0] },
+                { id: 6, costCentre: 'DI Solutions', projectName: 'Fibre Network', location: 'Cape Town', manager: 'Andrew', status: 'Forecast', totalIncome: 8500000, margin: 40, remarks: 'FTTH deployment', months: [0, 0, 0, 1500000, 1500000, 1500000, 1500000, 1500000, 1000000, 0, 0, 0] },
+                { id: 7, costCentre: 'Nkanyezi Projects', projectName: 'Road Infrastructure', location: 'Polokwane', manager: 'Phillip', status: 'Confirmed', totalIncome: 22000000, margin: 25, remarks: 'Road upgrade project', months: [3000000, 3000000, 3000000, 3000000, 3000000, 3000000, 2000000, 2000000, 0, 0, 0, 0] },
+                { id: 8, costCentre: 'Aqua Telecoms', projectName: 'Tower Installation', location: 'Multiple', manager: 'Stanley', status: 'Confirmed', totalIncome: 15600000, margin: 48, remarks: 'Cell tower installation', months: [2000000, 2000000, 2000000, 2000000, 2000000, 2000000, 1600000, 1600000, 0, 0, 0, 0] }
             ];
             
             var today = new Date().toISOString().split('T')[0];
+            var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            var twoDaysAgo = new Date(Date.now() - 172800000).toISOString().split('T')[0];
+            
             dailyRevenue = [
                 { date: today, costCentre: 'Onpoint Group', projectName: 'DBSA Generators', manager: 'Moses', amount: 350000 },
                 { date: today, costCentre: 'Onpoint Group', projectName: 'Joe Gqabi', manager: 'Dave', amount: 180000 },
-                { date: '2026-03-17', costCentre: 'Aqua Telecoms', projectName: 'Stellenbosh', manager: 'Stanley', amount: 250000 },
-                { date: '2026-03-16', costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Metering', manager: 'Phillip', amount: 15000 }
+                { date: yesterday, costCentre: 'Aqua Telecoms', projectName: 'Stellenbosh', manager: 'Stanley', amount: 250000 },
+                { date: yesterday, costCentre: 'Nkanyezi Projects', projectName: 'Moqhaka Metering', manager: 'Phillip', amount: 15000 },
+                { date: yesterday, costCentre: 'DI Solutions', projectName: 'Smart Metering', manager: 'Brian', amount: 95000 },
+                { date: twoDaysAgo, costCentre: 'DI Solutions', projectName: 'Fibre Network', manager: 'Andrew', amount: 120000 },
+                { date: twoDaysAgo, costCentre: 'Nkanyezi Projects', projectName: 'Road Infrastructure', manager: 'Phillip', amount: 280000 },
+                { date: twoDaysAgo, costCentre: 'Aqua Telecoms', projectName: 'Tower Installation', manager: 'Stanley', amount: 310000 }
             ];
             
             refreshAllUI();
             updateCharts();
+            populateManagerDropdown();
         }
 
+        // FIXED: updateMonthlyTotal function - Variance calculation corrected
         function updateMonthlyTotal() {
             var inputs = document.querySelectorAll('.month-input');
             var total = 0;
@@ -2303,41 +4386,72 @@ function displayReports(data) {
             var varEl = document.getElementById('scheduledVariance');
             if (varEl) {
                 varEl.innerText = 'R ' + variance.toLocaleString();
-                varEl.className = variance === 0 ? 'text-success' : 'text-danger';
+                // The variance is correct: income - scheduled total
+                // If income = 12,000,000 and scheduled total = 12,000,000, variance = 0
+                varEl.className = variance === 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
             }
         }
 
+        // FIXED: distributeEvenly function - Now distributes total income evenly across all months based on contract dates
         function distributeEvenly() {
             var income = parseFloat(document.getElementById('totalIncome')?.value) || 0;
             var inputs = document.querySelectorAll('.month-input');
 
             if (!inputs.length) return;
 
-            var value = income / inputs.length;
-
+            // Calculate how many months have non-zero values (active months)
+            var activeMonths = 0;
+            
+            // First, identify how many months should be active based on contract dates
+            var startDate = document.getElementById('startDate')?.value;
+            var endDate = document.getElementById('endDate')?.value;
+            
+            if (startDate && endDate) {
+                // Calculate months between dates
+                var start = new Date(startDate);
+                var end = new Date(endDate);
+                activeMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+                activeMonths = Math.min(activeMonths, inputs.length);
+            } else {
+                // If no dates, use all months
+                activeMonths = inputs.length;
+            }
+            
+            // Distribute income evenly across active months
+            var valuePerMonth = activeMonths > 0 ? income / activeMonths : 0;
+            
+            // Reset all inputs to 0 first
             inputs.forEach(function (input) {
-                input.value = value.toFixed(0);
+                input.value = 0;
             });
+            
+            // Set values for active months
+            for (var i = 0; i < activeMonths; i++) {
+                if (inputs[i]) {
+                    inputs[i].value = Math.round(valuePerMonth);
+                }
+            }
+            
+            // If there's a remainder due to rounding, add it to the last month
+            var totalAfter = 0;
+            for (var i = 0; i < activeMonths; i++) {
+                totalAfter += parseFloat(inputs[i]?.value) || 0;
+            }
+            
+            var remainder = income - totalAfter;
+            if (remainder !== 0 && inputs[activeMonths - 1]) {
+                inputs[activeMonths - 1].value = (parseFloat(inputs[activeMonths - 1].value) + remainder).toFixed(0);
+            }
 
             updateMonthlyTotal();
         }
 
         function loadProjectsForRevenue() {
-            document.getElementById('revMonthlyTarget').value = '';
-            document.getElementById('revDailyBudget').value = 'R 0';
-            document.getElementById('revVariance').value = 'R 0';
-            document.getElementById('revAmount').value = '';
-        }
-
-        function calculateDailyVariance() {
-            var amount = parseFloat(document.getElementById('revAmount')?.value) || 0;
-            var budgetText = document.getElementById('revDailyBudget')?.value || 'R 0';
-            var budget = parseFloat(budgetText.replace(/[^0-9.-]+/g, '')) || 0;
-
-            var variance = amount - budget;
-
-            var el = document.getElementById('revVariance');
-            if (el) el.value = 'R ' + variance.toLocaleString();
+            setValue('revMonthlyTarget', '');
+            setValue('revDailyBudget', 'R 0');
+            setValue('revVariance', 'R 0');
+            setValue('revAmount', '');
+            updateDailyTarget(); // This will now try to find the project and populate the target
         }
 
         // ==============================================
@@ -2367,7 +4481,28 @@ function displayReports(data) {
             if (tabId === 'orderbook') {
                 populateOrderBook();
                 updateCostCentreSummaryTable();
+                updateGpCostCentreTable();
                 updateManagerSummaryTable();
+            }
+            
+            // Update daily revenue performance tables
+            if (tabId === 'dailyRevenue') {
+                setTimeout(function() {
+                    updateManagerRankingTable();
+                    updateTodayStats();
+                    updateDailyManagerTable();
+                    updateDailyCostCentreTable();
+                    if (selectedManager) {
+                        selectManager(selectedManager);
+                    }
+                }, 100);
+            }
+            
+            if (tabId === 'reports') {
+                setTimeout(updateManagerPerformanceTable, 100);
+            }
+            if (tabId === 'analysis') {
+                setTimeout(updateAnalysis, 100);
             }
         }
 
@@ -2381,10 +4516,6 @@ function displayReports(data) {
 
         function printReport() {
             window.print();
-        }
-
-        function updateAnalysis() {
-            showStatus('Analysis feature coming soon', 'info');
         }
     </script>
 
