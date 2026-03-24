@@ -547,7 +547,7 @@
                             <th>PM Name</th><th>Division</th><th>Daily Target</th><th>Daily Actual</th>
                             <th>Variance</th><th>Variance %</th><th>On-Time %</th><th>Quality</th>
                             <th>Safety</th><th>Profit %</th><th>Risk Projects</th><th>Rating</th><th>Trend</th>
-                        </tr>
+                         </tr>
                     </thead>
                     <tbody id="pmTableBody"></tbody>
                 </table>
@@ -621,10 +621,24 @@
         // ============================================
         // GOOGLE SHEETS CONFIGURATION
         // ============================================
-        // IMPORTANT: Replace with your deployed Google Apps Script URL
         const CONFIG = {
+            // Sheet IDs
+            ORDERS_SHEET_ID: '1YvvBwjMLzjrc30QaUSGSei2VgrxS65P9p_WPSgS727Q',
+            REVENUE_SHEET_ID: '1zDYBgJYf6jQkzDSNdKDWwTRyJolf2gRxEYgv78lTFrM',
+            ALERTS_SHEET_ID: '1n9E4_T0Ur67gzxNOxo4n6hnDJovbuIzBhq6bDauILug',
+            PM_PERFORMANCE_SHEET_ID: '1RSgE89gw9XeRMDhoHhbkX3MfyRJG7OGtnA-moU2ZiXU',
+            DRIVE_FOLDER_ID: '1al8guXtgk-PJWwdNvd2umUXYv4AvwXSM',
+            
+            // Sheet Names
+            PROJECTS_SHEET_NAME: 'Projects',
+            REVENUE_SHEET_NAME: 'Revenue',
+            ALERTS_SHEET_NAME: 'Alerts',
+            PM_PERFORMANCE_SHEET_NAME: 'PMPerformance',
+            
+            // API Configuration
             API_URL: 'https://script.google.com/macros/s/AKfycbzY7SJUlNzMo4iFgx0BtOvBHKRHKQHvrwuyd4jS2LHpiiecLFOltC6XvGoMQjrcx6x0pg/exec', // REPLACE THIS!
             API_KEY: 'ONPOINT_REV_DASH_2024_SECURE_KEY_XYZ789',
+            VERSION: '2.0.0',
             USE_MOCK_DATA: false, // Set to false when connected to real API
             CACHE_DURATION: 300000
         };
@@ -647,9 +661,7 @@
             { ID: 'P002', ProjectName: 'DBSA Rooiwal', PM: 'Johan', Division: 'Civil', DailyTarget: 4100000, TotalValue: 15000000, StartDate: '2025-04-01', EndDate: '2026-03-31', MarginPercent: 20, DeadlineScore: 61, QualityScore: 81, SafetyScore: 100, CashCollected: 3000000, Status: 'Confirmed' },
             { ID: 'P003', ProjectName: 'Joe Gqabi', PM: 'Dave', Division: 'Civil', DailyTarget: 3800000, TotalValue: 68479374, StartDate: '2025-05-01', EndDate: '2026-02-28', MarginPercent: 20, DeadlineScore: 45, QualityScore: 65, SafetyScore: 95, CashCollected: 2000000, Status: 'Confirmed' },
             { ID: 'P004', ProjectName: 'Temba', PM: 'James', Division: 'Mechanical', DailyTarget: 4410000, TotalValue: 58800000, StartDate: '2025-06-01', EndDate: '2026-05-31', MarginPercent: 30, DeadlineScore: 72, QualityScore: 85, SafetyScore: 100, CashCollected: 3500000, Status: 'Confirmed' },
-            { ID: 'P005', ProjectName: 'Coega', PM: 'Rayman', Division: 'General Buildings', DailyTarget: 8373913, TotalValue: 74434783, StartDate: '2025-07-01', EndDate: '2026-06-30', MarginPercent: 30, DeadlineScore: 82, QualityScore: 88, SafetyScore: 100, CashCollected: 6000000, Status: 'Confirmed' },
-            { ID: 'P006', ProjectName: 'Liquid ECPG', PM: 'Govern', Division: 'Telecoms', DailyTarget: 5500000, TotalValue: 22000000, StartDate: '2025-08-01', EndDate: '2026-07-31', MarginPercent: 45, DeadlineScore: 88, QualityScore: 92, SafetyScore: 100, CashCollected: 5500000, Status: 'Confirmed' },
-            { ID: 'P007', ProjectName: 'Telkom', PM: 'Tinotenda', Division: 'Telecoms', DailyTarget: 1500000, TotalValue: 18000000, StartDate: '2025-09-01', EndDate: '2026-08-31', MarginPercent: 30, DeadlineScore: 78, QualityScore: 82, SafetyScore: 100, CashCollected: 1200000, Status: 'Confirmed' }
+            { ID: 'P005', ProjectName: 'Coega', PM: 'Rayman', Division: 'General Buildings', DailyTarget: 8373913, TotalValue: 74434783, StartDate: '2025-07-01', EndDate: '2026-06-30', MarginPercent: 30, DeadlineScore: 82, QualityScore: 88, SafetyScore: 100, CashCollected: 6000000, Status: 'Confirmed' }
         ];
 
         const MOCK_PM_PERFORMANCE = [
@@ -657,15 +669,12 @@
             { pmName: 'Johan', division: 'Civil', dailyBudgetTarget: 4100000, dailyActualAverage: 3800000, variance: -300000, variancePercent: -7.32, onTimeDelivery: 61, qualityScore: 81, safetyScore: 100, profitMargin: 20, activeProjects: 2, riskProjects: 1, performanceRating: 'Below Average', trend: 'down' },
             { pmName: 'Dave', division: 'Civil', dailyBudgetTarget: 3800000, dailyActualAverage: 3200000, variance: -600000, variancePercent: -15.79, onTimeDelivery: 45, qualityScore: 65, safetyScore: 95, profitMargin: 20, activeProjects: 1, riskProjects: 1, performanceRating: 'Critical', trend: 'down' },
             { pmName: 'James', division: 'Mechanical', dailyBudgetTarget: 4410000, dailyActualAverage: 4300000, variance: -110000, variancePercent: -2.49, onTimeDelivery: 72, qualityScore: 85, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Average', trend: 'stable' },
-            { pmName: 'Rayman', division: 'General Buildings', dailyBudgetTarget: 8373913, dailyActualAverage: 8200000, variance: -173913, variancePercent: -2.08, onTimeDelivery: 82, qualityScore: 88, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Good', trend: 'stable' },
-            { pmName: 'Govern', division: 'Telecoms', dailyBudgetTarget: 5500000, dailyActualAverage: 5400000, variance: -100000, variancePercent: -1.82, onTimeDelivery: 88, qualityScore: 92, safetyScore: 100, profitMargin: 45, activeProjects: 1, riskProjects: 0, performanceRating: 'Excellent', trend: 'up' },
-            { pmName: 'Tinotenda', division: 'Telecoms', dailyBudgetTarget: 1500000, dailyActualAverage: 1450000, variance: -50000, variancePercent: -3.33, onTimeDelivery: 78, qualityScore: 82, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Average', trend: 'stable' }
+            { pmName: 'Rayman', division: 'General Buildings', dailyBudgetTarget: 8373913, dailyActualAverage: 8200000, variance: -173913, variancePercent: -2.08, onTimeDelivery: 82, qualityScore: 88, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Good', trend: 'stable' }
         ];
 
         const MOCK_ALERTS = [
             { ID: 'A001', ProjectName: 'Joe Gqabi', PM: 'Dave', Message: '⚠️ CRITICAL: Revenue shortfall of 15.8% - Behind schedule by 45%', Level: 'Critical', Variance: -600000, VariancePercent: -15.79, Timestamp: new Date().toISOString(), Status: 'Open' },
-            { ID: 'A002', ProjectName: 'DBSA Rooiwal', PM: 'Johan', Message: '⚠️ Warning: Revenue shortfall of 7.3% - Deadline score at 61%', Level: 'Warning', Variance: -300000, VariancePercent: -7.32, Timestamp: new Date(Date.now() - 86400000).toISOString(), Status: 'Open' },
-            { ID: 'A003', ProjectName: 'DBSA Generators', PM: 'Moses', Message: '⚠️ Warning: Revenue shortfall of 6.1% - Needs improvement', Level: 'Warning', Variance: -466667, VariancePercent: -6.09, Timestamp: new Date(Date.now() - 172800000).toISOString(), Status: 'Open' }
+            { ID: 'A002', ProjectName: 'DBSA Rooiwal', PM: 'Johan', Message: '⚠️ Warning: Revenue shortfall of 7.3% - Deadline score at 61%', Level: 'Warning', Variance: -300000, VariancePercent: -7.32, Timestamp: new Date(Date.now() - 86400000).toISOString(), Status: 'Open' }
         ];
 
         const MOCK_REVENUE_TRENDS = {
@@ -674,16 +683,16 @@
         };
 
         const MOCK_DASHBOARD_STATS = {
-            totalRevenue: 32500000,
-            totalTarget: 37800000,
-            totalCashCollected: 26200000,
-            totalProfit: 8250000,
-            achievementRate: 86.0,
+            totalRevenue: 18500000,
+            totalTarget: 21000000,
+            totalCashCollected: 12000000,
+            totalProfit: 3500000,
+            achievementRate: 88.1,
             behindScheduleCount: 2,
             criticalAlertsCount: 1,
-            totalProjects: 7,
-            totalPMs: 7,
-            revenueByDivision: { Electrical: 7666667, Civil: 7900000, Mechanical: 4410000, 'General Buildings': 8373913, Telecoms: 7000000 },
+            totalProjects: 5,
+            totalPMs: 5,
+            revenueByDivision: { Electrical: 7666667, Civil: 7900000, Mechanical: 4410000, 'General Buildings': 8373913 },
             pmRadarData: MOCK_PM_PERFORMANCE.slice(0, 5).map(pm => ({ pm: pm.pmName, revenue: 50 + pm.variancePercent, deadline: pm.onTimeDelivery, quality: pm.qualityScore, safety: pm.safetyScore, profit: pm.profitMargin }))
         };
 
@@ -701,6 +710,10 @@
                 const url = new URL(CONFIG.API_URL);
                 url.searchParams.append('action', action);
                 url.searchParams.append('apiKey', CONFIG.API_KEY);
+                url.searchParams.append('ordersSheetId', CONFIG.ORDERS_SHEET_ID);
+                url.searchParams.append('revenueSheetId', CONFIG.REVENUE_SHEET_ID);
+                url.searchParams.append('alertsSheetId', CONFIG.ALERTS_SHEET_ID);
+                url.searchParams.append('pmPerformanceSheetId', CONFIG.PM_PERFORMANCE_SHEET_ID);
                 
                 Object.entries(params).forEach(([key, value]) => {
                     if (value !== undefined && value !== null && value !== 'All' && value !== '') {
@@ -826,7 +839,7 @@
             
             const tbody = document.getElementById('pmTableBody');
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 40px;">No PMs found</td></tr>';
+                tbody.innerHTML = '=<td colspan="13" style="text-align: center; padding: 40px;">No PMs found</td>;</tr>';
                 return;
             }
             
@@ -868,7 +881,6 @@
         }
 
         function updateCharts() {
-            // Variance Chart
             const varianceData = pmPerformance.slice(0, 10).map(pm => ({
                 name: pm.pmName.length > 15 ? pm.pmName.substring(0, 12) + '...' : pm.pmName,
                 variance: pm.variance,
@@ -896,7 +908,6 @@
                 }
             });
             
-            // PM Radar Chart
             const radarData = dashboardStats.pmRadarData || [];
             if (charts.pmRadar) charts.pmRadar.destroy();
             const radarCtx = document.getElementById('pmRadarChart').getContext('2d');
@@ -926,7 +937,7 @@
 
         function updateProgressBars() {
             const stats = dashboardStats;
-            const timeProgress = 45; // Example - would calculate from actual dates
+            const timeProgress = 45;
             const revenueProgress = stats.achievementRate;
             const scheduleAdherence = Math.min(100, (revenueProgress / Math.max(timeProgress, 1)) * 100);
             
@@ -988,9 +999,6 @@
             updatePMTable();
         }
 
-        // ============================================
-        // REVENUE ENTRY FUNCTIONS
-        // ============================================
         async function submitRevenueEntry(e) {
             e.preventDefault();
             showLoading();
@@ -1013,7 +1021,6 @@
                     const newEntry = { projectName, pm, date, dailyTarget, actualRevenue, startDate, endDate, notes };
                     revenueEntries.push(newEntry);
                     
-                    // Add mock alert if variance is significant
                     const variancePercent = ((actualRevenue - dailyTarget) / dailyTarget) * 100;
                     if (variancePercent < -15) {
                         const newAlert = {
@@ -1065,9 +1072,6 @@
             document.getElementById('revenueDate').valueAsDate = new Date();
         }
 
-        // ============================================
-        // ALERT FUNCTIONS
-        // ============================================
         async function resolveAlert(alertId) {
             showLoading();
             try {
@@ -1115,15 +1119,13 @@
             }
         }
 
-        // ============================================
-        // EXPORT FUNCTIONS
-        // ============================================
         async function exportReport() {
             showLoading();
             try {
                 if (CONFIG.USE_MOCK_DATA) {
                     const reportData = {
                         generatedAt: new Date().toISOString(),
+                        version: CONFIG.VERSION,
                         projects: projectsData,
                         pmPerformance: pmPerformance,
                         alerts: alertsData,
@@ -1154,9 +1156,6 @@
             }
         }
 
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
         function formatCurrency(value) {
             if (value === undefined || value === null) return 'R0';
             return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -1195,9 +1194,6 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // ============================================
-        // EVENT LISTENERS
-        // ============================================
         function setupEventListeners() {
             document.getElementById('refreshBtn').addEventListener('click', () => loadDashboardData());
             document.getElementById('exportBtn').addEventListener('click', exportReport);
@@ -1211,10 +1207,8 @@
             document.getElementById('revenueDate').valueAsDate = new Date();
         }
 
-        // Make resolveAlert globally accessible
         window.resolveAlert = resolveAlert;
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             setupEventListeners();
             loadDashboardData();
