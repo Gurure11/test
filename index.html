@@ -466,6 +466,24 @@
         .variance-positive { color: #10b981; font-weight: 600; }
         .variance-negative { color: #ef4444; font-weight: 600; }
 
+        .debug-panel {
+            background: #1e1e2f;
+            color: #a0a0a0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .debug-panel h4 {
+            color: #f59e0b;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
         @media (max-width: 768px) {
             .charts-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -501,6 +519,12 @@
                     <button id="exportBtn">📊 Export Report</button>
                 </div>
             </div>
+        </div>
+
+        <!-- Debug Panel -->
+        <div class="debug-panel" id="debugPanel">
+            <h4>🔍 Connection Debug Log</h4>
+            <div id="debugLog">Waiting for connection...</div>
         </div>
 
         <div class="stats-grid" id="statsGrid"></div>
@@ -622,24 +646,10 @@
         // GOOGLE SHEETS CONFIGURATION
         // ============================================
         const CONFIG = {
-            // Sheet IDs
-            ORDERS_SHEET_ID: '1YvvBwjMLzjrc30QaUSGSei2VgrxS65P9p_WPSgS727Q',
-            REVENUE_SHEET_ID: '1zDYBgJYf6jQkzDSNdKDWwTRyJolf2gRxEYgv78lTFrM',
-            ALERTS_SHEET_ID: '1n9E4_T0Ur67gzxNOxo4n6hnDJovbuIzBhq6bDauILug',
-            PM_PERFORMANCE_SHEET_ID: '1RSgE89gw9XeRMDhoHhbkX3MfyRJG7OGtnA-moU2ZiXU',
-            DRIVE_FOLDER_ID: '1al8guXtgk-PJWwdNvd2umUXYv4AvwXSM',
-            
-            // Sheet Names
-            PROJECTS_SHEET_NAME: 'Projects',
-            REVENUE_SHEET_NAME: 'Revenue',
-            ALERTS_SHEET_NAME: 'Alerts',
-            PM_PERFORMANCE_SHEET_NAME: 'PMPerformance',
-            
-            // API Configuration
-            API_URL: 'https://script.google.com/macros/s/AKfycbzY7SJUlNzMo4iFgx0BtOvBHKRHKQHvrwuyd4jS2LHpiiecLFOltC6XvGoMQjrcx6x0pg/exec', // REPLACE THIS!
+            // IMPORTANT: Replace with your actual deployed Google Apps Script URL
+            API_URL: 'https://script.google.com/macros/s/AKfycbzFLoMSu3MEURrXtnFTIC9GZ_WuVCgGhZvvpQJaEQy5mz3OjCacMPRD87SmUj3eQGy31A/exec',
             API_KEY: 'ONPOINT_REV_DASH_2024_SECURE_KEY_XYZ789',
-            VERSION: '2.0.0',
-            USE_MOCK_DATA: false, // Set to false when connected to real API
+            USE_MOCK_DATA: false, // Set to false when API_URL is configured correctly
             CACHE_DURATION: 300000
         };
 
@@ -651,7 +661,21 @@
         let dashboardStats = {};
         let revenueEntries = [];
         let charts = {};
-        let apiCache = new Map();
+        let debugLogs = [];
+
+        // Debug function
+        function addDebugLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLogs.unshift(logEntry);
+            if (debugLogs.length > 20) debugLogs.pop();
+            
+            const debugDiv = document.getElementById('debugLog');
+            if (debugDiv) {
+                debugDiv.innerHTML = debugLogs.map(log => `<div style="color: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#a0a0a0'}">${log}</div>`).join('');
+            }
+            console.log(logEntry);
+        }
 
         // ============================================
         // MOCK DATA (Fallback if Sheets not accessible)
@@ -661,7 +685,9 @@
             { ID: 'P002', ProjectName: 'DBSA Rooiwal', PM: 'Johan', Division: 'Civil', DailyTarget: 4100000, TotalValue: 15000000, StartDate: '2025-04-01', EndDate: '2026-03-31', MarginPercent: 20, DeadlineScore: 61, QualityScore: 81, SafetyScore: 100, CashCollected: 3000000, Status: 'Confirmed' },
             { ID: 'P003', ProjectName: 'Joe Gqabi', PM: 'Dave', Division: 'Civil', DailyTarget: 3800000, TotalValue: 68479374, StartDate: '2025-05-01', EndDate: '2026-02-28', MarginPercent: 20, DeadlineScore: 45, QualityScore: 65, SafetyScore: 95, CashCollected: 2000000, Status: 'Confirmed' },
             { ID: 'P004', ProjectName: 'Temba', PM: 'James', Division: 'Mechanical', DailyTarget: 4410000, TotalValue: 58800000, StartDate: '2025-06-01', EndDate: '2026-05-31', MarginPercent: 30, DeadlineScore: 72, QualityScore: 85, SafetyScore: 100, CashCollected: 3500000, Status: 'Confirmed' },
-            { ID: 'P005', ProjectName: 'Coega', PM: 'Rayman', Division: 'General Buildings', DailyTarget: 8373913, TotalValue: 74434783, StartDate: '2025-07-01', EndDate: '2026-06-30', MarginPercent: 30, DeadlineScore: 82, QualityScore: 88, SafetyScore: 100, CashCollected: 6000000, Status: 'Confirmed' }
+            { ID: 'P005', ProjectName: 'Coega', PM: 'Rayman', Division: 'General Buildings', DailyTarget: 8373913, TotalValue: 74434783, StartDate: '2025-07-01', EndDate: '2026-06-30', MarginPercent: 30, DeadlineScore: 82, QualityScore: 88, SafetyScore: 100, CashCollected: 6000000, Status: 'Confirmed' },
+            { ID: 'P006', ProjectName: 'Liquid ECPG', PM: 'Govern', Division: 'Telecoms', DailyTarget: 5500000, TotalValue: 22000000, StartDate: '2025-08-01', EndDate: '2026-07-31', MarginPercent: 45, DeadlineScore: 88, QualityScore: 92, SafetyScore: 100, CashCollected: 5500000, Status: 'Confirmed' },
+            { ID: 'P007', ProjectName: 'Telkom', PM: 'Tinotenda', Division: 'Telecoms', DailyTarget: 1500000, TotalValue: 18000000, StartDate: '2025-09-01', EndDate: '2026-08-31', MarginPercent: 30, DeadlineScore: 78, QualityScore: 82, SafetyScore: 100, CashCollected: 1200000, Status: 'Confirmed' }
         ];
 
         const MOCK_PM_PERFORMANCE = [
@@ -669,7 +695,9 @@
             { pmName: 'Johan', division: 'Civil', dailyBudgetTarget: 4100000, dailyActualAverage: 3800000, variance: -300000, variancePercent: -7.32, onTimeDelivery: 61, qualityScore: 81, safetyScore: 100, profitMargin: 20, activeProjects: 2, riskProjects: 1, performanceRating: 'Below Average', trend: 'down' },
             { pmName: 'Dave', division: 'Civil', dailyBudgetTarget: 3800000, dailyActualAverage: 3200000, variance: -600000, variancePercent: -15.79, onTimeDelivery: 45, qualityScore: 65, safetyScore: 95, profitMargin: 20, activeProjects: 1, riskProjects: 1, performanceRating: 'Critical', trend: 'down' },
             { pmName: 'James', division: 'Mechanical', dailyBudgetTarget: 4410000, dailyActualAverage: 4300000, variance: -110000, variancePercent: -2.49, onTimeDelivery: 72, qualityScore: 85, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Average', trend: 'stable' },
-            { pmName: 'Rayman', division: 'General Buildings', dailyBudgetTarget: 8373913, dailyActualAverage: 8200000, variance: -173913, variancePercent: -2.08, onTimeDelivery: 82, qualityScore: 88, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Good', trend: 'stable' }
+            { pmName: 'Rayman', division: 'General Buildings', dailyBudgetTarget: 8373913, dailyActualAverage: 8200000, variance: -173913, variancePercent: -2.08, onTimeDelivery: 82, qualityScore: 88, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Good', trend: 'stable' },
+            { pmName: 'Govern', division: 'Telecoms', dailyBudgetTarget: 5500000, dailyActualAverage: 5400000, variance: -100000, variancePercent: -1.82, onTimeDelivery: 88, qualityScore: 92, safetyScore: 100, profitMargin: 45, activeProjects: 1, riskProjects: 0, performanceRating: 'Excellent', trend: 'up' },
+            { pmName: 'Tinotenda', division: 'Telecoms', dailyBudgetTarget: 1500000, dailyActualAverage: 1450000, variance: -50000, variancePercent: -3.33, onTimeDelivery: 78, qualityScore: 82, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Average', trend: 'stable' }
         ];
 
         const MOCK_ALERTS = [
@@ -683,37 +711,36 @@
         };
 
         const MOCK_DASHBOARD_STATS = {
-            totalRevenue: 18500000,
-            totalTarget: 21000000,
-            totalCashCollected: 12000000,
-            totalProfit: 3500000,
-            achievementRate: 88.1,
+            totalRevenue: 32500000,
+            totalTarget: 37800000,
+            totalCashCollected: 26200000,
+            totalProfit: 8250000,
+            achievementRate: 86.0,
             behindScheduleCount: 2,
             criticalAlertsCount: 1,
-            totalProjects: 5,
-            totalPMs: 5,
-            revenueByDivision: { Electrical: 7666667, Civil: 7900000, Mechanical: 4410000, 'General Buildings': 8373913 },
+            totalProjects: 7,
+            totalPMs: 7,
+            revenueByDivision: { Electrical: 7666667, Civil: 7900000, Mechanical: 4410000, 'General Buildings': 8373913, Telecoms: 7000000 },
             pmRadarData: MOCK_PM_PERFORMANCE.slice(0, 5).map(pm => ({ pm: pm.pmName, revenue: 50 + pm.variancePercent, deadline: pm.onTimeDelivery, quality: pm.qualityScore, safety: pm.safetyScore, profit: pm.profitMargin }))
         };
 
         // ============================================
-        // API CALL FUNCTION
+        // API CALL FUNCTION WITH CORS AND CACHE BUSTING
         // ============================================
         async function callGoogleSheetsAPI(action, params = {}) {
-            const cacheKey = `${action}_${JSON.stringify(params)}`;
-            const cached = apiCache.get(cacheKey);
-            if (cached && (Date.now() - cached.timestamp) < CONFIG.CACHE_DURATION) {
-                return cached.data;
+            addDebugLog(`Calling API: ${action} with params: ${JSON.stringify(params)}`);
+            
+            // If using mock data, return mock response
+            if (CONFIG.USE_MOCK_DATA) {
+                addDebugLog(`Using MOCK DATA for ${action}`, 'info');
+                return { success: true, data: [], mock: true };
             }
             
             try {
                 const url = new URL(CONFIG.API_URL);
                 url.searchParams.append('action', action);
                 url.searchParams.append('apiKey', CONFIG.API_KEY);
-                url.searchParams.append('ordersSheetId', CONFIG.ORDERS_SHEET_ID);
-                url.searchParams.append('revenueSheetId', CONFIG.REVENUE_SHEET_ID);
-                url.searchParams.append('alertsSheetId', CONFIG.ALERTS_SHEET_ID);
-                url.searchParams.append('pmPerformanceSheetId', CONFIG.PM_PERFORMANCE_SHEET_ID);
+                url.searchParams.append('t', Date.now()); // Cache buster
                 
                 Object.entries(params).forEach(([key, value]) => {
                     if (value !== undefined && value !== null && value !== 'All' && value !== '') {
@@ -721,27 +748,44 @@
                     }
                 });
                 
+                addDebugLog(`Request URL: ${url.toString()}`);
+                
+                // Add timeout to fetch
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                
                 const response = await fetch(url.toString(), {
                     method: 'GET',
                     mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
+                addDebugLog(`API Response received for ${action}`, 'success');
                 
                 if (!data.success) {
                     throw new Error(data.error || `API call failed for ${action}`);
                 }
                 
-                apiCache.set(cacheKey, { data: data, timestamp: Date.now() });
                 return data;
                 
             } catch (error) {
-                console.error(`API Error (${action}):`, error);
+                addDebugLog(`API Error for ${action}: ${error.message}`, 'error');
+                
+                if (error.name === 'AbortError') {
+                    addDebugLog(`Request timeout for ${action}`, 'error');
+                }
+                
                 throw error;
             }
         }
@@ -752,18 +796,36 @@
         async function loadDashboardData() {
             showLoading();
             updateConnectionStatus('loading', 'Loading data...');
+            addDebugLog('Starting to load dashboard data...');
             
             try {
                 if (CONFIG.USE_MOCK_DATA) {
+                    addDebugLog('Using MOCK DATA mode', 'info');
                     projectsData = MOCK_PROJECTS;
                     pmPerformance = MOCK_PM_PERFORMANCE;
                     alertsData = MOCK_ALERTS;
                     revenueTrends = MOCK_REVENUE_TRENDS;
                     dashboardStats = MOCK_DASHBOARD_STATS;
-                    updateConnectionStatus('connected', 'Connected to Mock Data');
+                    updateConnectionStatus('connected', 'Using Mock Data (Demo Mode)');
+                    addDebugLog('Mock data loaded successfully', 'success');
                 } else {
+                    addDebugLog('Attempting to connect to Google Sheets API...');
+                    
+                    // Test connection first
+                    try {
+                        const testResult = await callGoogleSheetsAPI('getDivisions', {});
+                        if (testResult.success) {
+                            addDebugLog('Google Sheets API connection successful!', 'success');
+                        }
+                    } catch (testError) {
+                        addDebugLog(`Connection test failed: ${testError.message}`, 'error');
+                        throw new Error('Cannot connect to Google Sheets. Please check your API URL.');
+                    }
+                    
                     const period = document.getElementById('periodSelect').value;
                     const division = document.getElementById('divisionSelect').value;
+                    
+                    addDebugLog(`Fetching data for period: ${period}, division: ${division}`);
                     
                     const [projects, pmPerf, alerts, trends, stats] = await Promise.all([
                         callGoogleSheetsAPI('getProjectList', { division }),
@@ -773,13 +835,14 @@
                         callGoogleSheetsAPI('getDashboardStats', { period, division })
                     ]);
                     
-                    if (projects.success) projectsData = projects.data;
-                    if (pmPerf.success) pmPerformance = pmPerf.data;
-                    if (alerts.success) alertsData = alerts.data;
-                    if (trends.success) revenueTrends = trends.data;
-                    if (stats.success) dashboardStats = stats.data;
+                    if (projects.success) projectsData = projects.data || [];
+                    if (pmPerf.success) pmPerformance = pmPerf.data || [];
+                    if (alerts.success) alertsData = alerts.data || [];
+                    if (trends.success) revenueTrends = trends.data || {};
+                    if (stats.success) dashboardStats = stats.data || {};
                     
                     updateConnectionStatus('connected', 'Connected to Google Sheets');
+                    addDebugLog('All data fetched successfully from Google Sheets', 'success');
                 }
                 
                 updateDivisionFilter();
@@ -790,12 +853,28 @@
                 updateProgressBars();
                 updateProjectSelect();
                 
+                addDebugLog('Dashboard updated successfully', 'success');
                 showToast('Dashboard data loaded successfully', 'success');
                 
             } catch (error) {
-                console.error('Error loading dashboard:', error);
-                updateConnectionStatus('error', 'Connection Error');
-                showToast('Error loading data: ' + error.message, 'error');
+                addDebugLog(`Error loading dashboard: ${error.message}`, 'error');
+                updateConnectionStatus('error', 'Connection Error - Using Mock Data');
+                showToast('Error loading data: ' + error.message + ' - Using mock data', 'error');
+                
+                // Fallback to mock data on error
+                projectsData = MOCK_PROJECTS;
+                pmPerformance = MOCK_PM_PERFORMANCE;
+                alertsData = MOCK_ALERTS;
+                revenueTrends = MOCK_REVENUE_TRENDS;
+                dashboardStats = MOCK_DASHBOARD_STATS;
+                
+                updateDivisionFilter();
+                updateStats();
+                updatePMTable();
+                updateAlerts();
+                updateCharts();
+                updateProgressBars();
+                updateProjectSelect();
             } finally {
                 hideLoading();
             }
@@ -815,6 +894,7 @@
             const statusText = document.getElementById('connectionStatus');
             dot.className = `status-dot ${status}`;
             statusText.textContent = message;
+            addDebugLog(`Connection status: ${message}`, status === 'error' ? 'error' : 'success');
         }
 
         function updateStats() {
@@ -839,7 +919,7 @@
             
             const tbody = document.getElementById('pmTableBody');
             if (filtered.length === 0) {
-                tbody.innerHTML = '=<td colspan="13" style="text-align: center; padding: 40px;">No PMs found</td>;</tr>';
+                tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 40px;">No PMs found</td></tr>';
                 return;
             }
             
@@ -856,7 +936,7 @@
                     <td>${pm.safetyScore.toFixed(0)}%</td>
                     <td>${pm.profitMargin.toFixed(1)}%</td>
                     <td>${pm.riskProjects}</td>
-                    <td><span class="badge badge-${getRatingClass(pm.performanceRating)}">${pm.performanceRating}</span></td>
+                    <td><span class="badge ${pm.performanceRating === 'Critical' ? 'badge-critical' : pm.performanceRating === 'Below Average' ? 'badge-warning' : pm.performanceRating === 'Good' ? 'badge-success' : 'badge-confirmed'}">${pm.performanceRating}</span></td>
                     <td>${pm.trend === 'up' ? '📈 Up' : pm.trend === 'down' ? '📉 Down' : '➡️ Stable'}</td>
                 </tr>
             `).join('');
@@ -881,6 +961,7 @@
         }
 
         function updateCharts() {
+            // Variance Chart
             const varianceData = pmPerformance.slice(0, 10).map(pm => ({
                 name: pm.pmName.length > 15 ? pm.pmName.substring(0, 12) + '...' : pm.pmName,
                 variance: pm.variance,
@@ -908,6 +989,7 @@
                 }
             });
             
+            // PM Radar Chart
             const radarData = dashboardStats.pmRadarData || [];
             if (charts.pmRadar) charts.pmRadar.destroy();
             const radarCtx = document.getElementById('pmRadarChart').getContext('2d');
@@ -999,6 +1081,9 @@
             updatePMTable();
         }
 
+        // ============================================
+        // REVENUE ENTRY FUNCTIONS
+        // ============================================
         async function submitRevenueEntry(e) {
             e.preventDefault();
             showLoading();
@@ -1049,7 +1134,6 @@
                     if (result.success) {
                         showToast('Revenue saved to Google Sheets!', 'success');
                         hideRevenueModal();
-                        apiCache.clear();
                         await loadDashboardData();
                     } else {
                         throw new Error(result.error);
@@ -1072,6 +1156,9 @@
             document.getElementById('revenueDate').valueAsDate = new Date();
         }
 
+        // ============================================
+        // ALERT FUNCTIONS
+        // ============================================
         async function resolveAlert(alertId) {
             showLoading();
             try {
@@ -1083,7 +1170,6 @@
                     const result = await callGoogleSheetsAPI('updateAlertStatus', { alertId, status: 'Closed' });
                     if (result.success) {
                         showToast('Alert resolved in Google Sheets', 'success');
-                        apiCache.clear();
                         await loadDashboardData();
                     } else {
                         throw new Error(result.error);
@@ -1109,7 +1195,6 @@
                         await callGoogleSheetsAPI('updateAlertStatus', { alertId: alert.ID, status: 'Closed' });
                     }
                     showToast('All alerts cleared', 'success');
-                    apiCache.clear();
                     await loadDashboardData();
                 }
             } catch (error) {
@@ -1119,13 +1204,15 @@
             }
         }
 
+        // ============================================
+        // EXPORT FUNCTIONS
+        // ============================================
         async function exportReport() {
             showLoading();
             try {
                 if (CONFIG.USE_MOCK_DATA) {
                     const reportData = {
                         generatedAt: new Date().toISOString(),
-                        version: CONFIG.VERSION,
                         projects: projectsData,
                         pmPerformance: pmPerformance,
                         alerts: alertsData,
@@ -1156,6 +1243,9 @@
             }
         }
 
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
         function formatCurrency(value) {
             if (value === undefined || value === null) return 'R0';
             return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -1194,6 +1284,9 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
         function setupEventListeners() {
             document.getElementById('refreshBtn').addEventListener('click', () => loadDashboardData());
             document.getElementById('exportBtn').addEventListener('click', exportReport);
@@ -1207,8 +1300,10 @@
             document.getElementById('revenueDate').valueAsDate = new Date();
         }
 
+        // Make resolveAlert globally accessible
         window.resolveAlert = resolveAlert;
 
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             setupEventListeners();
             loadDashboardData();
