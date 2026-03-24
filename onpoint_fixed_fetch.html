@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OnPoint Dashboard - Fixed Fetch</title>
+</head>
+<body>
+<h2>OnPoint Dashboard Data Test</h2>
+
+<button onclick="getProjects()">Get Projects</button>
+<button onclick="getRevenue()">Get Revenue</button>
+
+<pre id="output"></pre>
+
+<script>
+// ============================================
+// CONFIG (UPDATE YOUR DEPLOYED WEB APP URL)
+// ============================================
+const BASE_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; 
+const API_KEY = "ONPOINT_REV_DASH_2024_SECURE_KEY_XYZ789";
+
+// ============================================
+// FIXED FETCH FUNCTION (MAIN ISSUE)
+// ============================================
+async function callAPI(action, params = {}) {
+    try {
+        const url = new URL(BASE_URL);
+
+        // Required parameters
+        url.searchParams.append("action", action);
+        url.searchParams.append("apiKey", API_KEY);
+
+        // Add custom params
+        Object.keys(params).forEach(key => {
+            url.searchParams.append(key, params[key]);
+        });
+
+        const response = await fetch(url, {
+            method: "GET",
+            mode: "cors"
+        });
+
+        const data = await response.json();
+        document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+
+    } catch (error) {
+        document.getElementById("output").textContent = "ERROR: " + error;
+        console.error(error);
+    }
+}
+
+// ============================================
+// TEST FUNCTIONS
+// ============================================
+function getProjects() {
+    callAPI("getProjects");
+}
+
+function getRevenue() {
+    callAPI("getDailyRevenue");
+}
+</script>
+
+</body>
+</html>
