@@ -19,7 +19,6 @@
             min-height: 100vh;
         }
 
-        /* Modern Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -35,17 +34,12 @@
             border-radius: 10px;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
-        }
-
         .dashboard-container {
             max-width: 1600px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, #0a2540 0%, #1a4d6b 100%);
             border-radius: 24px;
@@ -90,9 +84,12 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: #10b981;
             animation: pulse 2s infinite;
         }
+
+        .status-dot.connected { background: #10b981; }
+        .status-dot.error { background: #ef4444; }
+        .status-dot.loading { background: #f59e0b; }
 
         @keyframes pulse {
             0% { opacity: 1; transform: scale(1); }
@@ -119,7 +116,6 @@
         select {
             background: white;
             color: #1a1f36;
-            cursor: pointer;
         }
 
         button {
@@ -135,7 +131,15 @@
             transform: translateY(-1px);
         }
 
-        /* Stats Grid */
+        button.secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        button.secondary:hover {
+            background: #d1d5db;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -181,10 +185,65 @@
             color: #6b7280;
         }
 
-        .trend-up { color: #10b981; }
-        .trend-down { color: #ef4444; }
+        .progress-section {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
 
-        /* Charts Grid */
+        .progress-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .progress-track {
+            background: #e5e7eb;
+            border-radius: 20px;
+            height: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .progress-fill.warning {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .progress-fill.danger {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
@@ -217,8 +276,7 @@
             position: relative;
         }
 
-        /* Projects Table */
-        .projects-table {
+        .projects-table, .alerts-section {
             background: white;
             border-radius: 24px;
             overflow: hidden;
@@ -252,6 +310,21 @@
             font-size: 14px;
         }
 
+        .alert-item {
+            padding: 16px 20px;
+            border-left: 4px solid;
+            margin: 12px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-item.critical { border-left-color: #dc2626; background: #fef2f2; }
+        .alert-item.warning { border-left-color: #f59e0b; background: #fffbeb; }
+        .alert-item.info { border-left-color: #3b82f6; background: #eff6ff; }
+        .alert-item.success { border-left-color: #10b981; background: #f0fdf4; }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -276,7 +349,6 @@
             background: #f9fafb;
         }
 
-        /* Badges */
         .badge {
             display: inline-flex;
             align-items: center;
@@ -290,8 +362,12 @@
         .badge-forecast { background: #fed7aa; color: #ea580c; }
         .badge-critical { background: #fee2e2; color: #dc2626; }
         .badge-warning { background: #fed7aa; color: #ea580c; }
+        .badge-success { background: #d1fae5; color: #059669; }
+        .badge-excellent { background: #dbeafe; color: #2563eb; }
+        .badge-average { background: #f1f5f9; color: #475569; }
+        .badge-good { background: #d1fae5; color: #059669; }
+        .badge-below { background: #fed7aa; color: #ea580c; }
 
-        /* Revenue Entry Modal */
         .modal {
             display: none;
             position: fixed;
@@ -313,8 +389,10 @@
             background: white;
             border-radius: 24px;
             padding: 28px;
-            max-width: 500px;
+            max-width: 550px;
             width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .form-group {
@@ -336,7 +414,12 @@
             font-size: 14px;
         }
 
-        /* Loading Overlay */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -380,26 +463,18 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
+        .variance-positive { color: #10b981; font-weight: 600; }
+        .variance-negative { color: #ef4444; font-weight: 600; }
+
         @media (max-width: 768px) {
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .table-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .search-input {
-                width: 100%;
-            }
+            .charts-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .form-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Header -->
         <div class="header">
             <div class="header-top">
                 <div class="logo-area">
@@ -407,14 +482,19 @@
                     <p>Project Management System | Revenue Intelligence Dashboard</p>
                 </div>
                 <div class="connection-status">
-                    <div class="status-dot"></div>
-                    <span id="connectionStatus">Connected to Google Sheets</span>
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="connectionStatus">Initializing...</span>
                 </div>
                 <div class="controls">
                     <select id="periodSelect">
+                        <option value="Daily">Daily View</option>
+                        <option value="Weekly">Weekly View</option>
                         <option value="Monthly">Monthly View</option>
                         <option value="Quarterly">Quarterly View</option>
                         <option value="Yearly">Yearly View</option>
+                    </select>
+                    <select id="divisionSelect">
+                        <option value="All">All Divisions</option>
                     </select>
                     <button id="refreshBtn">🔄 Refresh</button>
                     <button id="addRevenueBtn">💰 Add Daily Revenue</button>
@@ -423,403 +503,556 @@
             </div>
         </div>
 
-        <!-- Stats Grid -->
         <div class="stats-grid" id="statsGrid"></div>
 
-        <!-- Charts Grid -->
-        <div class="charts-grid">
-            <div class="chart-card">
-                <div class="chart-title">📈 Monthly Revenue Trend</div>
-                <div class="chart-container">
-                    <canvas id="revenueChart"></canvas>
-                </div>
+        <div class="progress-section">
+            <div class="progress-title">
+                <span>📊 Overall Project Progress vs Time</span>
+                <span id="progressStatus" class="badge badge-success">On Track</span>
             </div>
-            <div class="chart-card">
-                <div class="chart-title">🏆 Project Status Distribution</div>
-                <div class="chart-container">
-                    <canvas id="statusChart"></canvas>
-                </div>
+            <div class="progress-bar-container">
+                <div class="progress-label"><span>Time Elapsed</span><span id="timeElapsed">0%</span></div>
+                <div class="progress-track"><div class="progress-fill" id="timeProgressFill" style="width: 0%">0%</div></div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-label"><span>Revenue Achieved</span><span id="revenueAchieved">0%</span></div>
+                <div class="progress-track"><div class="progress-fill" id="revenueProgressFill" style="width: 0%">0%</div></div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-label"><span>Schedule Adherence</span><span id="scheduleAdherence">0%</span></div>
+                <div class="progress-track"><div class="progress-fill" id="scheduleProgressFill" style="width: 0%">0%</div></div>
             </div>
         </div>
 
-        <!-- Projects Table -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">📈 Revenue Variance Analysis</div>
+                <div class="chart-container"><canvas id="varianceChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">🎯 PM Performance Radar</div>
+                <div class="chart-container"><canvas id="pmRadarChart"></canvas></div>
+            </div>
+        </div>
+
         <div class="projects-table">
             <div class="table-header">
-                <h3>📋 Active Projects</h3>
-                <input type="text" id="searchInput" class="search-input" placeholder="Search projects...">
+                <h3>👥 Project Manager Performance</h3>
+                <input type="text" id="pmSearchInput" class="search-input" placeholder="Search PM or Division...">
             </div>
-            <div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
-                <table id="projectsTable">
+            <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+                <table id="pmTable">
                     <thead>
-                        <tr id="tableHeaders">
-                            <th>ID</th>
-                            <th>Cost Centre</th>
-                            <th>Project Name</th>
-                            <th>Location</th>
-                            <th>Project Manager</th>
-                            <th>Status</th>
-                            <th>Total Income</th>
-                            <th>Margin %</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Mar-26</th>
-                            <th>Apr-26</th>
-                            <th>May-26</th>
-                            <th>Jun-26</th>
-                            <th>Jul-26</th>
-                            <th>Aug-26</th>
-                            <th>Sep-26</th>
-                            <th>Oct-26</th>
-                            <th>Nov-26</th>
-                            <th>Dec-26</th>
-                            <th>Jan-27</th>
-                            <th>Feb-27</th>
-                            <th>Remarks</th>
+                        <tr>
+                            <th>PM Name</th><th>Division</th><th>Daily Target</th><th>Daily Actual</th>
+                            <th>Variance</th><th>Variance %</th><th>On-Time %</th><th>Quality</th>
+                            <th>Safety</th><th>Profit %</th><th>Risk Projects</th><th>Rating</th><th>Trend</th>
                         </tr>
                     </thead>
-                    <tbody id="projectsTableBody"></tbody>
+                    <tbody id="pmTableBody"></tbody>
                 </table>
             </div>
         </div>
+
+        <div class="alerts-section">
+            <div class="table-header">
+                <h3>⚠️ Active Alerts</h3>
+                <button id="clearAlertsBtn" class="secondary">Clear All Alerts</button>
+            </div>
+            <div id="alertsContainer"></div>
+        </div>
     </div>
 
-    <!-- Add Revenue Modal -->
     <div id="revenueModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-bottom: 20px;">💰 Add Daily Revenue Entry</h3>
             <form id="revenueForm">
                 <div class="form-group">
-                    <label>Project</label>
-                    <select id="projectSelect" required></select>
+                    <label>Project Name *</label>
+                    <select id="projectNameSelect" required></select>
                 </div>
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="revenueDate" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Project Manager *</label>
+                        <select id="projectManagerSelect" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Revenue Date *</label>
+                        <input type="date" id="revenueDate" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Actual Revenue (ZAR)</label>
-                    <input type="number" id="actualRevenue" step="0.01" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Daily Budget Target (ZAR) *</label>
+                        <input type="number" id="dailyBudgetTarget" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Actual Revenue (ZAR) *</label>
+                        <input type="number" id="actualRevenue" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contract Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Contract End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Notes</label>
-                    <textarea id="revenueNotes" rows="3"></textarea>
+                    <textarea id="revenueNotes" rows="3" placeholder="Optional notes about this revenue entry"></textarea>
                 </div>
                 <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                    <button type="button" id="closeModalBtn" style="background: #e5e7eb; color: #374151;">Cancel</button>
+                    <button type="button" id="closeModalBtn" class="secondary">Cancel</button>
                     <button type="submit" style="background: #0a2540; color: white;">Save Entry</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay" style="display: none;">
         <div class="spinner"></div>
     </div>
 
     <script>
         // ============================================
-        // CONFIGURATION
+        // GOOGLE SHEETS CONFIGURATION
         // ============================================
+        // IMPORTANT: Replace with your deployed Google Apps Script URL
         const CONFIG = {
-            PROJECTS_SHEET_ID: '1_t7JqItYFEy0cGcA927M-rM6jOZDO8Dh8X8vJlALSq0',
-            REVENUE_SHEET_ID: '16zsV_C-2pz5gyka2fjlSZZoC5cDZcR3-cokS4Cx1rDE',
-            API_URL: 'https://script.google.com/macros/s/AKfycbwNChmfBEoUmCiwaVAoBzgmIuFaZI69OHniBNILGXVVq0uPIrfwlLSReHotRLWabFuP_Q/exec', // Replace with your deployed Apps Script URL
-            API_KEY: 'REV_DASH_2024_SECURE_KEY_XYZ123', // Replace with your API key
-            USE_MOCK_DATA: false // Set to false when connecting to real API
+            API_URL: 'https://script.google.com/macros/s/AKfycbwmjcENlkMDkvw8rRGhWU-9OsJqmjim8ndUyq6gNhDI9BfKcbFZKL96Rz83bkzvpuXQ/exec', // REPLACE THIS!
+            API_KEY: 'ONPOINT_REV_DASH_2024_SECURE_KEY_XYZ789',
+            USE_MOCK_DATA: false, // Set to false when connected to real API
+            CACHE_DURATION: 300000
         };
 
         // Global state
         let projectsData = [];
-        let revenueData = [];
+        let pmPerformance = [];
+        let alertsData = [];
+        let revenueTrends = {};
+        let dashboardStats = {};
+        let revenueEntries = [];
         let charts = {};
+        let apiCache = new Map();
 
-        // Mock Data (matches your sheet structure)
+        // ============================================
+        // MOCK DATA (Fallback if Sheets not accessible)
+        // ============================================
         const MOCK_PROJECTS = [
-            { ID: 'P001', CostCentre: 'Electrical', ProjectName: 'DBSA Generators', Location: 'Gauteng', ProjectManager: 'Moses', Status: 'Confirmed', TotalIncome: 28400000, MarginPercent: 45, StartDate: '2025-03-01', EndDate: '2026-02-28', Mar26: 7666667, Apr26: 7666667, May26: 7666667, Jun26: 25290157, Jul26: 25627918, Aug26: 25627918, Sep26: 25627918, Oct26: 26627918, Nov26: 17579005, Dec26: 15203333, Jan27: 12893333, Feb27: 12893333, Remarks: 'On track' },
-            { ID: 'P002', CostCentre: 'Civil', ProjectName: 'DBSA Rooiwal', Location: 'Gauteng', ProjectManager: 'Johan', Status: 'Confirmed', TotalIncome: 15000000, MarginPercent: 20, StartDate: '2025-04-01', EndDate: '2026-03-31', Mar26: 4100000, Apr26: 4100000, May26: 4100000, Jun26: 0, Jul26: 0, Aug26: 0, Sep26: 0, Oct26: 0, Nov26: 0, Dec26: 0, Jan27: 0, Feb27: 0, Remarks: 'Confirm retention clause' },
-            { ID: 'P003', CostCentre: 'Civil', ProjectName: 'Joe Gqabi', Location: 'Eastern Cape', ProjectManager: 'Dave', Status: 'Confirmed', TotalIncome: 68479374, MarginPercent: 20, StartDate: '2025-05-01', EndDate: '2026-02-28', Mar26: 3800000, Apr26: 3800000, May26: 3800000, Jun26: 5000000, Jul26: 5000000, Aug26: 5000000, Sep26: 5000000, Oct26: 5000000, Nov26: 5000000, Dec26: 5000000, Jan27: 5000000, Feb27: 5000000, Remarks: 'To close by Feb less retention' },
-            { ID: 'P004', CostCentre: 'Mechanical', ProjectName: 'Temba', Location: 'North West', ProjectManager: 'James', Status: 'Confirmed', TotalIncome: 58800000, MarginPercent: 30, StartDate: '2025-06-01', EndDate: '2026-05-31', Mar26: 4410000, Apr26: 4410000, May26: 4410000, Jun26: 4410000, Jul26: 4410000, Aug26: 4410000, Sep26: 4410000, Oct26: 4410000, Nov26: 4410000, Dec26: 4410000, Jan27: 4410000, Feb27: 4410000, Remarks: 'On schedule' },
-            { ID: 'P005', CostCentre: 'General Buildings', ProjectName: 'Coega', Location: 'Eastern Cape', ProjectManager: 'Rayman', Status: 'Confirmed', TotalIncome: 74434783, MarginPercent: 30, StartDate: '2025-07-01', EndDate: '2026-06-30', Mar26: 8373913, Apr26: 8373913, May26: 8373913, Jun26: 8373913, Jul26: 8373913, Aug26: 8373913, Sep26: 8373913, Oct26: 8373913, Nov26: 0, Dec26: 0, Jan27: 0, Feb27: 0, Remarks: 'Progressing well' },
-            { ID: 'P006', CostCentre: 'Telecoms', ProjectName: 'Liquid ECPG', Location: 'Gauteng', ProjectManager: 'Govern', Status: 'Confirmed', TotalIncome: 22000000, MarginPercent: 45, StartDate: '2025-08-01', EndDate: '2026-07-31', Mar26: 5500000, Apr26: 5500000, May26: 5500000, Jun26: 5500000, Jul26: 0, Aug26: 0, Sep26: 0, Oct26: 0, Nov26: 0, Dec26: 0, Jan27: 0, Feb27: 0, Remarks: 'Underground works' },
-            { ID: 'P007', CostCentre: 'Telecoms', ProjectName: 'Telkom', Location: 'National', ProjectManager: 'Tinotenda', Status: 'Confirmed', TotalIncome: 18000000, MarginPercent: 30, StartDate: '2025-09-01', EndDate: '2026-08-31', Mar26: 1500000, Apr26: 1500000, May26: 1500000, Jun26: 1500000, Jul26: 1500000, Aug26: 1500000, Sep26: 1500000, Oct26: 1500000, Nov26: 1500000, Dec26: 1500000, Jan27: 1500000, Feb27: 1500000, Remarks: 'National rollout' },
-            { ID: 'P008', CostCentre: 'Electrical', ProjectName: 'Centlec CD11', Location: 'Free State', ProjectManager: 'Stanley', Status: 'Confirmed', TotalIncome: 9600000, MarginPercent: 50, StartDate: '2025-10-01', EndDate: '2026-09-30', Mar26: 960000, Apr26: 960000, May26: 960000, Jun26: 960000, Jul26: 960000, Aug26: 960000, Sep26: 960000, Oct26: 960000, Nov26: 960000, Dec26: 960000, Jan27: 0, Feb27: 0, Remarks: 'Substation upgrade' }
+            { ID: 'P001', ProjectName: 'DBSA Generators', PM: 'Moses', Division: 'Electrical', DailyTarget: 7666667, TotalValue: 28400000, StartDate: '2025-03-01', EndDate: '2026-02-28', MarginPercent: 45, DeadlineScore: 76, QualityScore: 89, SafetyScore: 100, CashCollected: 5000000, Status: 'Confirmed' },
+            { ID: 'P002', ProjectName: 'DBSA Rooiwal', PM: 'Johan', Division: 'Civil', DailyTarget: 4100000, TotalValue: 15000000, StartDate: '2025-04-01', EndDate: '2026-03-31', MarginPercent: 20, DeadlineScore: 61, QualityScore: 81, SafetyScore: 100, CashCollected: 3000000, Status: 'Confirmed' },
+            { ID: 'P003', ProjectName: 'Joe Gqabi', PM: 'Dave', Division: 'Civil', DailyTarget: 3800000, TotalValue: 68479374, StartDate: '2025-05-01', EndDate: '2026-02-28', MarginPercent: 20, DeadlineScore: 45, QualityScore: 65, SafetyScore: 95, CashCollected: 2000000, Status: 'Confirmed' },
+            { ID: 'P004', ProjectName: 'Temba', PM: 'James', Division: 'Mechanical', DailyTarget: 4410000, TotalValue: 58800000, StartDate: '2025-06-01', EndDate: '2026-05-31', MarginPercent: 30, DeadlineScore: 72, QualityScore: 85, SafetyScore: 100, CashCollected: 3500000, Status: 'Confirmed' },
+            { ID: 'P005', ProjectName: 'Coega', PM: 'Rayman', Division: 'General Buildings', DailyTarget: 8373913, TotalValue: 74434783, StartDate: '2025-07-01', EndDate: '2026-06-30', MarginPercent: 30, DeadlineScore: 82, QualityScore: 88, SafetyScore: 100, CashCollected: 6000000, Status: 'Confirmed' },
+            { ID: 'P006', ProjectName: 'Liquid ECPG', PM: 'Govern', Division: 'Telecoms', DailyTarget: 5500000, TotalValue: 22000000, StartDate: '2025-08-01', EndDate: '2026-07-31', MarginPercent: 45, DeadlineScore: 88, QualityScore: 92, SafetyScore: 100, CashCollected: 5500000, Status: 'Confirmed' },
+            { ID: 'P007', ProjectName: 'Telkom', PM: 'Tinotenda', Division: 'Telecoms', DailyTarget: 1500000, TotalValue: 18000000, StartDate: '2025-09-01', EndDate: '2026-08-31', MarginPercent: 30, DeadlineScore: 78, QualityScore: 82, SafetyScore: 100, CashCollected: 1200000, Status: 'Confirmed' }
         ];
 
-        const MOCK_REVENUE = [
-            { ID: 'R001', ProjectID: 'P001', Date: '2026-03-01', ActualRevenue: 7200000, Notes: 'Weekly progress payment', RecordedBy: 'System' },
-            { ID: 'R002', ProjectID: 'P001', Date: '2026-03-08', ActualRevenue: 7100000, Notes: 'Progress milestone', RecordedBy: 'System' },
-            { ID: 'R003', ProjectID: 'P002', Date: '2026-03-05', ActualRevenue: 4000000, Notes: 'Monthly claim', RecordedBy: 'System' }
+        const MOCK_PM_PERFORMANCE = [
+            { pmName: 'Moses', division: 'Electrical', dailyBudgetTarget: 7666667, dailyActualAverage: 7200000, variance: -466667, variancePercent: -6.09, onTimeDelivery: 76, qualityScore: 89, safetyScore: 100, profitMargin: 45, activeProjects: 3, riskProjects: 0, performanceRating: 'Good', trend: 'stable' },
+            { pmName: 'Johan', division: 'Civil', dailyBudgetTarget: 4100000, dailyActualAverage: 3800000, variance: -300000, variancePercent: -7.32, onTimeDelivery: 61, qualityScore: 81, safetyScore: 100, profitMargin: 20, activeProjects: 2, riskProjects: 1, performanceRating: 'Below Average', trend: 'down' },
+            { pmName: 'Dave', division: 'Civil', dailyBudgetTarget: 3800000, dailyActualAverage: 3200000, variance: -600000, variancePercent: -15.79, onTimeDelivery: 45, qualityScore: 65, safetyScore: 95, profitMargin: 20, activeProjects: 1, riskProjects: 1, performanceRating: 'Critical', trend: 'down' },
+            { pmName: 'James', division: 'Mechanical', dailyBudgetTarget: 4410000, dailyActualAverage: 4300000, variance: -110000, variancePercent: -2.49, onTimeDelivery: 72, qualityScore: 85, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Average', trend: 'stable' },
+            { pmName: 'Rayman', division: 'General Buildings', dailyBudgetTarget: 8373913, dailyActualAverage: 8200000, variance: -173913, variancePercent: -2.08, onTimeDelivery: 82, qualityScore: 88, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Good', trend: 'stable' },
+            { pmName: 'Govern', division: 'Telecoms', dailyBudgetTarget: 5500000, dailyActualAverage: 5400000, variance: -100000, variancePercent: -1.82, onTimeDelivery: 88, qualityScore: 92, safetyScore: 100, profitMargin: 45, activeProjects: 1, riskProjects: 0, performanceRating: 'Excellent', trend: 'up' },
+            { pmName: 'Tinotenda', division: 'Telecoms', dailyBudgetTarget: 1500000, dailyActualAverage: 1450000, variance: -50000, variancePercent: -3.33, onTimeDelivery: 78, qualityScore: 82, safetyScore: 100, profitMargin: 30, activeProjects: 1, riskProjects: 0, performanceRating: 'Average', trend: 'stable' }
         ];
 
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-        document.addEventListener('DOMContentLoaded', () => {
-            setupEventListeners();
-            loadDashboardData();
-        });
+        const MOCK_ALERTS = [
+            { ID: 'A001', ProjectName: 'Joe Gqabi', PM: 'Dave', Message: '⚠️ CRITICAL: Revenue shortfall of 15.8% - Behind schedule by 45%', Level: 'Critical', Variance: -600000, VariancePercent: -15.79, Timestamp: new Date().toISOString(), Status: 'Open' },
+            { ID: 'A002', ProjectName: 'DBSA Rooiwal', PM: 'Johan', Message: '⚠️ Warning: Revenue shortfall of 7.3% - Deadline score at 61%', Level: 'Warning', Variance: -300000, VariancePercent: -7.32, Timestamp: new Date(Date.now() - 86400000).toISOString(), Status: 'Open' },
+            { ID: 'A003', ProjectName: 'DBSA Generators', PM: 'Moses', Message: '⚠️ Warning: Revenue shortfall of 6.1% - Needs improvement', Level: 'Warning', Variance: -466667, VariancePercent: -6.09, Timestamp: new Date(Date.now() - 172800000).toISOString(), Status: 'Open' }
+        ];
 
-        function setupEventListeners() {
-            document.getElementById('refreshBtn').addEventListener('click', () => loadDashboardData());
-            document.getElementById('exportBtn').addEventListener('click', exportReport);
-            document.getElementById('addRevenueBtn').addEventListener('click', showRevenueModal);
-            document.getElementById('closeModalBtn').addEventListener('click', hideRevenueModal);
-            document.getElementById('periodSelect').addEventListener('change', () => updateCharts());
-            document.getElementById('searchInput').addEventListener('input', filterProjects);
-            document.getElementById('revenueForm').addEventListener('submit', submitRevenueEntry);
-            document.getElementById('revenueDate').valueAsDate = new Date();
-        }
+        const MOCK_REVENUE_TRENDS = {
+            daily: Array.from({length: 30}, (_, i) => ({ date: `2026-03-${String(i+1).padStart(2,'0')}`, actual: 15000000 + Math.random() * 5000000, target: 18000000 })),
+            movingAverage: []
+        };
 
-        async function loadDashboardData() {
-            showLoading();
+        const MOCK_DASHBOARD_STATS = {
+            totalRevenue: 32500000,
+            totalTarget: 37800000,
+            totalCashCollected: 26200000,
+            totalProfit: 8250000,
+            achievementRate: 86.0,
+            behindScheduleCount: 2,
+            criticalAlertsCount: 1,
+            totalProjects: 7,
+            totalPMs: 7,
+            revenueByDivision: { Electrical: 7666667, Civil: 7900000, Mechanical: 4410000, 'General Buildings': 8373913, Telecoms: 7000000 },
+            pmRadarData: MOCK_PM_PERFORMANCE.slice(0, 5).map(pm => ({ pm: pm.pmName, revenue: 50 + pm.variancePercent, deadline: pm.onTimeDelivery, quality: pm.qualityScore, safety: pm.safetyScore, profit: pm.profitMargin }))
+        };
+
+        // ============================================
+        // API CALL FUNCTION
+        // ============================================
+        async function callGoogleSheetsAPI(action, params = {}) {
+            const cacheKey = `${action}_${JSON.stringify(params)}`;
+            const cached = apiCache.get(cacheKey);
+            if (cached && (Date.now() - cached.timestamp) < CONFIG.CACHE_DURATION) {
+                return cached.data;
+            }
+            
             try {
-                if (CONFIG.USE_MOCK_DATA) {
-                    projectsData = [...MOCK_PROJECTS];
-                    revenueData = [...MOCK_REVENUE];
-                } else {
-                    // Real API call would go here
-                    const projects = await fetchFromSheets('getProjects');
-                    const revenue = await fetchFromSheets('getDailyRevenue');
-                    if (projects.success) projectsData = projects.data;
-                    if (revenue.success) revenueData = revenue.data;
+                const url = new URL(CONFIG.API_URL);
+                url.searchParams.append('action', action);
+                url.searchParams.append('apiKey', CONFIG.API_KEY);
+                
+                Object.entries(params).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && value !== 'All' && value !== '') {
+                        url.searchParams.append(key, value.toString());
+                    }
+                });
+                
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                updateStats();
-                updateProjectsTable();
-                updateCharts();
-                updateProjectSelect();
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || `API call failed for ${action}`);
+                }
+                
+                apiCache.set(cacheKey, { data: data, timestamp: Date.now() });
+                return data;
                 
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.error(`API Error (${action}):`, error);
+                throw error;
+            }
+        }
+
+        // ============================================
+        // LOAD DASHBOARD DATA
+        // ============================================
+        async function loadDashboardData() {
+            showLoading();
+            updateConnectionStatus('loading', 'Loading data...');
+            
+            try {
+                if (CONFIG.USE_MOCK_DATA) {
+                    projectsData = MOCK_PROJECTS;
+                    pmPerformance = MOCK_PM_PERFORMANCE;
+                    alertsData = MOCK_ALERTS;
+                    revenueTrends = MOCK_REVENUE_TRENDS;
+                    dashboardStats = MOCK_DASHBOARD_STATS;
+                    updateConnectionStatus('connected', 'Connected to Mock Data');
+                } else {
+                    const period = document.getElementById('periodSelect').value;
+                    const division = document.getElementById('divisionSelect').value;
+                    
+                    const [projects, pmPerf, alerts, trends, stats] = await Promise.all([
+                        callGoogleSheetsAPI('getProjectList', { division }),
+                        callGoogleSheetsAPI('getPMPerformance', { period, division }),
+                        callGoogleSheetsAPI('getAlerts', { status: 'Open' }),
+                        callGoogleSheetsAPI('getRevenueTrends', {}),
+                        callGoogleSheetsAPI('getDashboardStats', { period, division })
+                    ]);
+                    
+                    if (projects.success) projectsData = projects.data;
+                    if (pmPerf.success) pmPerformance = pmPerf.data;
+                    if (alerts.success) alertsData = alerts.data;
+                    if (trends.success) revenueTrends = trends.data;
+                    if (stats.success) dashboardStats = stats.data;
+                    
+                    updateConnectionStatus('connected', 'Connected to Google Sheets');
+                }
+                
+                updateDivisionFilter();
+                updateStats();
+                updatePMTable();
+                updateAlerts();
+                updateCharts();
+                updateProgressBars();
+                updateProjectSelect();
+                
+                showToast('Dashboard data loaded successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                updateConnectionStatus('error', 'Connection Error');
                 showToast('Error loading data: ' + error.message, 'error');
             } finally {
                 hideLoading();
             }
         }
 
-        // ============================================
-        // UPDATE STATS CARDS
-        // ============================================
+        function updateDivisionFilter() {
+            const divisions = [...new Set(projectsData.map(p => p.Division))];
+            const select = document.getElementById('divisionSelect');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="All">All Divisions</option>' + 
+                divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+            if (divisions.includes(currentValue)) select.value = currentValue;
+        }
+
+        function updateConnectionStatus(status, message) {
+            const dot = document.getElementById('statusDot');
+            const statusText = document.getElementById('connectionStatus');
+            dot.className = `status-dot ${status}`;
+            statusText.textContent = message;
+        }
+
         function updateStats() {
-            // Calculate totals
-            const confirmedProjects = projectsData.filter(p => p.Status === 'Confirmed');
-            const forecastProjects = projectsData.filter(p => p.Status === 'Forecast');
-            
-            const confirmedTotal = confirmedProjects.reduce((sum, p) => sum + (p.TotalIncome || 0), 0);
-            const forecastTotal = forecastProjects.reduce((sum, p) => sum + (p.TotalIncome || 0), 0);
-            const totalBacklog = confirmedTotal + forecastTotal;
-            
-            // Calculate YTD Actual (from revenue entries)
-            const currentYear = new Date().getFullYear();
-            const ytdRevenue = revenueData.reduce((sum, r) => {
-                const revDate = new Date(r.Date);
-                if (revDate.getFullYear() === currentYear) {
-                    return sum + (r.ActualRevenue || 0);
-                }
-                return sum;
-            }, 0);
-            
-            // Calculate MTD (Month to Date)
-            const currentMonth = new Date().getMonth();
-            const currentYearNum = new Date().getFullYear();
-            const mtdRevenue = revenueData.reduce((sum, r) => {
-                const revDate = new Date(r.Date);
-                if (revDate.getFullYear() === currentYearNum && revDate.getMonth() === currentMonth) {
-                    return sum + (r.ActualRevenue || 0);
-                }
-                return sum;
-            }, 0);
-            
-            // Calculate monthly revenue for current month from projects
-            const monthNames = ['Mar-26', 'Apr-26', 'May-26', 'Jun-26', 'Jul-26', 'Aug-26', 'Sep-26', 'Oct-26', 'Nov-26', 'Dec-26', 'Jan-27', 'Feb-27'];
-            const currentMonthIndex = new Date().getMonth();
-            const currentMonthKey = monthNames[currentMonthIndex] || 'Mar-26';
-            
-            const projectedMonthlyRevenue = projectsData.reduce((sum, p) => sum + (p[currentMonthKey] || 0), 0);
-            
+            const stats = dashboardStats;
             const statsGrid = document.getElementById('statsGrid');
             statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-title">📊 Active Projects</div>
-                    <div class="stat-value">${projectsData.length}</div>
-                    <div class="stat-sub">Total active projects</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">✅ Confirmed Projects</div>
-                    <div class="stat-value">${formatCurrency(confirmedTotal)}</div>
-                    <div class="stat-sub">${confirmedProjects.length} projects</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">📈 Forecast Projects</div>
-                    <div class="stat-value">${formatCurrency(forecastTotal)}</div>
-                    <div class="stat-sub">${forecastProjects.length} projects</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">💰 YTD Actual</div>
-                    <div class="stat-value">${formatCurrency(ytdRevenue)}</div>
-                    <div class="stat-sub">Year-to-date revenue</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">📅 MTD Revenue</div>
-                    <div class="stat-value">${formatCurrency(mtdRevenue)}</div>
-                    <div class="stat-sub">Month-to-date actual</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">🎯 Group BTYE</div>
-                    <div class="stat-value">${formatCurrency(totalBacklog)}</div>
-                    <div class="stat-sub">Total backlog value</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">📊 Monthly Projected</div>
-                    <div class="stat-value">${formatCurrency(projectedMonthlyRevenue)}</div>
-                    <div class="stat-sub">Projected for ${currentMonthKey}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">📈 Avg Margin</div>
-                    <div class="stat-value">${calculateAverageMargin()}%</div>
-                    <div class="stat-sub">Across all projects</div>
-                </div>
+                <div class="stat-card"><div class="stat-title">💰 Total Revenue</div><div class="stat-value">${formatCurrency(stats.totalRevenue)}</div><div class="stat-sub">Target: ${formatCurrency(stats.totalTarget)}</div><div class="stat-sub">Achievement: ${stats.achievementRate.toFixed(1)}%</div></div>
+                <div class="stat-card"><div class="stat-title">💵 Cash Collected</div><div class="stat-value">${formatCurrency(stats.totalCashCollected)}</div><div class="stat-sub">${((stats.totalCashCollected / stats.totalRevenue) * 100).toFixed(1)}% collection rate</div></div>
+                <div class="stat-card"><div class="stat-title">📊 Gross Profit</div><div class="stat-value">${formatCurrency(stats.totalProfit)}</div><div class="stat-sub">Margin: ${((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1)}%</div></div>
+                <div class="stat-card"><div class="stat-title">⏰ Behind Schedule</div><div class="stat-value">${stats.behindScheduleCount}</div><div class="stat-sub">projects at risk</div></div>
+                <div class="stat-card"><div class="stat-title">⚠️ Critical Alerts</div><div class="stat-value">${stats.criticalAlertsCount}</div><div class="stat-sub">require immediate attention</div></div>
+                <div class="stat-card"><div class="stat-title">👥 Active PMs</div><div class="stat-value">${stats.totalPMs}</div><div class="stat-sub">managing ${stats.totalProjects} projects</div></div>
             `;
         }
 
-        function calculateAverageMargin() {
-            if (projectsData.length === 0) return 0;
-            const totalMargin = projectsData.reduce((sum, p) => sum + (p.MarginPercent || 0), 0);
-            return (totalMargin / projectsData.length).toFixed(1);
-        }
-
-        // ============================================
-        // UPDATE PROJECTS TABLE
-        // ============================================
-        function updateProjectsTable() {
-            const tbody = document.getElementById('projectsTableBody');
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            const filteredProjects = projectsData.filter(p => 
-                p.ProjectName?.toLowerCase().includes(searchTerm) ||
-                p.CostCentre?.toLowerCase().includes(searchTerm) ||
-                p.ProjectManager?.toLowerCase().includes(searchTerm) ||
-                p.Location?.toLowerCase().includes(searchTerm)
+        function updatePMTable() {
+            const searchTerm = document.getElementById('pmSearchInput').value.toLowerCase();
+            const filtered = pmPerformance.filter(pm => 
+                pm.pmName.toLowerCase().includes(searchTerm) || 
+                pm.division.toLowerCase().includes(searchTerm)
             );
             
-            tbody.innerHTML = filteredProjects.map(p => `
+            const tbody = document.getElementById('pmTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 40px;">No PMs found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filtered.map(pm => `
                 <tr>
-                    <td>${p.ID || '-'}</td>
-                    <td>${p.CostCentre || '-'}</td>
-                    <td><strong>${p.ProjectName || '-'}</strong></td>
-                    <td>${p.Location || '-'}</td>
-                    <td>${p.ProjectManager || '-'}</td>
-                    <td><span class="badge ${p.Status === 'Confirmed' ? 'badge-confirmed' : 'badge-forecast'}">${p.Status || '-'}</span></td>
-                    <td>${formatCurrency(p.TotalIncome)}</td>
-                    <td>${p.MarginPercent || 0}%</td>
-                    <td>${formatDate(p.StartDate)}</td>
-                    <td>${formatDate(p.EndDate)}</td>
-                    <td>${formatCurrency(p.Mar26)}</td>
-                    <td>${formatCurrency(p.Apr26)}</td>
-                    <td>${formatCurrency(p.May26)}</td>
-                    <td>${formatCurrency(p.Jun26)}</td>
-                    <td>${formatCurrency(p.Jul26)}</td>
-                    <td>${formatCurrency(p.Aug26)}</td>
-                    <td>${formatCurrency(p.Sep26)}</td>
-                    <td>${formatCurrency(p.Oct26)}</td>
-                    <td>${formatCurrency(p.Nov26)}</td>
-                    <td>${formatCurrency(p.Dec26)}</td>
-                    <td>${formatCurrency(p.Jan27)}</td>
-                    <td>${formatCurrency(p.Feb27)}</td>
-                    <td style="max-width: 200px; white-space: normal;">${p.Remarks || '-'}</td>
+                    <td><strong>${escapeHtml(pm.pmName)}</strong></td>
+                    <td>${escapeHtml(pm.division)}</td>
+                    <td>${formatCurrency(pm.dailyBudgetTarget)}</td>
+                    <td>${formatCurrency(pm.dailyActualAverage)}</td>
+                    <td class="${pm.variance >= 0 ? 'variance-positive' : 'variance-negative'}">${pm.variance >= 0 ? '+' : ''}${formatCurrency(pm.variance)}</td>
+                    <td class="${pm.variancePercent >= 0 ? 'variance-positive' : 'variance-negative'}">${pm.variancePercent >= 0 ? '+' : ''}${pm.variancePercent.toFixed(1)}%</td>
+                    <td><div style="display: flex; align-items: center; gap: 8px;"><span>${pm.onTimeDelivery.toFixed(0)}%</span><div class="progress-track" style="height: 6px; flex:1;"><div style="width: ${pm.onTimeDelivery}%; height: 100%; background: ${pm.onTimeDelivery >= 80 ? '#10b981' : pm.onTimeDelivery >= 60 ? '#f59e0b' : '#ef4444'}; border-radius: 10px;"></div></div></div></td>
+                    <td>${pm.qualityScore.toFixed(0)}%</td>
+                    <td>${pm.safetyScore.toFixed(0)}%</td>
+                    <td>${pm.profitMargin.toFixed(1)}%</td>
+                    <td>${pm.riskProjects}</td>
+                    <td><span class="badge badge-${getRatingClass(pm.performanceRating)}">${pm.performanceRating}</span></td>
+                    <td>${pm.trend === 'up' ? '📈 Up' : pm.trend === 'down' ? '📉 Down' : '➡️ Stable'}</td>
                 </tr>
             `).join('');
         }
 
-        function filterProjects() {
-            updateProjectsTable();
+        function updateAlerts() {
+            const container = document.getElementById('alertsContainer');
+            if (!alertsData.length) {
+                container.innerHTML = '<div style="padding: 40px; text-align: center;">✅ No active alerts. All projects on track!</div>';
+                return;
+            }
+            container.innerHTML = alertsData.map(alert => `
+                <div class="alert-item ${alert.Level.toLowerCase()}">
+                    <div style="flex:1;">
+                        <div style="font-weight:600;">📌 ${escapeHtml(alert.ProjectName)} (PM: ${escapeHtml(alert.PM || 'N/A')})</div>
+                        <div style="font-size:13px; margin-top:4px;">${escapeHtml(alert.Message)}</div>
+                        <div style="font-size:11px; margin-top:8px; color:#6b7280;">${new Date(alert.Timestamp).toLocaleString()}</div>
+                    </div>
+                    <button onclick="resolveAlert('${alert.ID}')" style="background:none; border:1px solid #e5e7eb; padding:6px 12px; border-radius:8px; cursor:pointer;">Resolve</button>
+                </div>
+            `).join('');
         }
 
-        // ============================================
-        // UPDATE CHARTS
-        // ============================================
         function updateCharts() {
-            const period = document.getElementById('periodSelect').value;
-            const monthNames = ['Mar-26', 'Apr-26', 'May-26', 'Jun-26', 'Jul-26', 'Aug-26', 'Sep-26', 'Oct-26', 'Nov-26', 'Dec-26', 'Jan-27', 'Feb-27'];
+            // Variance Chart
+            const varianceData = pmPerformance.slice(0, 10).map(pm => ({
+                name: pm.pmName.length > 15 ? pm.pmName.substring(0, 12) + '...' : pm.pmName,
+                variance: pm.variance,
+                color: pm.variance >= 0 ? '#10b981' : '#ef4444'
+            })).sort((a, b) => b.variance - a.variance);
             
-            // Calculate revenue by month
-            const monthlyRevenue = monthNames.map(month => {
-                return projectsData.reduce((sum, p) => sum + (p[month] || 0), 0);
-            });
-            
-            // Revenue Chart
-            if (charts.revenueChart) charts.revenueChart.destroy();
-            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-            charts.revenueChart = new Chart(revenueCtx, {
+            if (charts.varianceChart) charts.varianceChart.destroy();
+            const varianceCtx = document.getElementById('varianceChart').getContext('2d');
+            charts.varianceChart = new Chart(varianceCtx, {
                 type: 'bar',
                 data: {
-                    labels: monthNames,
+                    labels: varianceData.map(v => v.name),
                     datasets: [{
-                        label: 'Projected Revenue',
-                        data: monthlyRevenue,
-                        backgroundColor: 'rgba(10, 37, 64, 0.8)',
-                        borderColor: '#0a2540',
-                        borderWidth: 1,
+                        label: 'Revenue Variance',
+                        data: varianceData.map(v => v.variance),
+                        backgroundColor: varianceData.map(v => v.color),
                         borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `Revenue: ${formatCurrency(ctx.raw)}`
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            ticks: {
-                                callback: (value) => formatCurrency(value)
-                            }
-                        }
-                    }
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `Variance: ${formatCurrency(ctx.raw)}` } } },
+                    scales: { y: { ticks: { callback: (value) => formatCurrency(value) } } }
                 }
             });
             
-            // Status Distribution Chart
-            if (charts.statusChart) charts.statusChart.destroy();
-            const statusCtx = document.getElementById('statusChart').getContext('2d');
-            const confirmedCount = projectsData.filter(p => p.Status === 'Confirmed').length;
-            const forecastCount = projectsData.filter(p => p.Status === 'Forecast').length;
-            
-            charts.statusChart = new Chart(statusCtx, {
-                type: 'doughnut',
+            // PM Radar Chart
+            const radarData = dashboardStats.pmRadarData || [];
+            if (charts.pmRadar) charts.pmRadar.destroy();
+            const radarCtx = document.getElementById('pmRadarChart').getContext('2d');
+            const colors = ['#0a2540', '#1a4d6b', '#2c6e9e', '#3e8fc1', '#5aa9dd'];
+            charts.pmRadar = new Chart(radarCtx, {
+                type: 'radar',
                 data: {
-                    labels: ['Confirmed Projects', 'Forecast Projects'],
-                    datasets: [{
-                        data: [confirmedCount, forecastCount],
-                        backgroundColor: ['#10b981', '#f59e0b'],
-                        borderWidth: 0
-                    }]
+                    labels: ['Revenue vs Target', 'On-Time Delivery', 'Quality Score', 'Safety Score', 'Profit Margin'],
+                    datasets: radarData.map((pm, idx) => ({
+                        label: pm.pm,
+                        data: [pm.revenue, pm.deadline, pm.quality, pm.safety, pm.profit],
+                        borderColor: colors[idx % colors.length],
+                        backgroundColor: `${colors[idx % colors.length]}20`,
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: colors[idx % colors.length]
+                    }))
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
+                    scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } } },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` } } }
                 }
             });
+        }
+
+        function updateProgressBars() {
+            const stats = dashboardStats;
+            const timeProgress = 45; // Example - would calculate from actual dates
+            const revenueProgress = stats.achievementRate;
+            const scheduleAdherence = Math.min(100, (revenueProgress / Math.max(timeProgress, 1)) * 100);
+            
+            document.getElementById('timeProgressFill').style.width = `${timeProgress}%`;
+            document.getElementById('timeProgressFill').textContent = `${timeProgress}%`;
+            document.getElementById('timeElapsed').textContent = `${timeProgress}%`;
+            
+            document.getElementById('revenueProgressFill').style.width = `${revenueProgress}%`;
+            document.getElementById('revenueProgressFill').textContent = `${revenueProgress.toFixed(1)}%`;
+            document.getElementById('revenueAchieved').textContent = `${revenueProgress.toFixed(1)}%`;
+            
+            document.getElementById('scheduleProgressFill').style.width = `${scheduleAdherence}%`;
+            document.getElementById('scheduleProgressFill').textContent = `${scheduleAdherence.toFixed(1)}%`;
+            document.getElementById('scheduleAdherence').textContent = `${scheduleAdherence.toFixed(1)}%`;
+            
+            const statusSpan = document.getElementById('progressStatus');
+            if (scheduleAdherence >= 90) {
+                statusSpan.className = 'badge badge-success';
+                statusSpan.textContent = 'Excellent';
+                document.getElementById('scheduleProgressFill').className = 'progress-fill';
+            } else if (scheduleAdherence >= 70) {
+                statusSpan.className = 'badge badge-confirmed';
+                statusSpan.textContent = 'On Track';
+                document.getElementById('scheduleProgressFill').className = 'progress-fill';
+            } else if (scheduleAdherence >= 50) {
+                statusSpan.className = 'badge badge-warning';
+                statusSpan.textContent = 'Warning';
+                document.getElementById('scheduleProgressFill').className = 'progress-fill warning';
+            } else {
+                statusSpan.className = 'badge badge-critical';
+                statusSpan.textContent = 'Critical';
+                document.getElementById('scheduleProgressFill').className = 'progress-fill danger';
+            }
+        }
+
+        function updateProjectSelect() {
+            const projectSelect = document.getElementById('projectNameSelect');
+            const pmSelect = document.getElementById('projectManagerSelect');
+            const uniquePMs = [...new Map(projectsData.map(p => [p.PM, p.PM])).values()].sort();
+            
+            projectSelect.innerHTML = '<option value="">Select Project</option>' + 
+                projectsData.map(p => `<option value="${escapeHtml(p.ProjectName)}" data-pm="${escapeHtml(p.PM)}" data-target="${p.DailyTarget}" data-start="${p.StartDate || ''}" data-end="${p.EndDate || ''}">${escapeHtml(p.ProjectName)} (${escapeHtml(p.PM)})</option>`).join('');
+            
+            pmSelect.innerHTML = '<option value="">Select PM</option>' + 
+                uniquePMs.map(pm => `<option value="${escapeHtml(pm)}">${escapeHtml(pm)}</option>`).join('');
+            
+            projectSelect.addEventListener('change', function() {
+                const selected = this.options[this.selectedIndex];
+                if (selected && selected.value) {
+                    pmSelect.value = selected.dataset.pm || '';
+                    document.getElementById('dailyBudgetTarget').value = selected.dataset.target || '';
+                    document.getElementById('startDate').value = selected.dataset.start || '';
+                    document.getElementById('endDate').value = selected.dataset.end || '';
+                }
+            });
+        }
+
+        function filterPMTable() {
+            updatePMTable();
         }
 
         // ============================================
         // REVENUE ENTRY FUNCTIONS
         // ============================================
-        function updateProjectSelect() {
-            const select = document.getElementById('projectSelect');
-            select.innerHTML = projectsData.map(p => 
-                `<option value="${p.ID}">${p.ProjectName} (${p.ProjectManager})</option>`
-            ).join('');
+        async function submitRevenueEntry(e) {
+            e.preventDefault();
+            showLoading();
+            
+            try {
+                const projectName = document.getElementById('projectNameSelect').value;
+                const pm = document.getElementById('projectManagerSelect').value;
+                const date = document.getElementById('revenueDate').value;
+                const dailyTarget = parseFloat(document.getElementById('dailyBudgetTarget').value);
+                const actualRevenue = parseFloat(document.getElementById('actualRevenue').value);
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                const notes = document.getElementById('revenueNotes').value;
+                
+                if (!projectName || !actualRevenue || !date) {
+                    throw new Error('Please fill in all required fields');
+                }
+                
+                if (CONFIG.USE_MOCK_DATA) {
+                    const newEntry = { projectName, pm, date, dailyTarget, actualRevenue, startDate, endDate, notes };
+                    revenueEntries.push(newEntry);
+                    
+                    // Add mock alert if variance is significant
+                    const variancePercent = ((actualRevenue - dailyTarget) / dailyTarget) * 100;
+                    if (variancePercent < -15) {
+                        const newAlert = {
+                            ID: `A${Date.now()}`,
+                            ProjectName: projectName,
+                            PM: pm,
+                            Message: `⚠️ Warning: Revenue shortfall of ${Math.abs(variancePercent).toFixed(1)}% for ${projectName}`,
+                            Level: variancePercent < -30 ? 'Critical' : 'Warning',
+                            Variance: actualRevenue - dailyTarget,
+                            VariancePercent: variancePercent,
+                            Timestamp: new Date().toISOString(),
+                            Status: 'Open'
+                        };
+                        alertsData.unshift(newAlert);
+                        updateAlerts();
+                    }
+                    
+                    showToast('Revenue entry added successfully!', 'success');
+                    hideRevenueModal();
+                    await loadDashboardData();
+                } else {
+                    const result = await callGoogleSheetsAPI('addDailyRevenue', {
+                        projectName, pm, date, dailyTarget, actualRevenue, startDate, endDate, notes, recordedBy: 'Dashboard User'
+                    });
+                    
+                    if (result.success) {
+                        showToast('Revenue saved to Google Sheets!', 'success');
+                        hideRevenueModal();
+                        apiCache.clear();
+                        await loadDashboardData();
+                    } else {
+                        throw new Error(result.error);
+                    }
+                }
+            } catch (error) {
+                showToast('Error adding revenue: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
         }
 
         function showRevenueModal() {
@@ -832,36 +1065,51 @@
             document.getElementById('revenueDate').valueAsDate = new Date();
         }
 
-        async function submitRevenueEntry(e) {
-            e.preventDefault();
+        // ============================================
+        // ALERT FUNCTIONS
+        // ============================================
+        async function resolveAlert(alertId) {
             showLoading();
-            
             try {
-                const projectId = document.getElementById('projectSelect').value;
-                const date = document.getElementById('revenueDate').value;
-                const actualRevenue = parseFloat(document.getElementById('actualRevenue').value);
-                const notes = document.getElementById('revenueNotes').value;
-                
                 if (CONFIG.USE_MOCK_DATA) {
-                    const newRevenue = {
-                        ID: `R${Date.now()}`,
-                        ProjectID: projectId,
-                        Date: date,
-                        ActualRevenue: actualRevenue,
-                        Notes: notes,
-                        RecordedBy: 'Dashboard User'
-                    };
-                    revenueData.push(newRevenue);
-                    showToast('Revenue entry added successfully!', 'success');
-                    hideRevenueModal();
-                    updateStats();
+                    alertsData = alertsData.filter(a => a.ID !== alertId);
+                    updateAlerts();
+                    showToast('Alert resolved', 'success');
                 } else {
-                    // Real API call would go here
-                    showToast('Connected to Google Sheets - Revenue saved', 'success');
-                    hideRevenueModal();
+                    const result = await callGoogleSheetsAPI('updateAlertStatus', { alertId, status: 'Closed' });
+                    if (result.success) {
+                        showToast('Alert resolved in Google Sheets', 'success');
+                        apiCache.clear();
+                        await loadDashboardData();
+                    } else {
+                        throw new Error(result.error);
+                    }
                 }
             } catch (error) {
-                showToast('Error adding revenue: ' + error.message, 'error');
+                showToast('Error resolving alert: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function clearAllAlerts() {
+            if (!confirm('Are you sure you want to clear all alerts?')) return;
+            showLoading();
+            try {
+                if (CONFIG.USE_MOCK_DATA) {
+                    alertsData = [];
+                    updateAlerts();
+                    showToast('All alerts cleared', 'success');
+                } else {
+                    for (const alert of alertsData) {
+                        await callGoogleSheetsAPI('updateAlertStatus', { alertId: alert.ID, status: 'Closed' });
+                    }
+                    showToast('All alerts cleared', 'success');
+                    apiCache.clear();
+                    await loadDashboardData();
+                }
+            } catch (error) {
+                showToast('Error clearing alerts: ' + error.message, 'error');
             } finally {
                 hideLoading();
             }
@@ -870,24 +1118,40 @@
         // ============================================
         // EXPORT FUNCTIONS
         // ============================================
-        function exportReport() {
-            const reportData = {
-                generatedAt: new Date().toISOString(),
-                totalProjects: projectsData.length,
-                confirmedTotal: projectsData.filter(p => p.Status === 'Confirmed').reduce((s, p) => s + (p.TotalIncome || 0), 0),
-                forecastTotal: projectsData.filter(p => p.Status === 'Forecast').reduce((s, p) => s + (p.TotalIncome || 0), 0),
-                projects: projectsData,
-                revenueEntries: revenueData
-            };
-            
-            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `onpoint-report-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('Report exported successfully', 'success');
+        async function exportReport() {
+            showLoading();
+            try {
+                if (CONFIG.USE_MOCK_DATA) {
+                    const reportData = {
+                        generatedAt: new Date().toISOString(),
+                        projects: projectsData,
+                        pmPerformance: pmPerformance,
+                        alerts: alertsData,
+                        stats: dashboardStats
+                    };
+                    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `onpoint-report-${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('Report exported successfully', 'success');
+                } else {
+                    const period = document.getElementById('periodSelect').value;
+                    const result = await callGoogleSheetsAPI('exportReport', { period });
+                    if (result.success && result.downloadUrl) {
+                        window.open(result.downloadUrl, '_blank');
+                        showToast('Report saved to Google Drive', 'success');
+                    } else {
+                        throw new Error(result.error);
+                    }
+                }
+            } catch (error) {
+                showToast('Export failed: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
         }
 
         // ============================================
@@ -895,18 +1159,22 @@
         // ============================================
         function formatCurrency(value) {
             if (value === undefined || value === null) return 'R0';
-            return new Intl.NumberFormat('en-ZA', {
-                style: 'currency',
-                currency: 'ZAR',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(value);
+            return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('en-ZA');
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function getRatingClass(rating) {
+            const map = { 'Critical': 'critical', 'Below Average': 'warning', 'Average': 'average', 'Good': 'good', 'Excellent': 'excellent' };
+            return map[rating] || 'average';
         }
 
         function showLoading() {
@@ -927,11 +1195,30 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        async function fetchFromSheets(action, params = {}) {
-            // This function would make the actual API call to Google Apps Script
-            // For now, return mock data
-            return { success: true, data: [] };
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        function setupEventListeners() {
+            document.getElementById('refreshBtn').addEventListener('click', () => loadDashboardData());
+            document.getElementById('exportBtn').addEventListener('click', exportReport);
+            document.getElementById('addRevenueBtn').addEventListener('click', showRevenueModal);
+            document.getElementById('closeModalBtn').addEventListener('click', hideRevenueModal);
+            document.getElementById('clearAlertsBtn').addEventListener('click', clearAllAlerts);
+            document.getElementById('periodSelect').addEventListener('change', () => loadDashboardData());
+            document.getElementById('divisionSelect').addEventListener('change', () => loadDashboardData());
+            document.getElementById('pmSearchInput').addEventListener('input', filterPMTable);
+            document.getElementById('revenueForm').addEventListener('submit', submitRevenueEntry);
+            document.getElementById('revenueDate').valueAsDate = new Date();
         }
+
+        // Make resolveAlert globally accessible
+        window.resolveAlert = resolveAlert;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            loadDashboardData();
+        });
     </script>
 </body>
 </html>
