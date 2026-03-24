@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OnPoint Group | Live Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; background:#f4f6f9; margin:0; padding:20px;}
+        h1 { color:#1e3c72; }
+        .card { background:white; padding:20px; border-radius:12px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.05);}
+        .btn { padding:10px 20px; background:#1e3c72; color:white; border:none; border-radius:6px; cursor:pointer;}
+        .btn:hover { opacity:0.9;}
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:8px; border-bottom:1px solid #eee; text-align:left;}
+    </style>
+</head>
+<body>
+
+<h1>OnPoint Group Live Dashboard</h1>
+
+<div class="card">
+    <button class="btn" onclick="loadData()">Refresh Data</button>
+</div>
+
+<div class="card">
+    <h3>Projects (Bothwell)</h3>
+    <div id="projectsTable"></div>
+</div>
+
+<div class="card">
+    <h3>Revenue (Bothwell_Revenue)</h3>
+    <div id="revenueTable"></div>
+</div>
+
+<script>
+// ================= CONFIG =================
+const PROJECTS_SHEET_ID = "1_t7JqItYFEy0cGcA927M-rM6jOZDO8Dh8X8vJlALSq0";
+const PROJECTS_SHEET_NAME = "Bothwell";
+
+const REVENUE_SHEET_ID = "16zsV_C-2pz5gyka2fjlSZZoC5cDZcR3-cokS4Cx1rDE";
+const REVENUE_SHEET_NAME = "Bothwell_Revenue";
+
+const GOOGLE_DRIVE_FOLDER_ID = "1al8guXtgk-PJWwdNvd2umUXYv4AvwXSM";
+
+// ⚠️ PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT URL BELOW
+const SCRIPT_URL = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE";
+
+// Disable demo mode
+const USE_DEMO_MODE = false;
+
+
+// ================= LOAD DATA =================
+async function loadData() {
+    if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE")) {
+        alert("Please paste your deployed Apps Script Web App URL inside SCRIPT_URL.");
+        return;
+    }
+
+    try {
+        const projectsRes = await fetch(`${SCRIPT_URL}?action=getProjects`);
+        const projectsData = await projectsRes.json();
+
+        const revenueRes = await fetch(`${SCRIPT_URL}?action=getRevenue`);
+        const revenueData = await revenueRes.json();
+
+        renderTable("projectsTable", projectsData.data);
+        renderTable("revenueTable", revenueData.data);
+
+    } catch (error) {
+        alert("Error connecting to Google Sheets: " + error.message);
+    }
+}
+
+// ================= RENDER TABLE =================
+function renderTable(containerId, data) {
+    if (!data || data.length === 0) {
+        document.getElementById(containerId).innerHTML = "No data found.";
+        return;
+    }
+
+    let html = "<table><thead><tr>";
+    data[0].forEach(() => html += "<th>Column</th>");
+    html += "</tr></thead><tbody>";
+
+    data.forEach(row => {
+        html += "<tr>";
+        row.forEach(cell => html += `<td>${cell}</td>`);
+        html += "</tr>";
+    });
+
+    html += "</tbody></table>";
+    document.getElementById(containerId).innerHTML = html;
+}
+
+// Auto load on open
+loadData();
+</script>
+
+</body>
+</html>
