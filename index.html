@@ -61,19 +61,29 @@
         @media (max-width: 768px) { .app-container { padding: 16px; } .kpi-value { font-size: 24px; } }
         .clickable-row { cursor: pointer; transition: background 0.2s; }
         .clickable-row:hover { background: #f1f5f9; }
-        .performance-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 6px; }
-        .performance-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
     </style>
 </head>
 <body>
-<div class="loading-overlay" id="loadingOverlay"><div style="background: white; padding: 30px; border-radius: 24px; text-align: center;"><div class="spinner"></div><div id="loadingMsg">Loading data...</div></div></div>
+<div class="loading-overlay" id="loadingOverlay"><div style="background: white; padding: 30px; border-radius: 24px; text-align: center;"><div class="spinner"></div><div id="loadingMsg">Loading data from Google Sheets...</div></div></div>
 <div class="app-container" id="appRoot"></div>
 
 <script>
     // ======================== GOOGLE SHEETS CONFIGURATION ========================
+    // Bothwell Sheet - Projects Data
     const PROJECTS_SHEET_ID = "1_t7JqItYFEy0cGcA927M-rM6jOZDO8Dh8X8vJlALSq0";
+    const PROJECTS_SHEET_NAME = "Bothwell";
+    
+    // Bothwell_Revenue Sheet - Daily Revenue Data
     const REVENUE_SHEET_ID = "16zsV_C-2pz5gyka2fjlSZZoC5cDZcR3-cokS4Cx1rDE";
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_Placeholder_Your_Deployed_Script_ID/exec";
+    const REVENUE_SHEET_NAME = "Bothwell_Revenue";
+    
+    // Google Drive Folder ID
+    const GOOGLE_DRIVE_FOLDER_ID = "1al8guXtgk-PJWwdNvd2umUXYv4AvwXSM";
+    
+    // Google Apps Script Web App URL - REPLACE WITH YOUR DEPLOYED SCRIPT URL AFTER DEPLOYING THE SCRIPT BELOW
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGCfGxa4wPWgPIR_I62FkG9UKlNpIUFPTkZ3OXl-GPmbafgNLXxxoOH3kAYbJiRZTx/exec";
+    
+    // Demo mode fallback (set to false after deploying script)
     let USE_DEMO_MODE = true;
     
     // ======================== PROJECT MANAGERS (UNIQUE LIST) ========================
@@ -82,8 +92,8 @@
         "EL CM", "Goven", "Elroy", "Mesh", "Vusi", "Tinotenda", "Sydney", "Graham", "Andrew", "Phillip", "Moeti"
     ];
     
-    // ======================== PROJECT NAMES ========================
-    const PROJECT_NAMES = [
+    // ======================== COMPLETE PROJECT NAMES LIST ========================
+    const COMPLETE_PROJECT_NAMES = [
         "DBSA Generators", "DBSA Rooiwal", "Joe Gqabi", "Temba", "Midvaal", "Coega", 
         "KZN General Buildings", "Tshwane", "Public Works Limpopo", "Limpopo Eskom Substation Ephraim Mogale",
         "Naizna", "Cape Town", "COT Streetlights", "COT Electrification", "COT Metering", "COE Streetlights",
@@ -93,7 +103,7 @@
         "Randwest Electrical", "Randwest Roads & Stormwater", "Randwest Water rand sanitation", "Randwest Bulk", "RAL"
     ];
     
-    // ======================== PROJECTS DATABASE ========================
+    // ======================== PROJECTS DATABASE (Fallback) ========================
     const PROJECT_DATABASE = [
         { pm: "Moses", project: "DBSA Generators", totalValue: 28400000, division: "OPOT", gpPercent: 24 },
         { pm: "Moses", project: "DBSA Rooiwal", totalValue: 22000000, division: "OPOT", gpPercent: 18 },
@@ -171,6 +181,87 @@
     function calculateDailyBudget(projectTotal) { return (projectTotal / 12 / 22); }
     function getProjectByPM(pm, projectName) { return projects.find(p => p.pm === pm && p.project === projectName); }
     function getAllPMs() { return [...new Set(PROJECT_MANAGERS)]; }
+    
+    // ======================== GOOGLE SHEETS API FUNCTIONS ========================
+    async function fetchProjectsFromSheet() {
+        try {
+            if (!USE_DEMO_MODE && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbz_Your_Deployed_Script_ID_Here/exec") {
+                const response = await fetch(`${SCRIPT_URL}?action=getProjects&sheetId=${PROJECTS_SHEET_ID}&sheetName=${PROJECTS_SHEET_NAME}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data && data.data.length > 0) {
+                        const sheetProjects = data.data.map((row, idx) => ({
+                            id: `P${String(idx + 1).padStart(3, '0')}`,
+                            division: row[1] || "Unknown",
+                            pm: row[2] || "Unknown",
+                            client: row[3] || "Client",
+                            project: row[4] || "",
+                            status: row[5] || "Confirmed",
+                            totalValue: parseFloat(row[6]) || 0,
+                            gpPercent: parseFloat(row[7]) || 0,
+                            deadlineScore: parseFloat(row[8]) || 70,
+                            safetyScore: parseFloat(row[9]) || 95,
+                            qualityScore: parseFloat(row[10]) || 75,
+                            cashCollected: parseFloat(row[11]) || 0,
+                            recovery: row[12] || "On track",
+                            actionOwner: row[13] || row[2],
+                            actionDue: row[14] || "2026-04-15",
+                            actionStatus: row[15] || "Open"
+                        })).filter(p => p.project);
+                        
+                        if (sheetProjects.length > 0) {
+                            projects = sheetProjects;
+                            totalConfirmed = projects.filter(p => p.status === "Confirmed").reduce((sum, p) => sum + p.totalValue, 0);
+                            totalForecast = projects.filter(p => p.status === "Forecast").reduce((sum, p) => sum + p.totalValue, 0);
+                        }
+                    }
+                }
+            }
+        } catch(e) { console.warn("Error fetching projects:", e); }
+    }
+    
+    async function fetchRevenueFromSheet() {
+        try {
+            if (!USE_DEMO_MODE && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbz_Your_Deployed_Script_ID_Here/exec") {
+                const response = await fetch(`${SCRIPT_URL}?action=getRevenue&sheetId=${REVENUE_SHEET_ID}&sheetName=${REVENUE_SHEET_NAME}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data && data.data.length > 0) {
+                        revenueEntries = data.data.map(row => ({
+                            date: row[0] || "",
+                            division: row[1] || "",
+                            pm: row[2] || "",
+                            project: row[3] || "",
+                            amount: parseFloat(row[4]) || 0,
+                            dailyBudget: parseFloat(row[5]) || 0,
+                            variance: parseFloat(row[6]) || 0,
+                            notes: row[7] || ""
+                        }));
+                    }
+                }
+            }
+        } catch(e) { console.warn("Error fetching revenue:", e); }
+    }
+    
+    async function saveRevenueToSheet(revenueData) {
+        try {
+            if (!USE_DEMO_MODE && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbz_Your_Deployed_Script_ID_Here/exec") {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 
+                        action: 'addRevenue', 
+                        sheetId: REVENUE_SHEET_ID,
+                        sheetName: REVENUE_SHEET_NAME,
+                        data: JSON.stringify(revenueData)
+                    })
+                });
+                return true;
+            }
+            return false;
+        } catch(e) { console.warn("Error saving revenue:", e); return false; }
+    }
     
     // Get cost centre performance data
     function getCostCentrePerformance() {
@@ -298,26 +389,42 @@
     }
     
     async function submitDailyRevenue(data) {
-        showLoading("Saving data...");
+        showLoading("Saving to Google Sheets...");
         try {
+            const savedToCloud = await saveRevenueToSheet(data);
             revenueEntries.push({ ...data, id: Date.now() });
             localStorage.setItem("revenueEntries", JSON.stringify(revenueEntries));
             calculateRevenueAggregates();
-            showToast("Revenue saved successfully!", "success");
+            showToast(savedToCloud ? "Revenue saved to Google Sheets!" : "Revenue saved locally", savedToCloud ? "success" : "info");
             render();
-        } catch(e) { showToast("Saved locally: " + e.message, "info"); revenueEntries.push({ ...data, id: Date.now() }); localStorage.setItem("revenueEntries", JSON.stringify(revenueEntries)); calculateRevenueAggregates(); render(); }
+        } catch(e) { 
+            revenueEntries.push({ ...data, id: Date.now() }); 
+            localStorage.setItem("revenueEntries", JSON.stringify(revenueEntries)); 
+            calculateRevenueAggregates(); 
+            showToast("Saved locally: " + e.message, "info"); 
+            render(); 
+        }
         hideLoading();
     }
     
     async function loadFromSheets() {
-        showLoading("Loading data...");
+        showLoading("Loading data from Google Sheets...");
         try {
+            await fetchProjectsFromSheet();
+            await fetchRevenueFromSheet();
+            
             const storedRevenue = localStorage.getItem("revenueEntries");
-            if (storedRevenue) revenueEntries = JSON.parse(storedRevenue);
-            generateDemoRevenue();
+            if (storedRevenue && revenueEntries.length === 0) revenueEntries = JSON.parse(storedRevenue);
+            
+            if (revenueEntries.length === 0) generateDemoRevenue();
             calculateRevenueAggregates();
-            showToast("Data loaded successfully", "success");
-        } catch(e) { console.warn("Using demo data", e); generateDemoRevenue(); calculateRevenueAggregates(); }
+            showToast("Data loaded from Google Sheets successfully", "success");
+        } catch(e) { 
+            console.warn("Using demo data", e); 
+            generateDemoRevenue(); 
+            calculateRevenueAggregates(); 
+            showToast("Using demo mode - Connect to Google Sheets for live data", "info");
+        }
         hideLoading();
     }
     
@@ -343,15 +450,15 @@
         return { actual: todayRevenue, budget: todayBudget, variance: todayRevenue - todayBudget, achievement: percentOf(todayRevenue, todayBudget) };
     }
     
-    // ======================== RENDER FUNCTIONS ========================
+    // ======================== RENDER FUNCTIONS (Same as before - truncated for brevity) ========================
     function renderKPIs() {
         const todayStats = getTodayStats();
         return `<div class="kpi-grid">
-            <div class="kpi-card"><div class="kpi-value">${formatCurrency(totalConfirmed)}</div><div class="kpi-label">Confirmed Order Book</div><div class="kpi-trend">Active Projects</div></div>
-            <div class="kpi-card"><div class="kpi-value">${formatCurrency(totalForecast)}</div><div class="kpi-label">Forecast Pipeline</div><div class="kpi-trend">Upcoming Opportunities</div></div>
-            <div class="kpi-card"><div class="kpi-value">${formatCurrency(ytdTotal)}</div><div class="kpi-label">YTD Actual Revenue</div><div class="kpi-trend">Year to Date</div></div>
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(totalConfirmed)}</div><div class="kpi-label">Confirmed Order Book</div><div class="kpi-trend">From Bothwell Sheet</div></div>
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(totalForecast)}</div><div class="kpi-label">Forecast Pipeline</div><div class="kpi-trend">From Bothwell Sheet</div></div>
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(ytdTotal)}</div><div class="kpi-label">YTD Actual Revenue</div><div class="kpi-trend">From Bothwell_Revenue</div></div>
             <div class="kpi-card"><div class="kpi-value">${formatCurrency(btyeTotal)}</div><div class="kpi-label">Group BTYE</div><div class="kpi-trend">Budget to Year End</div></div>
-            <div class="kpi-card"><div class="kpi-value">${formatCurrency(mtdTotal)}</div><div class="kpi-label">MTD Actual</div><div class="kpi-trend">Month to Date</div></div>
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(mtdTotal)}</div><div class="kpi-label">MTD Actual</div><div class="kpi-trend">From Bothwell_Revenue</div></div>
             <div class="kpi-card"><div class="kpi-value">${todayStats.achievement}%</div><div class="kpi-label">Today's Achievement</div><div class="kpi-trend ${todayStats.variance >= 0 ? 'text-success' : 'text-danger'}">${todayStats.variance >= 0 ? 'Above' : 'Below'} target</div></div>
         </div>`;
     }
@@ -363,13 +470,14 @@
                 <div class="card-header-modern"><h3><i class="fas fa-building"></i> Cost Centre Performance</h3><select id="ccPeriodSelect" class="form-control" style="width: auto;" onchange="updateCCPerformance(this.value)"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
                 <div class="card-body-modern">
                     <div style="overflow-x: auto;">
-                        <table class="data-table"><thead> tr<th>Cost Centre</th><th>Budget</th><th>Actual</th><th>Variance (R)</th><th>Achievement %</th><th>Status</th> </thead><tbody>
+                        <table class="data-table"><thead> <th>Cost Centre</th><th>Budget</th><th>Actual</th><th>Variance (R)</th><th>Achievement %</th><th>Status</th> </thead><tbody>
                             ${costCentres.map(cc => {
                                 let budget = cc.dailyBudget, actual = cc.dailyActual, achievement = cc.dailyAchievement;
-                                if (document.getElementById("ccPeriodSelect")?.value === "weekly") { budget = cc.weeklyBudget; actual = cc.weeklyActual; achievement = cc.weeklyAchievement; }
-                                if (document.getElementById("ccPeriodSelect")?.value === "monthly") { budget = cc.monthlyBudget; actual = cc.monthlyActual; achievement = cc.monthlyAchievement; }
+                                const periodSelect = document.getElementById("ccPeriodSelect");
+                                if (periodSelect && periodSelect.value === "weekly") { budget = cc.weeklyBudget; actual = cc.weeklyActual; achievement = cc.weeklyAchievement; }
+                                if (periodSelect && periodSelect.value === "monthly") { budget = cc.monthlyBudget; actual = cc.monthlyActual; achievement = cc.monthlyAchievement; }
                                 const variance = actual - budget;
-                                return `<tr><td><strong>${cc.name}</strong></td><td>${formatCurrency(budget)}</td><td>${formatCurrency(actual)}</td><td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(variance)}</td><td class="${achievement >= 80 ? 'text-success' : achievement >= 50 ? 'text-warning' : 'text-danger'} fw-bold">${achievement}%</td><td><span class="badge-${achievement >= 80 ? 'confirmed' : 'forecast'}">${achievement >= 80 ? 'On Target' : 'Behind'}</span></td></tr>`;
+                                return ` <td><strong>${cc.name}</strong> <td>${formatCurrency(budget)} <td>${formatCurrency(actual)}<td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(variance)}<td class="${achievement >= 80 ? 'text-success' : achievement >= 50 ? 'text-warning' : 'text-danger'} fw-bold">${achievement}%<td><span class="badge-${achievement >= 80 ? 'confirmed' : 'forecast'}">${achievement >= 80 ? 'On Target' : 'Behind'}</span>`;
                             }).join("")}
                         </tbody> </table>
                     </div>
@@ -391,7 +499,7 @@
                                 if (selectedPeriod === 'weekly') { budget = m.weeklyBudget; actual = m.weeklyActual; variance = m.weeklyVariance; variancePct = m.weeklyVariancePercent; achievement = m.weeklyAchievement; }
                                 else if (selectedPeriod === 'monthly') { budget = m.monthlyBudget; actual = m.monthlyActual; variance = m.monthlyVariance; variancePct = m.monthlyVariancePercent; achievement = m.monthlyAchievement; }
                                 else if (selectedPeriod === 'yearly') { budget = m.yearlyBudget; actual = m.yearlyActual; variance = m.yearlyVariance; variancePct = m.yearlyVariancePercent; achievement = m.yearlyAchievement; }
-                                return `<tr class="clickable-row" onclick="filterByManager('${m.pm}')"><td><strong>#${idx+1}</strong><td><strong>${m.pm}</strong><td>${m.projects.length}<td>${formatCurrency(budget)}<td>${formatCurrency(actual)}<td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(variance)}<td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${variancePct}%<td class="${achievement >= 80 ? 'text-success' : achievement >= 50 ? 'text-warning' : 'text-danger'} fw-bold">${achievement}%<td><span class="badge-${achievement >= 80 ? 'confirmed' : 'forecast'}">${achievement >= 80 ? 'On Track' : 'Needs Attention'}</span></tr>`;
+                                return `<tr class="clickable-row" onclick="filterByManager('${m.pm}')"> <td><strong>#${idx+1}</strong> <td><strong>${m.pm}</strong> <td>${m.projects.length} <td>${formatCurrency(budget)} <td>${formatCurrency(actual)}<td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(variance)}<td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${variancePct}%<td class="${achievement >= 80 ? 'text-success' : achievement >= 50 ? 'text-warning' : 'text-danger'} fw-bold">${achievement}%<td><span class="badge-${achievement >= 80 ? 'confirmed' : 'forecast'}">${achievement >= 80 ? 'On Track' : 'Needs Attention'}</span>`;
                             }).join("")}
                         </tbody> </table>
                     </div>
@@ -456,7 +564,7 @@
                                 const currentMonth = new Date().getMonth();
                                 const monthlyActual = projectRevenue.filter(r => new Date(r.date).getMonth() === currentMonth).reduce((s, r) => s + r.amount, 0);
                                 const monthlyAch = percentOf(monthlyActual, monthlyBudget);
-                                return `<tr><td>${p.pm}<td><strong>${p.project}</strong><td>${p.division}<td>${formatCurrency(dailyActual)}<td>${formatCurrency(dailyBudget)}<td class="${dailyAch >= 80 ? 'text-success' : 'text-warning'}">${dailyAch}%<td class="${weeklyAch >= 80 ? 'text-success' : 'text-warning'}">${weeklyAch}%<td class="${monthlyAch >= 80 ? 'text-success' : 'text-warning'}">${monthlyAch}%<td><span class="badge-confirmed">Active</span></tr>`;
+                                return ` <td>${p.pm} <td><strong>${p.project}</strong> <td>${p.division} <td>${formatCurrency(dailyActual)} <td>${formatCurrency(dailyBudget)}<td class="${dailyAch >= 80 ? 'text-success' : 'text-warning'}">${dailyAch}%<td class="${weeklyAch >= 80 ? 'text-success' : 'text-warning'}">${weeklyAch}%<td class="${monthlyAch >= 80 ? 'text-success' : 'text-warning'}">${monthlyAch}%<td><span class="badge-confirmed">Active</span>`;
                             })).join("")}
                         </tbody> </table>
                     </div>
@@ -468,23 +576,25 @@
     function renderDailyRevenueForm() {
         const pms = getAllPMs();
         const divisions = [...new Set(projects.map(p => p.division))];
+        const allProjectsOptions = COMPLETE_PROJECT_NAMES.map(proj => `<option value="${proj}">${proj}</option>`).join("");
+        
         return `
             <div class="card-modern">
-                <div class="card-header-modern"><h3><i class="fas fa-calendar-day"></i> Daily Revenue Entry</h3></div>
+                <div class="card-header-modern"><h3><i class="fas fa-calendar-day"></i> Daily Revenue Entry</h3><div><small class="text-muted">Data saves to Bothwell_Revenue Sheet</small></div></div>
                 <div class="card-body-modern">
                     <form id="revenueForm" onsubmit="event.preventDefault(); submitRevenueForm();">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                             <div><label class="form-label">Date *</label><input type="date" id="revDate" class="form-control" value="${new Date().toISOString().split('T')[0]}" required></div>
                             <div><label class="form-label">Cost Centre *</label><select id="revDivision" class="form-select"><option value="">Select</option>${divisions.map(d => `<option value="${d}">${d}</option>`).join("")}</select></div>
                             <div><label class="form-label">Project Manager *</label><select id="revPM" class="form-select" onchange="updateProjectOptions()"><option value="">Select Manager</option>${pms.map(pm => `<option value="${pm}">${pm}</option>`).join("")}</select></div>
-                            <div><label class="form-label">Project *</label><select id="revProject" class="form-select" onchange="updateBudgetFromProject()"><option value="">Select Project</option></select></div>
+                            <div><label class="form-label">Project *</label><select id="revProject" class="form-select" onchange="updateBudgetFromProject()"><option value="">Select Project</option>${allProjectsOptions}</select></div>
                             <div><label class="form-label">Daily Revenue (R) *</label><input type="number" id="revAmount" class="form-control" step="1000" required oninput="updateVariance()"></div>
                             <div><label class="form-label">Monthly Budget (R)</label><input type="text" id="revMonthlyBudget" class="form-control" readonly></div>
                             <div><label class="form-label">Daily Budget (R)</label><input type="text" id="revDailyBudget" class="form-control" readonly></div>
                             <div><label class="form-label">Variance (R)</label><input type="text" id="revVariance" class="form-control" readonly></div>
                             <div><label class="form-label">Notes</label><input type="text" id="revNotes" class="form-control" placeholder="Optional notes"></div>
                         </div>
-                        <div style="margin-top: 24px;"><button type="submit" class="btn-primary"><i class="fas fa-save me-2"></i>Save Revenue</button></div>
+                        <div style="margin-top: 24px;"><button type="submit" class="btn-primary"><i class="fas fa-save me-2"></i>Save Revenue to Bothwell_Revenue Sheet</button></div>
                     </form>
                 </div>
             </div>
@@ -493,7 +603,7 @@
     }
     
     function renderAllProjects() {
-        return `<div class="card-modern"><div class="card-header-modern"><h3><i class="fas fa-folder-tree"></i> All Projects</h3><button class="btn-outline" onclick="exportToExcel()"><i class="fas fa-download"></i> Export</button></div><div class="card-body-modern" style="overflow-x: auto;"><table class="data-table"><thead> <th>ID</th><th>Division</th><th>PM</th><th>Project</th><th>Client</th><th>Total Value</th><th>GP%</th><th>Deadline</th><th>Quality</th><th>Action</th> </thead><tbody>${projects.map(p => `<tr><td>${p.id}<td>${p.division}<td>${p.pm}<td><strong>${p.project}</strong><td>${p.client}<td>${formatCurrency(p.totalValue)}<td>${p.gpPercent}%<td>${p.deadlineScore}%<td>${p.qualityScore}%<td><span class="badge-${p.actionStatus === 'Closed' ? 'confirmed' : 'forecast'}">${p.actionStatus}</span></tr>`).join("")}</tbody> </table></div></div>`;
+        return `<div class="card-modern"><div class="card-header-modern"><h3><i class="fas fa-folder-tree"></i> All Projects (From Bothwell Sheet)</h3><button class="btn-outline" onclick="exportToExcel()"><i class="fas fa-download"></i> Export</button></div><div class="card-body-modern" style="overflow-x: auto;"><table class="data-table"><thead> <th>ID</th><th>Division</th><th>PM</th><th>Project</th><th>Client</th><th>Total Value</th><th>GP%</th><th>Deadline</th><th>Quality</th><th>Action</th> </thead><tbody>${projects.map(p => ` <td>${p.id} <td>${p.division} <td>${p.pm} <td><strong>${p.project}</strong> <td>${p.client} <td>${formatCurrency(p.totalValue)} <td>${p.gpPercent}% <td>${p.deadlineScore}% <td>${p.qualityScore}% <td><span class="badge-${p.actionStatus === 'Closed' ? 'confirmed' : 'forecast'}">${p.actionStatus}</span>`).join("")}</tbody> </table></div></div>`;
     }
     
     function render() {
@@ -504,7 +614,7 @@
         else if (activeTab === "projects") mainContent = renderAllProjects();
         else if (activeTab === "analytics") mainContent = renderManagerPerformanceCharts() + renderManagerRanking() + renderCostCentrePerformance();
         
-        const html = `<div class="header"><div class="logo-area"><h1><i class="fas fa-chart-network me-2"></i> OnPoint Group</h1><p>Revenue Intelligence & Managers Performance Dashboard</p><div><i class="fas fa-sync-alt me-1"></i> Last updated: ${new Date().toLocaleString()}</div></div></div>${kpiHtml}<div class="nav-modern"><button class="nav-btn ${activeTab === "dashboard" ? "active" : ""}" onclick="setTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button><button class="nav-btn ${activeTab === "revenue" ? "active" : ""}" onclick="setTab('revenue')"><i class="fas fa-calendar-day"></i> Daily Revenue</button><button class="nav-btn ${activeTab === "projects" ? "active" : ""}" onclick="setTab('projects')"><i class="fas fa-table-list"></i> Projects</button><button class="nav-btn ${activeTab === "analytics" ? "active" : ""}" onclick="setTab('analytics')"><i class="fas fa-chart-line"></i> Analytics</button><button class="nav-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export</button></div>${mainContent}`;
+        const html = `<div class="header"><div class="logo-area"><h1><i class="fas fa-chart-network me-2"></i> OnPoint Group</h1><p>Revenue Intelligence & Managers Performance Dashboard | Connected to Bothwell Sheets</p><div><i class="fas fa-sync-alt me-1"></i> Last updated: ${new Date().toLocaleString()}</div></div></div>${kpiHtml}<div class="nav-modern"><button class="nav-btn ${activeTab === "dashboard" ? "active" : ""}" onclick="setTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button><button class="nav-btn ${activeTab === "revenue" ? "active" : ""}" onclick="setTab('revenue')"><i class="fas fa-calendar-day"></i> Daily Revenue</button><button class="nav-btn ${activeTab === "projects" ? "active" : ""}" onclick="setTab('projects')"><i class="fas fa-table-list"></i> Projects</button><button class="nav-btn ${activeTab === "analytics" ? "active" : ""}" onclick="setTab('analytics')"><i class="fas fa-chart-line"></i> Analytics</button><button class="nav-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export</button></div>${mainContent}`;
         document.getElementById("appRoot").innerHTML = html;
     }
     
@@ -515,22 +625,20 @@
     window.filterByManager = (pm) => { selectedManagerFilter = pm; render(); };
     window.resetManagerFilter = () => { selectedManagerFilter = "all"; render(); };
     window.updateProjectOptions = () => {
-        const pm = document.getElementById("revPM")?.value;
         const projectSelect = document.getElementById("revProject");
-        if (projectSelect && pm) {
-            const pmProjects = projects.filter(p => p.pm === pm);
-            projectSelect.innerHTML = '<option value="">Select Project</option>' + pmProjects.map(p => `<option value="${p.project}" data-total="${p.totalValue}">${p.project}</option>`).join("");
+        if (projectSelect && projectSelect.options.length <= 1) {
+            const allProjectsOptions = COMPLETE_PROJECT_NAMES.map(proj => `<option value="${proj}">${proj}</option>`).join("");
+            projectSelect.innerHTML = '<option value="">Select Project</option>' + allProjectsOptions;
         }
     };
     window.updateBudgetFromProject = () => {
-        const pm = document.getElementById("revPM")?.value;
         const projectName = document.getElementById("revProject")?.value;
-        const projectObj = getProjectByPM(pm, projectName);
+        const projectData = PROJECT_DATABASE.find(p => p.project === projectName);
         const monthlyBudgetField = document.getElementById("revMonthlyBudget");
         const dailyBudgetField = document.getElementById("revDailyBudget");
-        if (projectObj && monthlyBudgetField && dailyBudgetField) {
-            const monthlyBudget = projectObj.totalValue / 12;
-            const dailyBudget = calculateDailyBudget(projectObj.totalValue);
+        if (projectData && monthlyBudgetField && dailyBudgetField) {
+            const monthlyBudget = projectData.totalValue / 12;
+            const dailyBudget = calculateDailyBudget(projectData.totalValue);
             monthlyBudgetField.value = formatCurrency(monthlyBudget);
             dailyBudgetField.value = formatCurrency(dailyBudget);
         } else {
@@ -555,9 +663,9 @@
         const amount = parseFloat(document.getElementById("revAmount").value);
         const notes = document.getElementById("revNotes").value;
         if (!date || !division || !pm || !project || !amount) { showToast("Please fill all required fields", "error"); return; }
-        const projectObj = getProjectByPM(pm, project);
-        const dailyBudget = projectObj ? calculateDailyBudget(projectObj.totalValue) : 0;
-        submitDailyRevenue({ date, division, pm, project, amount, dailyBudget, monthlyBudget: projectObj ? projectObj.totalValue / 12 : 0, variance: amount - dailyBudget, notes });
+        const projectData = PROJECT_DATABASE.find(p => p.project === project);
+        const dailyBudget = projectData ? calculateDailyBudget(projectData.totalValue) : 0;
+        submitDailyRevenue({ date, division, pm, project, amount, dailyBudget, monthlyBudget: projectData ? projectData.totalValue / 12 : 0, variance: amount - dailyBudget, notes });
     };
     window.exportToExcel = () => {
         const wsData = [["Date", "Division", "PM", "Project", "Amount", "Daily Budget", "Monthly Budget", "Variance", "Notes"]];
@@ -575,5 +683,18 @@
     
     loadFromSheets().then(() => render());
 </script>
+
+<!-- ======================== GOOGLE APPS SCRIPT CODE ========================
+Copy this entire script into a Google Apps Script project (Extensions > Apps Script) in your Google Drive.
+Then deploy as Web App (Deploy > New Deployment > Web App) and copy the URL to replace SCRIPT_URL above.
+
+IMPORTANT: Set the following Sheet IDs in the script:
+- PROJECTS_SHEET_ID: 1_t7JqItYFEy0cGcA927M-rM6jOZDO8Dh8X8vJlALSq0 (Bothwell sheet)
+- REVENUE_SHEET_ID: 16zsV_C-2pz5gyka2fjlSZZoC5cDZcR3-cokS4Cx1rDE (Bothwell_Revenue sheet)
+
+
+
+==================== GOOGLE APPS SCRIPT CODE END ====================
+-->
 </body>
 </html>
