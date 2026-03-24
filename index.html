@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ConstructFlow Enterprise | Project Intelligence Platform</title>
+    <title>OnPoint Group | Revenue Intelligence & Managers Performance Dashboard</title>
     
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,754 +15,565 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fc 0%, #eef2f6 100%);
-            min-height: 100vh;
-            color: #1a2c3e;
-        }
-        
-        /* Modern Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #e9ecef;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #8b9dc3;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #5a6e8a;
-        }
-        
-        /* Container */
-        .app-container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 24px 32px;
-        }
-        
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
-            border-radius: 32px;
-            padding: 28px 36px;
-            margin-bottom: 28px;
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 400px;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(37, 99, 235, 0.08) 100%);
-            border-radius: 50% 0 0 50%;
-            pointer-events: none;
-        }
-        
-        .logo-area h1 {
-            font-size: 32px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: -0.5px;
-        }
-        
-        .logo-area p {
-            color: #5b6e8c;
-            font-size: 14px;
-            margin-top: 6px;
-        }
-        
-        /* KPI Grid */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-        
-        .kpi-card {
-            background: white;
-            border-radius: 24px;
-            padding: 20px 18px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .kpi-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-        
-        .kpi-icon {
-            font-size: 28px;
-            margin-bottom: 14px;
-            display: inline-block;
-            padding: 12px;
-            border-radius: 18px;
-            background: linear-gradient(135deg, #f0f4ff 0%, #e9effa 100%);
-        }
-        
-        .kpi-value {
-            font-size: 32px;
-            font-weight: 800;
-            color: #0a2540;
-            line-height: 1.2;
-            margin: 8px 0 4px;
-        }
-        
-        .kpi-label {
-            font-size: 13px;
-            font-weight: 500;
-            color: #5b6e8c;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .kpi-trend {
-            font-size: 12px;
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid #eef2f6;
-            color: #5b6e8c;
-        }
-        
-        /* Navigation */
-        .nav-modern {
-            background: white;
-            border-radius: 60px;
-            padding: 6px;
-            margin-bottom: 32px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-        }
-        
-        .nav-btn {
-            padding: 12px 28px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 14px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #5b6e8c;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .nav-btn i {
-            font-size: 16px;
-        }
-        
-        .nav-btn:hover {
-            background: #f1f5f9;
-            color: #1e3c72;
-        }
-        
-        .nav-btn.active {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            box-shadow: 0 6px 14px rgba(30, 60, 114, 0.25);
-        }
-        
-        /* Cards */
-        .card-modern {
-            background: white;
-            border-radius: 28px;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            margin-bottom: 28px;
-        }
-        
-        .card-header-modern {
-            padding: 20px 28px;
-            border-bottom: 1px solid #eef2f6;
-            background: #fefefe;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        
-        .card-header-modern h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1e3c72;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .card-body-modern {
-            padding: 24px 28px;
-        }
-        
-        /* Tables */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        
-        .data-table th {
-            text-align: left;
-            padding: 14px 12px;
-            background: #f8fafc;
-            font-weight: 600;
-            color: #2c3e50;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .data-table td {
-            padding: 14px 12px;
-            border-bottom: 1px solid #f0f2f5;
-            color: #334155;
-        }
-        
-        .data-table tr:hover {
-            background: #fafcff;
-        }
-        
-        /* Badges */
-        .badge-confirmed {
-            background: linear-gradient(135deg, #10b98120, #10b98130);
-            color: #047857;
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        
-        .badge-forecast {
-            background: linear-gradient(135deg, #f59e0b20, #f59e0b30);
-            color: #b45309;
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .badge-open {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .badge-progress {
-            background: #fff3e3;
-            color: #c2410c;
-        }
-        
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            font-weight: 600;
-            font-size: 13px;
-            margin-bottom: 6px;
-            display: block;
-            color: #2c3e50;
-        }
-        
-        .form-control, .form-select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 14px;
-            transition: all 0.2s;
-            background: white;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            outline: none;
-            border-color: #2a5298;
-            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            border: none;
-            padding: 14px 28px;
-            border-radius: 40px;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -8px rgba(30, 60, 114, 0.4);
-        }
-        
-        .btn-outline {
-            background: transparent;
-            border: 1.5px solid #e2e8f0;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-outline:hover {
-            background: #f8fafc;
-            border-color: #2a5298;
-        }
-        
-        /* Monthly Grid */
-        .monthly-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 12px;
-            margin: 20px 0;
-        }
-        
-        .month-input {
-            padding: 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            text-align: center;
-        }
-        
-        /* Charts */
-        .chart-container {
-            height: 380px;
-            width: 100%;
-        }
-        
-        /* Status Messages */
-        .status-toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #1e3c72;
-            color: white;
-            padding: 14px 24px;
-            border-radius: 60px;
-            font-weight: 500;
-            z-index: 1000;
-            animation: slideUp 0.3s ease;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
-        }
-        
-        @keyframes slideUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .app-container { padding: 16px; }
-            .header { padding: 20px; }
-            .kpi-value { font-size: 24px; }
-            .nav-btn { padding: 8px 16px; font-size: 12px; }
-            .card-body-modern { padding: 16px; }
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f5f7fc 0%, #eef2f6 100%); min-height: 100vh; color: #1a2c3e; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #e9ecef; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #8b9dc3; border-radius: 10px; }
+        .app-container { max-width: 1600px; margin: 0 auto; padding: 24px 32px; }
+        .header { background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border-radius: 32px; padding: 28px 36px; margin-bottom: 28px; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08); border: 1px solid rgba(148,163,184,0.2); position: relative; overflow: hidden; }
+        .logo-area h1 { font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .kpi-card { background: white; border-radius: 24px; padding: 20px 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid rgba(148,163,184,0.2); transition: all 0.25s; }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1); }
+        .kpi-value { font-size: 32px; font-weight: 800; color: #0a2540; margin: 8px 0 4px; }
+        .kpi-label { font-size: 13px; font-weight: 500; color: #5b6e8c; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-modern { background: white; border-radius: 60px; padding: 6px; margin-bottom: 32px; display: flex; flex-wrap: wrap; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid rgba(148,163,184,0.2); }
+        .nav-btn { padding: 12px 28px; border-radius: 40px; font-weight: 600; font-size: 14px; background: transparent; border: none; cursor: pointer; transition: all 0.2s; color: #5b6e8c; display: flex; align-items: center; gap: 10px; }
+        .nav-btn:hover { background: #f1f5f9; color: #1e3c72; }
+        .nav-btn.active { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; box-shadow: 0 6px 14px rgba(30,60,114,0.25); }
+        .card-modern { background: white; border-radius: 28px; border: 1px solid rgba(148,163,184,0.2); box-shadow: 0 8px 20px -8px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 28px; }
+        .card-header-modern { padding: 20px 28px; border-bottom: 1px solid #eef2f6; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .card-header-modern h3 { font-size: 18px; font-weight: 700; color: #1e3c72; display: flex; align-items: center; gap: 10px; }
+        .card-body-modern { padding: 24px 28px; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .data-table th { text-align: left; padding: 14px 12px; background: #f8fafc; font-weight: 600; color: #2c3e50; border-bottom: 1px solid #e2e8f0; }
+        .data-table td { padding: 14px 12px; border-bottom: 1px solid #f0f2f5; color: #334155; }
+        .badge-confirmed { background: linear-gradient(135deg, #10b98120, #10b98130); color: #047857; padding: 4px 12px; border-radius: 40px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .badge-forecast { background: linear-gradient(135deg, #f59e0b20, #f59e0b30); color: #b45309; padding: 4px 12px; border-radius: 40px; }
+        .form-control, .form-select { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 16px; font-size: 14px; transition: all 0.2s; background: white; }
+        .form-control:focus, .form-select:focus { outline: none; border-color: #2a5298; box-shadow: 0 0 0 3px rgba(42,82,152,0.1); }
+        .btn-primary { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border: none; padding: 14px 28px; border-radius: 40px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -8px rgba(30,60,114,0.4); }
+        .btn-outline { background: transparent; border: 1.5px solid #e2e8f0; padding: 10px 20px; border-radius: 40px; font-weight: 500; cursor: pointer; }
+        .daily-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 20px 0; }
+        .stat-card { background: linear-gradient(135deg, #f8fafc, #ffffff); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #eef2f6; }
+        .stat-value { font-size: 28px; font-weight: 800; color: #1e3c72; margin: 10px 0; }
         .text-success { color: #10b981; }
         .text-danger { color: #ef4444; }
         .text-warning { color: #f59e0b; }
-        .fw-bold { font-weight: 700; }
-        
-        .clickable-row {
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .clickable-row:hover {
-            background: #f1f5f9 !important;
-        }
+        .status-toast { position: fixed; bottom: 30px; right: 30px; background: #1e3c72; color: white; padding: 14px 24px; border-radius: 60px; font-weight: 500; z-index: 1000; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .chart-container { height: 380px; width: 100%; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 10000; }
+        .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #2a5298; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (max-width: 768px) { .app-container { padding: 16px; } .kpi-value { font-size: 24px; } }
+        .clickable-row { cursor: pointer; transition: background 0.2s; }
+        .clickable-row:hover { background: #f1f5f9; }
+        .performance-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+        .performance-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
     </style>
 </head>
 <body>
+<div class="loading-overlay" id="loadingOverlay"><div style="background: white; padding: 30px; border-radius: 24px; text-align: center;"><div class="spinner"></div><div id="loadingMsg">Loading data...</div></div></div>
 <div class="app-container" id="appRoot"></div>
 
 <script>
-    // ======================== COMPLETE PROJECT DATA (From Original React Code) ========================
-    const PROJECTS_MASTER = [
-        { id: "P001", division: "OPOT", pm: "Moses", client: "DBSA", project: "Generators Phase 1", status: "Confirmed", revenueDaily: 180000, revenueWeekly: 920000, revenueMonthly: 2100000, revenueQuarterly: 5200000, revenueYearly: 24000000, targetDaily: 350000, targetWeekly: 1500000, targetMonthly: 7666667, targetQuarterly: 9000000, targetYearly: 28400000, gpPercent: 24, deadlineScore: 76, safetyScore: 100, qualityScore: 89, cashCollected: 650000, forecastYear: 24000000, lastUpdate: "2026-03-19 07:42", recovery: "Add second crew and release cable deliveries", actionOwner: "Andrew", actionDue: "2026-03-20", actionStatus: "In Progress" },
-        { id: "P002", division: "OPOT", pm: "Andrew", client: "City of Tshwane", project: "Rooiwal Support Works", status: "Confirmed", revenueDaily: 70000, revenueWeekly: 500000, revenueMonthly: 1500000, revenueQuarterly: 3600000, revenueYearly: 19500000, targetDaily: 120000, targetWeekly: 800000, targetMonthly: 2400000, targetQuarterly: 5000000, targetYearly: 22000000, gpPercent: 18, deadlineScore: 61, safetyScore: 100, qualityScore: 81, cashCollected: 420000, forecastYear: 19500000, lastUpdate: "2026-03-19 08:10", recovery: "Speed up concrete sequence and close procurement delays", actionOwner: "Moses", actionDue: "2026-03-20", actionStatus: "Open" },
-        { id: "P003", division: "Aqua Telecoms", pm: "Govern", client: "Liquid", project: "Fibre BOT Conversion", status: "Confirmed", revenueDaily: 110000, revenueWeekly: 650000, revenueMonthly: 1800000, revenueQuarterly: 6900000, revenueYearly: 38100000, targetDaily: 240000, targetWeekly: 1100000, targetMonthly: 5200000, targetQuarterly: 10000000, targetYearly: 46000000, gpPercent: 22, deadlineScore: 58, safetyScore: 100, qualityScore: 74, cashCollected: 550000, forecastYear: 38100000, lastUpdate: "2026-03-19 07:20", recovery: "Push civils front and close outstanding permits", actionOwner: "Govern", actionDue: "2026-03-21", actionStatus: "In Progress" },
-        { id: "P004", division: "Aqua Telecoms", pm: "Phillip", client: "MTN", project: "RAN Rollout Gauteng", status: "Forecast", revenueDaily: 20000, revenueWeekly: 120000, revenueMonthly: 420000, revenueQuarterly: 750000, revenueYearly: 6500000, targetDaily: 80000, targetWeekly: 350000, targetMonthly: 1500000, targetQuarterly: 3000000, targetYearly: 12000000, gpPercent: 12, deadlineScore: 42, safetyScore: 100, qualityScore: 63, cashCollected: 110000, forecastYear: 6500000, lastUpdate: "2026-03-18 16:55", recovery: "Open blocked sites and clear approval backlog", actionOwner: "Phillip", actionDue: "2026-03-20", actionStatus: "Escalated" },
-        { id: "P005", division: "Nkanyezi", pm: "Timothy", client: "Moqhaka Municipality", project: "As-and-When Civil Repairs", status: "Confirmed", revenueDaily: 25000, revenueWeekly: 150000, revenueMonthly: 540000, revenueQuarterly: 980000, revenueYearly: 5900000, targetDaily: 50000, targetWeekly: 250000, targetMonthly: 1000000, targetQuarterly: 1800000, targetYearly: 7400000, gpPercent: 19, deadlineScore: 50, safetyScore: 100, qualityScore: 78, cashCollected: 140000, forecastYear: 5900000, lastUpdate: "2026-03-19 06:48", recovery: "Tighten site response and allocate standby team", actionOwner: "Timothy", actionDue: "2026-03-20", actionStatus: "Open" },
-        { id: "P006", division: "Distinct", pm: "Stanley", client: "Private Developer", project: "Bulk Earthworks Package", status: "Forecast", revenueDaily: 12000, revenueWeekly: 65000, revenueMonthly: 180000, revenueQuarterly: 300000, revenueYearly: 2800000, targetDaily: 45000, targetWeekly: 180000, targetMonthly: 900000, targetQuarterly: 1500000, targetYearly: 10000000, gpPercent: 8, deadlineScore: 36, safetyScore: 100, qualityScore: 58, cashCollected: 60000, forecastYear: 2800000, lastUpdate: "2026-03-17 14:22", recovery: "Client approvals outstanding; re-baseline production", actionOwner: "Stanley", actionDue: "2026-03-22", actionStatus: "Escalated" },
-        { id: "P007", division: "Aqua Tech", pm: "Brian", client: "Eskom", project: "UPS and Battery Upgrade", status: "Confirmed", revenueDaily: 5000, revenueWeekly: 30000, revenueMonthly: 80000, revenueQuarterly: 150000, revenueYearly: 900000, targetDaily: 40000, targetWeekly: 160000, targetMonthly: 1000000, targetQuarterly: 1800000, targetYearly: 5000000, gpPercent: 6, deadlineScore: 20, safetyScore: 100, qualityScore: 50, cashCollected: 20000, forecastYear: 900000, lastUpdate: "2026-03-16 11:05", recovery: "Material hold. Escalate supplier and split deliveries", actionOwner: "Brian", actionDue: "2026-03-20", actionStatus: "Escalated" }
+    // ======================== GOOGLE SHEETS CONFIGURATION ========================
+    const PROJECTS_SHEET_ID = "1_t7JqItYFEy0cGcA927M-rM6jOZDO8Dh8X8vJlALSq0";
+    const REVENUE_SHEET_ID = "16zsV_C-2pz5gyka2fjlSZZoC5cDZcR3-cokS4Cx1rDE";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_Placeholder_Your_Deployed_Script_ID/exec";
+    let USE_DEMO_MODE = true;
+    
+    // ======================== PROJECT MANAGERS (UNIQUE LIST) ========================
+    const PROJECT_MANAGERS = [
+        "Moses", "Jonah", "Siyanda", "Dave", "James", "Raymond", "Timothy", "Stanley", "Brian", 
+        "EL CM", "Goven", "Elroy", "Mesh", "Vusi", "Tinotenda", "Sydney", "Graham", "Andrew", "Phillip", "Moeti"
     ];
     
-    // Helper functions
+    // ======================== PROJECT NAMES ========================
+    const PROJECT_NAMES = [
+        "DBSA Generators", "DBSA Rooiwal", "Joe Gqabi", "Temba", "Midvaal", "Coega", 
+        "KZN General Buildings", "Tshwane", "Public Works Limpopo", "Limpopo Eskom Substation Ephraim Mogale",
+        "Naizna", "Cape Town", "COT Streetlights", "COT Electrification", "COT Metering", "COE Streetlights",
+        "Msunduzi E50", "Msunduzi Streetlights", "Msunduzi E33", "Msunduzi E47", "Moqhaka Streetlights",
+        "Moqhaka Metering", "Centlec CD11", "Centlec Transformers CD32", "Centlec CD45", "Midvaal Mechanical",
+        "Eskom SPU", "Eskom FSOU Substation", "Eskom ECOU", "Eskom LOU General Buildings", "Eskom KZN Minor Reticulation",
+        "Randwest Electrical", "Randwest Roads & Stormwater", "Randwest Water rand sanitation", "Randwest Bulk", "RAL"
+    ];
+    
+    // ======================== PROJECTS DATABASE ========================
+    const PROJECT_DATABASE = [
+        { pm: "Moses", project: "DBSA Generators", totalValue: 28400000, division: "OPOT", gpPercent: 24 },
+        { pm: "Moses", project: "DBSA Rooiwal", totalValue: 22000000, division: "OPOT", gpPercent: 18 },
+        { pm: "Moses", project: "Joe Gqabi", totalValue: 68479374, division: "OPOT", gpPercent: 20 },
+        { pm: "Andrew", project: "Temba", totalValue: 15000000, division: "OPOT", gpPercent: 18 },
+        { pm: "Andrew", project: "Midvaal", totalValue: 12000000, division: "OPOT", gpPercent: 22 },
+        { pm: "Timothy", project: "Coega", totalValue: 28000000, division: "Nkanyezi", gpPercent: 19 },
+        { pm: "Timothy", project: "KZN General Buildings", totalValue: 18500000, division: "Nkanyezi", gpPercent: 17 },
+        { pm: "Stanley", project: "Tshwane", totalValue: 9500000, division: "Distinct", gpPercent: 8 },
+        { pm: "Stanley", project: "Public Works Limpopo", totalValue: 12500000, division: "Distinct", gpPercent: 10 },
+        { pm: "Brian", project: "Limpopo Eskom Substation Ephraim Mogale", totalValue: 8900000, division: "Aqua Tech", gpPercent: 6 },
+        { pm: "Brian", project: "Naizna", totalValue: 5600000, division: "Aqua Tech", gpPercent: 7 },
+        { pm: "Goven", project: "Cape Town", totalValue: 10034021, division: "Aqua Telecoms", gpPercent: 22 },
+        { pm: "Goven", project: "COT Streetlights", totalValue: 8500000, division: "Aqua Telecoms", gpPercent: 20 },
+        { pm: "Phillip", project: "COT Electrification", totalValue: 7200000, division: "Aqua Telecoms", gpPercent: 12 },
+        { pm: "Phillip", project: "COT Metering", totalValue: 5800000, division: "Aqua Telecoms", gpPercent: 13 },
+        { pm: "Dave", project: "COE Streetlights", totalValue: 9200000, division: "OPOT", gpPercent: 21 },
+        { pm: "Dave", project: "Msunduzi E50", totalValue: 6700000, division: "OPOT", gpPercent: 19 },
+        { pm: "James", project: "Msunduzi Streetlights", totalValue: 5400000, division: "OPOT", gpPercent: 16 },
+        { pm: "James", project: "Msunduzi E33", totalValue: 4300000, division: "OPOT", gpPercent: 15 },
+        { pm: "Raymond", project: "Msunduzi E47", totalValue: 3800000, division: "OPOT", gpPercent: 14 },
+        { pm: "EL CM", project: "Moqhaka Streetlights", totalValue: 1800000, division: "Nkanyezi", gpPercent: 45 },
+        { pm: "EL CM", project: "Moqhaka Metering", totalValue: 1800000, division: "Nkanyezi", gpPercent: 45 },
+        { pm: "Elroy", project: "Centlec CD11", totalValue: 12500000, division: "DI Solutions", gpPercent: 35 },
+        { pm: "Mesh", project: "Centlec Transformers CD32", totalValue: 9800000, division: "DI Solutions", gpPercent: 32 },
+        { pm: "Vusi", project: "Centlec CD45", totalValue: 7600000, division: "DI Solutions", gpPercent: 30 },
+        { pm: "Tinotenda", project: "Midvaal Mechanical", totalValue: 11200000, division: "Distinct", gpPercent: 28 },
+        { pm: "Sydney", project: "Eskom SPU", totalValue: 24500000, division: "Aqua Tech", gpPercent: 25 },
+        { pm: "Graham", project: "Eskom FSOU Substation", totalValue: 18900000, division: "Aqua Tech", gpPercent: 23 },
+        { pm: "Jonah", project: "Eskom ECOU", totalValue: 15700000, division: "Aqua Tech", gpPercent: 21 },
+        { pm: "Siyanda", project: "Eskom LOU General Buildings", totalValue: 13400000, division: "Aqua Tech", gpPercent: 19 },
+        { pm: "Moeti", project: "Eskom KZN Minor Reticulation", totalValue: 11200000, division: "Aqua Telecoms", gpPercent: 18 },
+        { pm: "Raymond", project: "Randwest Electrical", totalValue: 8500000, division: "Distinct", gpPercent: 16 },
+        { pm: "Stanley", project: "Randwest Roads & Stormwater", totalValue: 9200000, division: "Distinct", gpPercent: 14 },
+        { pm: "Brian", project: "Randwest Water rand sanitation", totalValue: 7800000, division: "Aqua Tech", gpPercent: 12 },
+        { pm: "Andrew", project: "Randwest Bulk", totalValue: 14500000, division: "OPOT", gpPercent: 17 },
+        { pm: "Moses", project: "RAL", totalValue: 16800000, division: "OPOT", gpPercent: 19 }
+    ];
+    
+    // Build projects array
+    let projects = PROJECT_DATABASE.map((p, idx) => ({
+        id: `P${String(idx + 1).padStart(3, '0')}`,
+        division: p.division,
+        pm: p.pm,
+        client: p.project.split(" ")[0] || "Client",
+        project: p.project,
+        status: "Confirmed",
+        totalValue: p.totalValue,
+        gpPercent: p.gpPercent,
+        deadlineScore: 65 + Math.floor(Math.random() * 25),
+        safetyScore: 95,
+        qualityScore: 70 + Math.floor(Math.random() * 25),
+        cashCollected: p.totalValue * 0.3,
+        recovery: "On track",
+        actionOwner: p.pm,
+        actionDue: "2026-04-15",
+        actionStatus: "Open"
+    }));
+    
+    let revenueEntries = [];
+    let selectedPeriod = "Daily";
+    let activeTab = "dashboard";
+    let selectedManagerFilter = "all";
+    
+    // Aggregated totals
+    let totalConfirmed = projects.filter(p => p.status === "Confirmed").reduce((sum, p) => sum + p.totalValue, 0);
+    let totalForecast = projects.filter(p => p.status === "Forecast").reduce((sum, p) => sum + p.totalValue, 0);
+    let ytdTotal = 0;
+    let mtdTotal = 0;
+    let btyeTotal = 0;
+    
     const formatCurrency = (val) => new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR", maximumFractionDigits: 0 }).format(val || 0);
-    const formatNumber = (val) => new Intl.NumberFormat("en-ZA").format(val || 0);
     const percentOf = (actual, target) => target ? Math.round((actual / target) * 100) : 0;
     
-    // State management
-    let projects = [...PROJECTS_MASTER];
-    let revenueEntries = []; // daily revenue tracking
-    let activeTab = "dashboard";
-    let selectedPeriod = "Daily";
+    function calculateDailyBudget(projectTotal) { return (projectTotal / 12 / 22); }
+    function getProjectByPM(pm, projectName) { return projects.find(p => p.pm === pm && p.project === projectName); }
+    function getAllPMs() { return [...new Set(PROJECT_MANAGERS)]; }
     
-    // ======================== AGGREGATION FUNCTIONS ========================
-    function getPeriodRevenue(project, period) {
-        const map = { Daily: 'revenueDaily', Weekly: 'revenueWeekly', Monthly: 'revenueMonthly', Quarterly: 'revenueQuarterly', Yearly: 'revenueYearly' };
-        return project[map[period]] || 0;
-    }
-    
-    function getPeriodTarget(project, period) {
-        const map = { Daily: 'targetDaily', Weekly: 'targetWeekly', Monthly: 'targetMonthly', Quarterly: 'targetQuarterly', Yearly: 'targetYearly' };
-        return project[map[period]] || 0;
-    }
-    
-    function getKPIs() {
-        const totalRevenue = projects.reduce((sum, p) => sum + getPeriodRevenue(p, selectedPeriod), 0);
-        const totalTarget = projects.reduce((sum, p) => sum + getPeriodTarget(p, selectedPeriod), 0);
-        const totalCash = projects.reduce((sum, p) => sum + p.cashCollected, 0);
-        const avgGP = Math.round(projects.reduce((sum, p) => sum + p.gpPercent, 0) / Math.max(projects.length, 1));
-        const avgDeadline = Math.round(projects.reduce((sum, p) => sum + p.deadlineScore, 0) / Math.max(projects.length, 1));
-        const avgQuality = Math.round(projects.reduce((sum, p) => sum + p.qualityScore, 0) / Math.max(projects.length, 1));
-        const achievement = percentOf(totalRevenue, totalTarget);
-        const openActions = projects.filter(p => p.actionStatus !== "Closed").length;
+    // Get cost centre performance data
+    function getCostCentrePerformance() {
+        const ccMap = new Map();
+        const today = new Date().toISOString().split('T')[0];
+        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+        const currentMonth = new Date().getMonth();
         
-        return {
-            totalRevenue, totalTarget, totalCash, avgGP, avgDeadline, avgQuality, achievement, openActions
-        };
-    }
-    
-    function getDivisionSummary() {
-        const map = new Map();
         projects.forEach(p => {
-            const rev = getPeriodRevenue(p, selectedPeriod);
-            const existing = map.get(p.division) || { name: p.division, revenue: 0, target: 0, count: 0, gp: 0 };
-            existing.revenue += rev;
-            existing.target += getPeriodTarget(p, selectedPeriod);
-            existing.count++;
-            existing.gp += p.gpPercent;
-            map.set(p.division, existing);
+            const dailyBudget = calculateDailyBudget(p.totalValue);
+            const monthlyBudget = p.totalValue / 12;
+            const weeklyBudget = dailyBudget * 7;
+            
+            if (!ccMap.has(p.division)) {
+                ccMap.set(p.division, {
+                    name: p.division,
+                    dailyBudget: 0, dailyActual: 0, dailyAchievement: 0,
+                    weeklyBudget: 0, weeklyActual: 0, weeklyAchievement: 0,
+                    monthlyBudget: 0, monthlyActual: 0, monthlyAchievement: 0,
+                    projects: []
+                });
+            }
+            const cc = ccMap.get(p.division);
+            cc.dailyBudget += dailyBudget;
+            cc.weeklyBudget += weeklyBudget;
+            cc.monthlyBudget += monthlyBudget;
+            cc.projects.push(p);
         });
-        return Array.from(map.values()).map(d => ({ ...d, achievement: percentOf(d.revenue, d.target), avgGp: Math.round(d.gp / d.count) }));
-    }
-    
-    function getTopProjects(limit = 5) {
-        return [...projects].sort((a, b) => getPeriodRevenue(b, selectedPeriod) - getPeriodRevenue(a, selectedPeriod)).slice(0, limit);
-    }
-    
-    function getActions() {
-        return projects.filter(p => p.actionStatus !== "Closed").sort((a, b) => {
-            const order = { "Escalated": 0, "Open": 1, "In Progress": 2 };
-            return (order[a.actionStatus] || 3) - (order[b.actionStatus] || 3);
+        
+        revenueEntries.forEach(r => {
+            if (ccMap.has(r.division)) {
+                const cc = ccMap.get(r.division);
+                const revenueDate = new Date(r.date);
+                cc.dailyActual += (r.date === today) ? r.amount : 0;
+                if (r.date >= weekAgo) cc.weeklyActual += r.amount;
+                if (revenueDate.getMonth() === currentMonth) cc.monthlyActual += r.amount;
+            }
         });
+        
+        for (let [_, cc] of ccMap) {
+            cc.dailyAchievement = percentOf(cc.dailyActual, cc.dailyBudget);
+            cc.weeklyAchievement = percentOf(cc.weeklyActual, cc.weeklyBudget);
+            cc.monthlyAchievement = percentOf(cc.monthlyActual, cc.monthlyBudget);
+        }
+        return Array.from(ccMap.values()).sort((a,b) => b.dailyAchievement - a.dailyAchievement);
     }
     
-    // Export to Excel
-    function exportToExcel() {
-        const wsData = [["Project ID", "Division", "PM", "Client", "Project", "Status", "Revenue", "Target", "GP%", "Deadline%", "Quality%", "Cash", "Action Owner", "Action Due", "Action Status", "Recovery"]];
+    // Get manager performance data with variance %
+    function getManagerPerformance() {
+        const managerMap = new Map();
+        const today = new Date().toISOString().split('T')[0];
+        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+        const currentMonth = new Date().getMonth();
+        
+        PROJECT_MANAGERS.forEach(manager => {
+            const managerProjects = projects.filter(p => p.pm === manager);
+            let dailyBudget = 0, weeklyBudget = 0, monthlyBudget = 0, yearlyBudget = 0;
+            managerProjects.forEach(p => {
+                const db = calculateDailyBudget(p.totalValue);
+                dailyBudget += db;
+                weeklyBudget += db * 7;
+                monthlyBudget += p.totalValue / 12;
+                yearlyBudget += p.totalValue;
+            });
+            
+            managerMap.set(manager, {
+                pm: manager,
+                dailyBudget, weeklyBudget, monthlyBudget, yearlyBudget,
+                dailyActual: 0, weeklyActual: 0, monthlyActual: 0, yearlyActual: 0,
+                dailyVariance: 0, weeklyVariance: 0, monthlyVariance: 0, yearlyVariance: 0,
+                dailyVariancePercent: 0, weeklyVariancePercent: 0, monthlyVariancePercent: 0, yearlyVariancePercent: 0,
+                dailyAchievement: 0, weeklyAchievement: 0, monthlyAchievement: 0, yearlyAchievement: 0,
+                projects: managerProjects
+            });
+        });
+        
+        revenueEntries.forEach(r => {
+            if (managerMap.has(r.pm)) {
+                const m = managerMap.get(r.pm);
+                const revenueDate = new Date(r.date);
+                m.dailyActual += (r.date === today) ? r.amount : 0;
+                if (r.date >= weekAgo) m.weeklyActual += r.amount;
+                if (revenueDate.getMonth() === currentMonth && revenueDate.getFullYear() === new Date().getFullYear()) m.monthlyActual += r.amount;
+                m.yearlyActual += r.amount;
+            }
+        });
+        
+        for (let [_, m] of managerMap) {
+            m.dailyVariance = m.dailyActual - m.dailyBudget;
+            m.dailyVariancePercent = m.dailyBudget > 0 ? ((m.dailyVariance / m.dailyBudget) * 100).toFixed(1) : 0;
+            m.dailyAchievement = percentOf(m.dailyActual, m.dailyBudget);
+            
+            m.weeklyVariance = m.weeklyActual - m.weeklyBudget;
+            m.weeklyVariancePercent = m.weeklyBudget > 0 ? ((m.weeklyVariance / m.weeklyBudget) * 100).toFixed(1) : 0;
+            m.weeklyAchievement = percentOf(m.weeklyActual, m.weeklyBudget);
+            
+            m.monthlyVariance = m.monthlyActual - m.monthlyBudget;
+            m.monthlyVariancePercent = m.monthlyBudget > 0 ? ((m.monthlyVariance / m.monthlyBudget) * 100).toFixed(1) : 0;
+            m.monthlyAchievement = percentOf(m.monthlyActual, m.monthlyBudget);
+            
+            m.yearlyVariance = m.yearlyActual - m.yearlyBudget;
+            m.yearlyVariancePercent = m.yearlyBudget > 0 ? ((m.yearlyVariance / m.yearlyBudget) * 100).toFixed(1) : 0;
+            m.yearlyAchievement = percentOf(m.yearlyActual, m.yearlyBudget);
+        }
+        return Array.from(managerMap.values()).sort((a,b) => b.dailyAchievement - a.dailyAchievement);
+    }
+    
+    function calculateRevenueAggregates() {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        
+        let ytd = 0, mtd = 0;
+        revenueEntries.forEach(entry => {
+            const entryDate = new Date(entry.date);
+            if (entryDate.getFullYear() === currentYear) {
+                ytd += entry.amount;
+                if (entryDate.getMonth() === currentMonth) mtd += entry.amount;
+            }
+        });
+        
+        ytdTotal = ytd;
+        mtdTotal = mtd;
+        btyeTotal = (totalConfirmed + totalForecast) - ytdTotal;
+    }
+    
+    async function submitDailyRevenue(data) {
+        showLoading("Saving data...");
+        try {
+            revenueEntries.push({ ...data, id: Date.now() });
+            localStorage.setItem("revenueEntries", JSON.stringify(revenueEntries));
+            calculateRevenueAggregates();
+            showToast("Revenue saved successfully!", "success");
+            render();
+        } catch(e) { showToast("Saved locally: " + e.message, "info"); revenueEntries.push({ ...data, id: Date.now() }); localStorage.setItem("revenueEntries", JSON.stringify(revenueEntries)); calculateRevenueAggregates(); render(); }
+        hideLoading();
+    }
+    
+    async function loadFromSheets() {
+        showLoading("Loading data...");
+        try {
+            const storedRevenue = localStorage.getItem("revenueEntries");
+            if (storedRevenue) revenueEntries = JSON.parse(storedRevenue);
+            generateDemoRevenue();
+            calculateRevenueAggregates();
+            showToast("Data loaded successfully", "success");
+        } catch(e) { console.warn("Using demo data", e); generateDemoRevenue(); calculateRevenueAggregates(); }
+        hideLoading();
+    }
+    
+    function generateDemoRevenue() {
+        const demo = [];
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        const twoDaysAgo = new Date(Date.now() - 172800000).toISOString().split('T')[0];
+        
         projects.forEach(p => {
-            wsData.push([p.id, p.division, p.pm, p.client, p.project, p.status, getPeriodRevenue(p, selectedPeriod), getPeriodTarget(p, selectedPeriod), p.gpPercent, p.deadlineScore, p.qualityScore, p.cashCollected, p.actionOwner, p.actionDue, p.actionStatus, p.recovery]);
+            const dailyBudget = calculateDailyBudget(p.totalValue);
+            demo.push({ date: today, division: p.division, pm: p.pm, project: p.project, amount: dailyBudget * (0.85 + Math.random() * 0.3), dailyBudget, variance: 0, notes: "" });
+            demo.push({ date: yesterday, division: p.division, pm: p.pm, project: p.project, amount: dailyBudget * (0.7 + Math.random() * 0.4), dailyBudget, variance: 0, notes: "" });
+            demo.push({ date: twoDaysAgo, division: p.division, pm: p.pm, project: p.project, amount: dailyBudget * (0.6 + Math.random() * 0.5), dailyBudget, variance: 0, notes: "" });
         });
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Projects");
-        XLSX.writeFile(wb, `constructflow_report_${new Date().toISOString().slice(0,10)}.xlsx`);
-        showToast("Export complete", "success");
+        if (revenueEntries.length === 0) revenueEntries = demo;
     }
     
-    function showToast(msg, type = "info") {
-        const toast = document.createElement("div");
-        toast.className = "status-toast";
-        toast.innerHTML = `<i class="fas fa-${type === "success" ? "check-circle" : "info-circle"} me-2"></i>${msg}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+    function getTodayStats() {
+        const today = new Date().toISOString().split('T')[0];
+        const todayRevenue = revenueEntries.filter(r => r.date === today).reduce((s, r) => s + r.amount, 0);
+        const todayBudget = projects.reduce((s, p) => s + calculateDailyBudget(p.totalValue), 0);
+        return { actual: todayRevenue, budget: todayBudget, variance: todayRevenue - todayBudget, achievement: percentOf(todayRevenue, todayBudget) };
     }
     
-    // ======================== RENDER FUNCTIONS (Pure HTML) ========================
+    // ======================== RENDER FUNCTIONS ========================
     function renderKPIs() {
-        const kpis = getKPIs();
-        return `
-            <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-chart-line"></i></div><div class="kpi-value">${formatCurrency(kpis.totalRevenue)}</div><div class="kpi-label">Total Revenue (${selectedPeriod})</div><div class="kpi-trend">${kpis.achievement}% of target</div></div>
-                <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-percent"></i></div><div class="kpi-value">${kpis.avgGP}%</div><div class="kpi-label">Avg Gross Profit</div><div class="kpi-trend">Across all projects</div></div>
-                <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-clock"></i></div><div class="kpi-value">${kpis.avgDeadline}%</div><div class="kpi-label">Schedule Adherence</div><div class="kpi-trend">On-time delivery</div></div>
-                <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-star"></i></div><div class="kpi-value">${kpis.avgQuality}%</div><div class="kpi-label">Quality Score</div><div class="kpi-trend">Customer satisfaction</div></div>
-                <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-coins"></i></div><div class="kpi-value">${formatCurrency(kpis.totalCash)}</div><div class="kpi-label">Cash Collected</div><div class="kpi-trend">${percentOf(kpis.totalCash, kpis.totalRevenue)}% conversion</div></div>
-                <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-bell"></i></div><div class="kpi-value">${kpis.openActions}</div><div class="kpi-label">Open Actions</div><div class="kpi-trend">Requires attention</div></div>
-            </div>
-        `;
+        const todayStats = getTodayStats();
+        return `<div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(totalConfirmed)}</div><div class="kpi-label">Confirmed Order Book</div><div class="kpi-trend">Active Projects</div></div>
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(totalForecast)}</div><div class="kpi-label">Forecast Pipeline</div><div class="kpi-trend">Upcoming Opportunities</div></div>
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(ytdTotal)}</div><div class="kpi-label">YTD Actual Revenue</div><div class="kpi-trend">Year to Date</div></div>
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(btyeTotal)}</div><div class="kpi-label">Group BTYE</div><div class="kpi-trend">Budget to Year End</div></div>
+            <div class="kpi-card"><div class="kpi-value">${formatCurrency(mtdTotal)}</div><div class="kpi-label">MTD Actual</div><div class="kpi-trend">Month to Date</div></div>
+            <div class="kpi-card"><div class="kpi-value">${todayStats.achievement}%</div><div class="kpi-label">Today's Achievement</div><div class="kpi-trend ${todayStats.variance >= 0 ? 'text-success' : 'text-danger'}">${todayStats.variance >= 0 ? 'Above' : 'Below'} target</div></div>
+        </div>`;
     }
     
-    function renderDashboard() {
-        const divisions = getDivisionSummary();
-        const topProjects = getTopProjects(6);
-        const actions = getActions();
-        
+    function renderCostCentrePerformance() {
+        const costCentres = getCostCentrePerformance();
         return `
             <div class="card-modern">
-                <div class="card-header-modern">
-                    <h3><i class="fas fa-chart-pie"></i> Division Performance</h3>
-                    <select id="periodSelect" class="form-control" style="width: auto; padding: 8px 16px;" onchange="changePeriod(this.value)">
-                        <option value="Daily" ${selectedPeriod === "Daily" ? "selected" : ""}>Daily</option>
-                        <option value="Weekly" ${selectedPeriod === "Weekly" ? "selected" : ""}>Weekly</option>
-                        <option value="Monthly" ${selectedPeriod === "Monthly" ? "selected" : ""}>Monthly</option>
-                        <option value="Quarterly" ${selectedPeriod === "Quarterly" ? "selected" : ""}>Quarterly</option>
-                        <option value="Yearly" ${selectedPeriod === "Yearly" ? "selected" : ""}>Yearly</option>
-                    </select>
-                </div>
+                <div class="card-header-modern"><h3><i class="fas fa-building"></i> Cost Centre Performance</h3><select id="ccPeriodSelect" class="form-control" style="width: auto;" onchange="updateCCPerformance(this.value)"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
                 <div class="card-body-modern">
                     <div style="overflow-x: auto;">
-                        <table class="data-table">
-                            <thead><tr><th>Division</th><th>Revenue</th><th>Target</th><th>Achievement</th><th>Avg GP%</th><th>Projects</th></tr></thead>
-                            <tbody>
-                                ${divisions.map(d => `<tr><td><strong>${d.name}</strong></td><td>${formatCurrency(d.revenue)}</td><td>${formatCurrency(d.target)}</td><td><span class="${d.achievement >= 80 ? 'text-success' : d.achievement >= 50 ? 'text-warning' : 'text-danger'} fw-bold">${d.achievement}%</span></td><td>${d.avgGp}%</td><td>${d.count}</td></tr>`).join("")}
-                            </tbody>
-                        </table>
+                        <table class="data-table"><thead> tr<th>Cost Centre</th><th>Budget</th><th>Actual</th><th>Variance (R)</th><th>Achievement %</th><th>Status</th> </thead><tbody>
+                            ${costCentres.map(cc => {
+                                let budget = cc.dailyBudget, actual = cc.dailyActual, achievement = cc.dailyAchievement;
+                                if (document.getElementById("ccPeriodSelect")?.value === "weekly") { budget = cc.weeklyBudget; actual = cc.weeklyActual; achievement = cc.weeklyAchievement; }
+                                if (document.getElementById("ccPeriodSelect")?.value === "monthly") { budget = cc.monthlyBudget; actual = cc.monthlyActual; achievement = cc.monthlyAchievement; }
+                                const variance = actual - budget;
+                                return `<tr><td><strong>${cc.name}</strong></td><td>${formatCurrency(budget)}</td><td>${formatCurrency(actual)}</td><td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(variance)}</td><td class="${achievement >= 80 ? 'text-success' : achievement >= 50 ? 'text-warning' : 'text-danger'} fw-bold">${achievement}%</td><td><span class="badge-${achievement >= 80 ? 'confirmed' : 'forecast'}">${achievement >= 80 ? 'On Target' : 'Behind'}</span></td></tr>`;
+                            }).join("")}
+                        </tbody> </table>
                     </div>
                 </div>
             </div>
-            
+        `;
+    }
+    
+    function renderManagerRanking() {
+        const managers = getManagerPerformance();
+        return `
             <div class="card-modern">
-                <div class="card-header-modern"><h3><i class="fas fa-trophy"></i> Top Performing Projects</h3></div>
+                <div class="card-header-modern"><h3><i class="fas fa-trophy"></i> Managers Performance Ranking</h3><select id="perfPeriodSelect" class="form-control" style="width: auto;" onchange="changePerfPeriod(this.value)"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
                 <div class="card-body-modern">
                     <div style="overflow-x: auto;">
-                        <table class="data-table">
-                            <thead><tr><th>Project</th><th>Division</th><th>PM</th><th>Revenue (${selectedPeriod})</th><th>Target</th><th>GP%</th><th>Deadline</th><th>Quality</th></tr></thead>
-                            <tbody>
-                                ${topProjects.map(p => `<tr><td><strong>${p.project}</strong></td><td>${p.division}</td><td>${p.pm}</td><td>${formatCurrency(getPeriodRevenue(p, selectedPeriod))}</td><td>${formatCurrency(getPeriodTarget(p, selectedPeriod))}</td><td>${p.gpPercent}%</td><td>${p.deadlineScore}%</td><td>${p.qualityScore}%</td></tr>`).join("")}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card-modern">
-                <div class="card-header-modern"><h3><i class="fas fa-exclamation-triangle"></i> Active Actions (${actions.length})</h3></div>
-                <div class="card-body-modern">
-                    ${actions.length === 0 ? '<p class="text-muted">All actions resolved. Great work!</p>' : `
-                        <div style="display: flex; flex-direction: column; gap: 16px;">
-                            ${actions.slice(0, 5).map(p => `
-                                <div style="border-left: 4px solid ${p.actionStatus === 'Escalated' ? '#ef4444' : '#f59e0b'}; padding: 14px 18px; background: #fefefe; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
-                                        <div><strong>${p.project}</strong><br><small class="text-muted">${p.division} | PM: ${p.pm}</small></div>
-                                        <span class="badge-${p.actionStatus === 'Escalated' ? 'forecast' : 'confirmed'}" style="background: ${p.actionStatus === 'Escalated' ? '#fee2e2' : '#fff3e3'}">${p.actionStatus}</span>
-                                    </div>
-                                    <div style="margin-top: 10px; font-size: 13px;"><i class="fas fa-user"></i> ${p.actionOwner} | <i class="fas fa-calendar"></i> Due: ${p.actionDue}</div>
-                                    <div style="margin-top: 8px; font-size: 13px; color: #475569;"><i class="fas fa-clipboard-list"></i> ${p.recovery}</div>
-                                </div>
-                            `).join("")}
-                        </div>
-                    `}
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderProjectsTable() {
-        return `
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <h3><i class="fas fa-folder-tree"></i> All Projects</h3>
-                    <button class="btn-outline" onclick="exportToExcel()"><i class="fas fa-download"></i> Export Excel</button>
-                </div>
-                <div class="card-body-modern" style="overflow-x: auto;">
-                    <table class="data-table">
-                        <thead><tr><th>ID</th><th>Division</th><th>PM</th><th>Project</th><th>Client</th><th>Status</th><th>Revenue (${selectedPeriod})</th><th>Target</th><th>GP%</th><th>Deadline</th><th>Quality</th><th>Action</th></tr></thead>
-                        <tbody>
-                            ${projects.map(p => `
-                                <tr>
-                                    <td><span class="text-muted">${p.id}</span></td>
-                                    <td>${p.division}</td>
-                                    <td>${p.pm}</td>
-                                    <td><strong>${p.project}</strong></td>
-                                    <td>${p.client}</td>
-                                    <td><span class="${p.status === 'Confirmed' ? 'badge-confirmed' : 'badge-forecast'}">${p.status}</span></td>
-                                    <td>${formatCurrency(getPeriodRevenue(p, selectedPeriod))}</td>
-                                    <td>${formatCurrency(getPeriodTarget(p, selectedPeriod))}</td>
-                                    <td>${p.gpPercent}%</td>
-                                    <td><span class="${p.deadlineScore >= 80 ? 'text-success' : p.deadlineScore >= 50 ? 'text-warning' : 'text-danger'}">${p.deadlineScore}%</span></td>
-                                    <td><span class="${p.qualityScore >= 80 ? 'text-success' : 'text-warning'}">${p.qualityScore}%</span></td>
-                                    <td><span class="badge-${p.actionStatus === 'Closed' ? 'confirmed' : 'forecast'}" style="font-size: 11px;">${p.actionStatus}</span></td>
-                                </tr>
-                            `).join("")}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderActions() {
-        const actions = getActions();
-        return `
-            <div class="card-modern">
-                <div class="card-header-modern"><h3><i class="fas fa-tasks"></i> Action Register & Recovery Plans</h3></div>
-                <div class="card-body-modern">
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
-                        ${actions.map(p => `
-                            <div style="border: 1px solid #eef2f6; border-radius: 24px; padding: 22px; background: white;">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-                                    <div>
-                                        <h4 style="font-size: 18px; margin-bottom: 6px;">${p.project}</h4>
-                                        <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: #5b6e8c;">
-                                            <span><i class="fas fa-building"></i> ${p.division}</span>
-                                            <span><i class="fas fa-user"></i> PM: ${p.pm}</span>
-                                            <span><i class="fas fa-building"></i> ${p.client}</span>
-                                        </div>
-                                    </div>
-                                    <span class="badge-${p.actionStatus === 'Escalated' ? 'forecast' : 'confirmed'}" style="padding: 6px 18px; font-weight: 600;">${p.actionStatus}</span>
-                                </div>
-                                <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #f8fafc; padding: 16px; border-radius: 20px;">
-                                    <div><i class="fas fa-user-circle text-primary"></i> Owner: <strong>${p.actionOwner}</strong></div>
-                                    <div><i class="fas fa-calendar-alt"></i> Due: <strong class="${p.actionDue < '2026-03-23' ? 'text-danger' : ''}">${p.actionDue}</strong></div>
-                                    <div><i class="fas fa-chart-line"></i> Revenue: ${formatCurrency(getPeriodRevenue(p, selectedPeriod))}</div>
-                                    <div><i class="fas fa-percent"></i> Achievement: ${percentOf(getPeriodRevenue(p, selectedPeriod), getPeriodTarget(p, selectedPeriod))}%</div>
-                                </div>
-                                <div style="margin-top: 16px; background: #fff7ed; padding: 14px 18px; border-radius: 18px; border-left: 4px solid #f59e0b;">
-                                    <i class="fas fa-clipboard-list text-warning me-2"></i>
-                                    <strong>Recovery Plan:</strong> ${p.recovery}
-                                </div>
-                            </div>
-                        `).join("")}
-                        ${actions.length === 0 ? '<div class="text-center py-5"><i class="fas fa-check-circle fa-3x text-success mb-3"></i><p>No pending actions. All projects on track!</p></div>' : ''}
+                        <table class="data-table"><thead> <th>Rank</th><th>Project Manager</th><th>Projects</th><th>Budget</th><th>Actual</th><th>Variance (R)</th><th>Variance %</th><th>Achievement %</th><th>Status</th> </thead><tbody>
+                            ${managers.map((m, idx) => {
+                                let budget = m.dailyBudget, actual = m.dailyActual, variance = m.dailyVariance, variancePct = m.dailyVariancePercent, achievement = m.dailyAchievement;
+                                if (selectedPeriod === 'weekly') { budget = m.weeklyBudget; actual = m.weeklyActual; variance = m.weeklyVariance; variancePct = m.weeklyVariancePercent; achievement = m.weeklyAchievement; }
+                                else if (selectedPeriod === 'monthly') { budget = m.monthlyBudget; actual = m.monthlyActual; variance = m.monthlyVariance; variancePct = m.monthlyVariancePercent; achievement = m.monthlyAchievement; }
+                                else if (selectedPeriod === 'yearly') { budget = m.yearlyBudget; actual = m.yearlyActual; variance = m.yearlyVariance; variancePct = m.yearlyVariancePercent; achievement = m.yearlyAchievement; }
+                                return `<tr class="clickable-row" onclick="filterByManager('${m.pm}')"><td><strong>#${idx+1}</strong><td><strong>${m.pm}</strong><td>${m.projects.length}<td>${formatCurrency(budget)}<td>${formatCurrency(actual)}<td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(variance)}<td class="${variance >= 0 ? 'text-success' : 'text-danger'}">${variancePct}%<td class="${achievement >= 80 ? 'text-success' : achievement >= 50 ? 'text-warning' : 'text-danger'} fw-bold">${achievement}%<td><span class="badge-${achievement >= 80 ? 'confirmed' : 'forecast'}">${achievement >= 80 ? 'On Track' : 'Needs Attention'}</span></tr>`;
+                            }).join("")}
+                        </tbody> </table>
                     </div>
                 </div>
             </div>
         `;
     }
     
-    function renderAnalytics() {
-        const kpis = getKPIs();
-        const divisions = getDivisionSummary();
-        
-        // Prepare chart data
-        const chartCategories = divisions.map(d => d.name);
-        const chartRevenue = divisions.map(d => d.revenue);
-        const chartTarget = divisions.map(d => d.target);
+    function renderManagerPerformanceCharts() {
+        const managers = getManagerPerformance();
+        const categories = managers.map(m => m.pm);
+        const dailyVariancePct = managers.map(m => parseFloat(m.dailyVariancePercent));
+        const weeklyVariancePct = managers.map(m => parseFloat(m.weeklyVariancePercent));
+        const monthlyVariancePct = managers.map(m => parseFloat(m.monthlyVariancePercent));
         
         setTimeout(() => {
-            if (window.revenueChart) {
-                window.revenueChart.updateOptions({ xaxis: { categories: chartCategories } });
-                window.revenueChart.updateSeries([{ name: 'Revenue', data: chartRevenue }, { name: 'Target', data: chartTarget }]);
+            const options = {
+                chart: { type: 'bar', height: 450, toolbar: { show: true }, animations: { enabled: true } },
+                series: [
+                    { name: 'Daily Variance %', data: dailyVariancePct, color: '#2a5298' },
+                    { name: 'Weekly Variance %', data: weeklyVariancePct, color: '#f59e0b' },
+                    { name: 'Monthly Variance %', data: monthlyVariancePct, color: '#10b981' }
+                ],
+                xaxis: { categories, title: { text: 'Project Managers' }, labels: { rotate: -45, style: { fontSize: '11px' } } },
+                yaxis: { title: { text: 'Variance %' }, labels: { formatter: (val) => val + '%' } },
+                plotOptions: { bar: { borderRadius: 8, columnWidth: '60%', dataLabels: { position: 'top' } } },
+                dataLabels: { enabled: true, formatter: (val) => val + '%', offsetY: -20, style: { fontSize: '11px', fontWeight: 'bold' } },
+                tooltip: { y: { formatter: (val) => val + '% variance' } },
+                title: { text: 'Manager Performance Variance % (Daily, Weekly, Monthly)', align: 'center', style: { fontSize: '14px', fontWeight: 'bold' } },
+                grid: { borderColor: '#e2e8f0' }
+            };
+            if (window.varianceChart) {
+                window.varianceChart.updateOptions({ xaxis: { categories } });
+                window.varianceChart.updateSeries([{ name: 'Daily Variance %', data: dailyVariancePct }, { name: 'Weekly Variance %', data: weeklyVariancePct }, { name: 'Monthly Variance %', data: monthlyVariancePct }]);
             } else {
-                const options = {
-                    chart: { type: 'bar', height: 380, toolbar: { show: true }, background: 'transparent' },
-                    series: [{ name: 'Revenue', data: chartRevenue }, { name: 'Target', data: chartTarget }],
-                    xaxis: { categories: chartCategories },
-                    colors: ['#2a5298', '#8b9dc3'],
-                    plotOptions: { bar: { borderRadius: 12, columnWidth: '55%' } },
-                    dataLabels: { enabled: false },
-                    yaxis: { labels: { formatter: (val) => 'R ' + (val/1000).toFixed(0) + 'k' } },
-                    tooltip: { y: { formatter: (val) => formatCurrency(val) } }
-                };
-                window.revenueChart = new ApexCharts(document.querySelector("#analyticsChart"), options);
-                window.revenueChart.render();
+                window.varianceChart = new ApexCharts(document.querySelector("#varianceChart"), options);
+                window.varianceChart.render();
             }
-        }, 50);
+        }, 100);
         
+        return `<div class="card-modern"><div class="card-header-modern"><h3><i class="fas fa-chart-line"></i> Managers Performance Comparison - Variance % Analysis</h3></div><div class="card-body-modern"><div id="varianceChart" class="chart-container"></div></div></div>`;
+    }
+    
+    function renderProjectPerformance() {
+        const managers = getManagerPerformance();
+        const filteredManagers = selectedManagerFilter === "all" ? managers : managers.filter(m => m.pm === selectedManagerFilter);
         return `
             <div class="card-modern">
-                <div class="card-header-modern"><h3><i class="fas fa-chart-line"></i> Division Revenue vs Target Analysis</h3></div>
-                <div class="card-body-modern"><div id="analyticsChart" class="chart-container"></div></div>
-            </div>
-            
-            <div class="card-modern">
-                <div class="card-header-modern"><h3><i class="fas fa-chart-simple"></i> Performance Insights</h3></div>
+                <div class="card-header-modern"><h3><i class="fas fa-chart-line"></i> Project Performance Details</h3><button class="btn-outline" onclick="resetManagerFilter()">Clear Filter</button></div>
                 <div class="card-body-modern">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                        <div style="background: linear-gradient(135deg, #f0f4ff, #ffffff); border-radius: 24px; padding: 20px; text-align: center;">
-                            <div style="font-size: 42px; font-weight: 800; color: #2a5298;">${kpis.achievement}%</div>
-                            <div class="text-muted">Overall Achievement (${selectedPeriod})</div>
-                        </div>
-                        <div style="background: linear-gradient(135deg, #f0f4ff, #ffffff); border-radius: 24px; padding: 20px; text-align: center;">
-                            <div style="font-size: 42px; font-weight: 800; color: #10b981;">${kpis.avgGP}%</div>
-                            <div class="text-muted">Average Gross Profit Margin</div>
-                        </div>
-                        <div style="background: linear-gradient(135deg, #f0f4ff, #ffffff); border-radius: 24px; padding: 20px; text-align: center;">
-                            <div style="font-size: 42px; font-weight: 800; color: #f59e0b;">${kpis.avgDeadline}%</div>
-                            <div class="text-muted">Schedule Adherence</div>
-                        </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table"><thead> <th>Project Manager</th><th>Project</th><th>Division</th><th>Daily Actual</th><th>Daily Budget</th><th>Daily Achv</th><th>Weekly Achv</th><th>Monthly Achv</th><th>Status</th> </thead><tbody>
+                            ${filteredManagers.flatMap(m => m.projects.map(p => {
+                                const dailyBudget = calculateDailyBudget(p.totalValue);
+                                const monthlyBudget = p.totalValue / 12;
+                                const projectRevenue = revenueEntries.filter(r => r.pm === p.pm && r.project === p.project);
+                                const dailyActual = projectRevenue.filter(r => r.date === new Date().toISOString().split('T')[0]).reduce((s, r) => s + r.amount, 0);
+                                const dailyAch = percentOf(dailyActual, dailyBudget);
+                                const weekAgo = new Date(Date.now() - 7*86400000).toISOString().split('T')[0];
+                                const weeklyActual = projectRevenue.filter(r => r.date >= weekAgo).reduce((s, r) => s + r.amount, 0);
+                                const weeklyAch = percentOf(weeklyActual, dailyBudget * 7);
+                                const currentMonth = new Date().getMonth();
+                                const monthlyActual = projectRevenue.filter(r => new Date(r.date).getMonth() === currentMonth).reduce((s, r) => s + r.amount, 0);
+                                const monthlyAch = percentOf(monthlyActual, monthlyBudget);
+                                return `<tr><td>${p.pm}<td><strong>${p.project}</strong><td>${p.division}<td>${formatCurrency(dailyActual)}<td>${formatCurrency(dailyBudget)}<td class="${dailyAch >= 80 ? 'text-success' : 'text-warning'}">${dailyAch}%<td class="${weeklyAch >= 80 ? 'text-success' : 'text-warning'}">${weeklyAch}%<td class="${monthlyAch >= 80 ? 'text-success' : 'text-warning'}">${monthlyAch}%<td><span class="badge-confirmed">Active</span></tr>`;
+                            })).join("")}
+                        </tbody> </table>
                     </div>
                 </div>
             </div>
         `;
     }
     
-    // Main render
+    function renderDailyRevenueForm() {
+        const pms = getAllPMs();
+        const divisions = [...new Set(projects.map(p => p.division))];
+        return `
+            <div class="card-modern">
+                <div class="card-header-modern"><h3><i class="fas fa-calendar-day"></i> Daily Revenue Entry</h3></div>
+                <div class="card-body-modern">
+                    <form id="revenueForm" onsubmit="event.preventDefault(); submitRevenueForm();">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div><label class="form-label">Date *</label><input type="date" id="revDate" class="form-control" value="${new Date().toISOString().split('T')[0]}" required></div>
+                            <div><label class="form-label">Cost Centre *</label><select id="revDivision" class="form-select"><option value="">Select</option>${divisions.map(d => `<option value="${d}">${d}</option>`).join("")}</select></div>
+                            <div><label class="form-label">Project Manager *</label><select id="revPM" class="form-select" onchange="updateProjectOptions()"><option value="">Select Manager</option>${pms.map(pm => `<option value="${pm}">${pm}</option>`).join("")}</select></div>
+                            <div><label class="form-label">Project *</label><select id="revProject" class="form-select" onchange="updateBudgetFromProject()"><option value="">Select Project</option></select></div>
+                            <div><label class="form-label">Daily Revenue (R) *</label><input type="number" id="revAmount" class="form-control" step="1000" required oninput="updateVariance()"></div>
+                            <div><label class="form-label">Monthly Budget (R)</label><input type="text" id="revMonthlyBudget" class="form-control" readonly></div>
+                            <div><label class="form-label">Daily Budget (R)</label><input type="text" id="revDailyBudget" class="form-control" readonly></div>
+                            <div><label class="form-label">Variance (R)</label><input type="text" id="revVariance" class="form-control" readonly></div>
+                            <div><label class="form-label">Notes</label><input type="text" id="revNotes" class="form-control" placeholder="Optional notes"></div>
+                        </div>
+                        <div style="margin-top: 24px;"><button type="submit" class="btn-primary"><i class="fas fa-save me-2"></i>Save Revenue</button></div>
+                    </form>
+                </div>
+            </div>
+            <div class="daily-stats"><div class="stat-card"><div class="stat-label">Today's Total</div><div class="stat-value" id="todayTotal">${formatCurrency(getTodayStats().actual)}</div></div><div class="stat-card"><div class="stat-label">Today's Budget</div><div class="stat-value" id="todayBudget">${formatCurrency(getTodayStats().budget)}</div></div><div class="stat-card"><div class="stat-label">Today's Variance</div><div class="stat-value ${getTodayStats().variance >= 0 ? 'text-success' : 'text-danger'}" id="todayVariance">${formatCurrency(getTodayStats().variance)}</div></div><div class="stat-card"><div class="stat-label">Achievement</div><div class="stat-value" id="todayAchievement">${getTodayStats().achievement}%</div></div></div>
+        `;
+    }
+    
+    function renderAllProjects() {
+        return `<div class="card-modern"><div class="card-header-modern"><h3><i class="fas fa-folder-tree"></i> All Projects</h3><button class="btn-outline" onclick="exportToExcel()"><i class="fas fa-download"></i> Export</button></div><div class="card-body-modern" style="overflow-x: auto;"><table class="data-table"><thead> <th>ID</th><th>Division</th><th>PM</th><th>Project</th><th>Client</th><th>Total Value</th><th>GP%</th><th>Deadline</th><th>Quality</th><th>Action</th> </thead><tbody>${projects.map(p => `<tr><td>${p.id}<td>${p.division}<td>${p.pm}<td><strong>${p.project}</strong><td>${p.client}<td>${formatCurrency(p.totalValue)}<td>${p.gpPercent}%<td>${p.deadlineScore}%<td>${p.qualityScore}%<td><span class="badge-${p.actionStatus === 'Closed' ? 'confirmed' : 'forecast'}">${p.actionStatus}</span></tr>`).join("")}</tbody> </table></div></div>`;
+    }
+    
     function render() {
         const kpiHtml = renderKPIs();
         let mainContent = "";
-        if (activeTab === "dashboard") mainContent = renderDashboard();
-        else if (activeTab === "projects") mainContent = renderProjectsTable();
-        else if (activeTab === "actions") mainContent = renderActions();
-        else if (activeTab === "analytics") mainContent = renderAnalytics();
+        if (activeTab === "dashboard") mainContent = renderCostCentrePerformance() + renderManagerRanking() + renderProjectPerformance();
+        else if (activeTab === "revenue") mainContent = renderDailyRevenueForm() + renderManagerRanking() + renderProjectPerformance();
+        else if (activeTab === "projects") mainContent = renderAllProjects();
+        else if (activeTab === "analytics") mainContent = renderManagerPerformanceCharts() + renderManagerRanking() + renderCostCentrePerformance();
         
-        const html = `
-            <div class="header">
-                <div class="logo-area"><h1><i class="fas fa-chart-network me-2"></i> ConstructFlow Enterprise</h1><p>Project Intelligence & Performance Platform</p></div>
-                <div style="margin-top: 12px;"><i class="fas fa-sync-alt me-1"></i> Last updated: ${new Date().toLocaleString()}</div>
-            </div>
-            ${kpiHtml}
-            <div class="nav-modern">
-                <button class="nav-btn ${activeTab === "dashboard" ? "active" : ""}" onclick="setTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button>
-                <button class="nav-btn ${activeTab === "projects" ? "active" : ""}" onclick="setTab('projects')"><i class="fas fa-table-list"></i> All Projects</button>
-                <button class="nav-btn ${activeTab === "actions" ? "active" : ""}" onclick="setTab('actions')"><i class="fas fa-bell"></i> Action Tracker</button>
-                <button class="nav-btn ${activeTab === "analytics" ? "active" : ""}" onclick="setTab('analytics')"><i class="fas fa-chart-line"></i> Analytics</button>
-                <button class="nav-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export</button>
-            </div>
-            ${mainContent}
-        `;
+        const html = `<div class="header"><div class="logo-area"><h1><i class="fas fa-chart-network me-2"></i> OnPoint Group</h1><p>Revenue Intelligence & Managers Performance Dashboard</p><div><i class="fas fa-sync-alt me-1"></i> Last updated: ${new Date().toLocaleString()}</div></div></div>${kpiHtml}<div class="nav-modern"><button class="nav-btn ${activeTab === "dashboard" ? "active" : ""}" onclick="setTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button><button class="nav-btn ${activeTab === "revenue" ? "active" : ""}" onclick="setTab('revenue')"><i class="fas fa-calendar-day"></i> Daily Revenue</button><button class="nav-btn ${activeTab === "projects" ? "active" : ""}" onclick="setTab('projects')"><i class="fas fa-table-list"></i> Projects</button><button class="nav-btn ${activeTab === "analytics" ? "active" : ""}" onclick="setTab('analytics')"><i class="fas fa-chart-line"></i> Analytics</button><button class="nav-btn" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export</button></div>${mainContent}`;
         document.getElementById("appRoot").innerHTML = html;
-        
-        // Re-attach chart if analytics tab
-        if (activeTab === "analytics") {
-            setTimeout(() => {
-                const divisions = getDivisionSummary();
-                const chartCategories = divisions.map(d => d.name);
-                const chartRevenue = divisions.map(d => d.revenue);
-                const chartTarget = divisions.map(d => d.target);
-                if (window.revenueChart) {
-                    window.revenueChart.updateOptions({ xaxis: { categories: chartCategories } });
-                    window.revenueChart.updateSeries([{ name: 'Revenue', data: chartRevenue }, { name: 'Target', data: chartTarget }]);
-                }
-            }, 100);
-        }
     }
     
+    // Global functions
     window.setTab = (tab) => { activeTab = tab; render(); };
-    window.changePeriod = (period) => { selectedPeriod = period; render(); };
-    window.exportToExcel = exportToExcel;
+    window.changePerfPeriod = (period) => { selectedPeriod = period; render(); };
+    window.updateCCPerformance = (period) => { render(); };
+    window.filterByManager = (pm) => { selectedManagerFilter = pm; render(); };
+    window.resetManagerFilter = () => { selectedManagerFilter = "all"; render(); };
+    window.updateProjectOptions = () => {
+        const pm = document.getElementById("revPM")?.value;
+        const projectSelect = document.getElementById("revProject");
+        if (projectSelect && pm) {
+            const pmProjects = projects.filter(p => p.pm === pm);
+            projectSelect.innerHTML = '<option value="">Select Project</option>' + pmProjects.map(p => `<option value="${p.project}" data-total="${p.totalValue}">${p.project}</option>`).join("");
+        }
+    };
+    window.updateBudgetFromProject = () => {
+        const pm = document.getElementById("revPM")?.value;
+        const projectName = document.getElementById("revProject")?.value;
+        const projectObj = getProjectByPM(pm, projectName);
+        const monthlyBudgetField = document.getElementById("revMonthlyBudget");
+        const dailyBudgetField = document.getElementById("revDailyBudget");
+        if (projectObj && monthlyBudgetField && dailyBudgetField) {
+            const monthlyBudget = projectObj.totalValue / 12;
+            const dailyBudget = calculateDailyBudget(projectObj.totalValue);
+            monthlyBudgetField.value = formatCurrency(monthlyBudget);
+            dailyBudgetField.value = formatCurrency(dailyBudget);
+        } else {
+            if (monthlyBudgetField) monthlyBudgetField.value = "";
+            if (dailyBudgetField) dailyBudgetField.value = "";
+        }
+        window.updateVariance();
+    };
+    window.updateVariance = () => {
+        const amount = parseFloat(document.getElementById("revAmount")?.value || 0);
+        const budgetText = document.getElementById("revDailyBudget")?.value || "R 0";
+        const budget = parseFloat(budgetText.replace(/[^0-9.-]/g, '')) || 0;
+        const variance = amount - budget;
+        const varianceEl = document.getElementById("revVariance");
+        if (varianceEl) { varianceEl.value = formatCurrency(variance); varianceEl.style.color = variance >= 0 ? "#10b981" : "#ef4444"; }
+    };
+    window.submitRevenueForm = () => {
+        const date = document.getElementById("revDate").value;
+        const division = document.getElementById("revDivision").value;
+        const pm = document.getElementById("revPM").value;
+        const project = document.getElementById("revProject").value;
+        const amount = parseFloat(document.getElementById("revAmount").value);
+        const notes = document.getElementById("revNotes").value;
+        if (!date || !division || !pm || !project || !amount) { showToast("Please fill all required fields", "error"); return; }
+        const projectObj = getProjectByPM(pm, project);
+        const dailyBudget = projectObj ? calculateDailyBudget(projectObj.totalValue) : 0;
+        submitDailyRevenue({ date, division, pm, project, amount, dailyBudget, monthlyBudget: projectObj ? projectObj.totalValue / 12 : 0, variance: amount - dailyBudget, notes });
+    };
+    window.exportToExcel = () => {
+        const wsData = [["Date", "Division", "PM", "Project", "Amount", "Daily Budget", "Monthly Budget", "Variance", "Notes"]];
+        revenueEntries.forEach(r => wsData.push([r.date, r.division, r.pm, r.project, r.amount, r.dailyBudget, r.monthlyBudget || 0, r.variance, r.notes || ""]));
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Revenue");
+        XLSX.writeFile(wb, `onpoint_revenue_report_${new Date().toISOString().slice(0,10)}.xlsx`);
+        showToast("Export complete", "success");
+    };
     
-    // Initial render
-    render();
+    function showToast(msg, type) { const toast = document.createElement("div"); toast.className = "status-toast"; toast.innerHTML = `<i class="fas fa-${type === "success" ? "check-circle" : "info-circle"} me-2"></i>${msg}`; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+    function showLoading(msg) { const overlay = document.getElementById("loadingOverlay"); if (overlay) { document.getElementById("loadingMsg").innerText = msg; overlay.style.display = "flex"; } }
+    function hideLoading() { const overlay = document.getElementById("loadingOverlay"); if (overlay) overlay.style.display = "none"; }
+    
+    loadFromSheets().then(() => render());
 </script>
 </body>
 </html>
