@@ -1,116 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Onpoint Group Live Dashboard</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<style>
-body { background:#eef2ff; padding:20px; font-family:Arial; }
-.card { border-radius:15px; margin-bottom:20px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onpoint Fuel Recon Pro · Auto-Match & Variance Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { background: #f0f5fa; font-family: 'Segoe UI', system-ui; }
+        .glass-card { background: white; border-radius: 1.5rem; padding: 1.5rem; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .btn-onpoint { background: #0b2b4a; color: white; border-radius: 40px; padding: 0.5rem 1.5rem; border: none; transition: all 0.2s; }
+        .btn-onpoint:hover { background: #1f4a6e; color: white; }
+        .badge-approved { background: #dff0d8; color: #2e6b2e; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.8rem; }
+        .badge-missing { background: #fef1d6; color: #a66907; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.8rem; }
+        .badge-mismatch { background: #fadddd; color: #a33a3a; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.8rem; }
+        .badge-matched { background: #d4edda; color: #155724; }
+        .summary-card { background: #f8f9fa; border-radius: 1rem; padding: 1rem; height: 100%; border-left: 4px solid #0b2b4a; }
+        .summary-value { font-size: 1.8rem; font-weight: bold; color: #0b2b4a; }
+        .table-responsive { max-height: 400px; overflow-y: auto; }
+        .match-suggestion-row:hover { background-color: #fff3cd; cursor: pointer; }
+    </style>
 </head>
 <body>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fas fa-gas-pump fa-3x" style="color:#0b2b4a;"></i>
+            <h2 class="fw-bold" style="color:#0b2b4a;">Onpoint Fuel Recon Pro</h2>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary rounded-pill me-2" id="exportExcelBtn"><i class="fas fa-file-excel me-2"></i>Export Excel</button>
+            <button class="btn btn-outline-secondary rounded-pill" id="exportPdfBtn"><i class="far fa-file-pdf me-2"></i>Export PDF Report</button>
+        </div>
+    </div>
 
-<div class="container">
-<h2>ONPOINT GROUP - LIVE DASHBOARD</h2>
+    <!-- Upload Section -->
+    <div class="glass-card">
+        <h5><i class="fas fa-upload me-2"></i>1. Upload Data Sources</h5>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Approved Expenses (expense_details.xlsx)</label>
+                <input type="file" id="erFile" class="form-control" accept=".xlsx, .xls, .csv">
+                <div class="form-text">Expects columns: report_number, bcy_total, project_name, description, expense_date</div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Bank Statement (Excel)</label>
+                <input type="file" id="bankFile" class="form-control" accept=".xlsx, .xls, .csv">
+                <div class="form-text">Expects columns: Value Date, Description, Amount (Debit), Cost Centre</div>
+            </div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-onpoint" id="matchBtn" disabled><i class="fas fa-link me-2"></i>Run Auto-Reconciliation</button>
+            <span id="uploadStatus" class="align-self-center text-muted small">Waiting for files...</span>
+        </div>
+    </div>
 
-<div class="card p-3">
-<h5>Today's Stats</h5>
-<div>Total: <span id="todayTotal">R 0</span></div>
-<div>Budget: <span id="todayBudget">R 0</span></div>
-<div>Achievement: <span id="todayAchievement">0%</span></div>
-</div>
+    <!-- Summary KPIs -->
+    <div class="row g-3 mb-4" id="kpiRow">
+        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">Total ERs</span><div class="summary-value" id="totalErs">0</div></div></div>
+        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">Total Bank Debits</span><div class="summary-value" id="totalBank">0</div></div></div>
+        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">Matched Transactions</span><div class="summary-value" id="matchedCount">0</div></div></div>
+        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">Unmatched Bank Debits</span><div class="summary-value" id="unmatchedCount">0</div></div></div>
+    </div>
 
-<div class="card p-3">
-<h5>Manager Ranking</h5>
-<table class="table" id="managerRankingTable"></table>
-</div>
-
+    <!-- Reconciliation Results Tabs -->
+    <div class="glass-card">
+        <ul class="nav nav-tabs" id="reconTab" role="tablist">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#unmatched">Unmatched Bank Debits <span id="unmatchedBadge" class="badge bg-secondary ms-1">0</span></a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#suggested">Suggested Matches <span id="suggestedBadge" class="badge bg-secondary ms-1">0</span></a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#confirmed">Confirmed Matches <span id="confirmedBadge" class="badge bg-secondary ms-1">0</span></a></li>
+        </ul>
+        <div class="tab-content mt-3">
+            <div class="tab-pane active" id="unmatched">
+                <div class="table-responsive"><table class="table table-sm table-hover" id="unmatchedTable"><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Cost Centre</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+            </div>
+            <div class="tab-pane" id="suggested">
+                <div class="table-responsive"><table class="table table-sm" id="suggestedTable"><thead><tr><th>Bank Date</th><th>Bank Desc</th><th>Bank Amount</th><th>Suggested ER</th><th>ER Amount</th><th>Variance</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+            </div>
+            <div class="tab-pane" id="confirmed">
+                <div class="table-responsive"><table class="table table-sm" id="confirmedTable"><thead><tr><th>Bank Date</th><th>Bank Desc</th><th>Bank Amount</th><th>ER No.</th><th>ER Amount</th><th>Variance</th><th>Project</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmjcENlkMDkvw8rRGhWU-9OsJqmjim8ndUyq6gNhDI9BfKcbFZKL96Rz83bkzvpuXQ/exec";
+    // Data stores
+    let ers = [];              // { erNo, amount, project, description, date }
+    let bankTxns = [];        // { date, description, amount, costCentre, originalIndex }
+    let suggestedMatches = []; // { bankIndex, erIndex, score, variance }
+    let confirmedMatches = []; // { bankIndex, erIndex }
 
-let projects = [];
-let dailyRevenue = [];
-
-function formatCurrency(v){ return 'R ' + (Math.round(v||0)).toLocaleString(); }
-
-async function loadAllData(){
-    try{
-        let res = await fetch(SCRIPT_URL + "?action=getAllData");
-        let data = await res.json();
-        projects = data.projects || [];
-        dailyRevenue = data.revenue || [];
-        refreshUI();
-    }catch(e){
-        alert("Error loading data");
+    // Helper: parse Excel to JSON
+    function readExcel(file, expectedCols) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+                resolve(json);
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
     }
-}
 
-function refreshUI(){
-    let today = new Date().toISOString().slice(0,10);
+    // Parse ERs (expense_details format)
+    function parseErs(json) {
+        return json.map(row => ({
+            erNo: row['report_number'] || row['ER No.'] || '',
+            amount: parseFloat(row['bcy_total'] || row['Amount'] || 0),
+            project: row['project_name'] || '',
+            description: row['description'] || '',
+            date: new Date(row['expense_date'] || row['Date'])
+        })).filter(e => e.erNo && !isNaN(e.amount) && e.amount > 0);
+    }
 
-    let total = dailyRevenue.filter(r=>r.date===today)
-        .reduce((s,r)=>s+Number(r.amount),0);
+    // Parse Bank (expected: Value Date, Description, Amount (Debit), Cost Centre)
+    function parseBank(json) {
+        return json.map((row, idx) => {
+            let amount = 0;
+            if (row['Amount (Debit)']) amount = Math.abs(parseFloat(row['Amount (Debit)']));
+            else if (row['Amount']) amount = Math.abs(parseFloat(row['Amount']));
+            return {
+                date: new Date(row['Value Date']),
+                description: row['Description'] || '',
+                amount: amount,
+                costCentre: row['Cost Centre'] || '',
+                originalIndex: idx
+            };
+        }).filter(t => !isNaN(t.amount) && t.amount > 0);
+    }
 
-    let budget = 0;
-    projects.forEach(p=>{
-        let m = new Date().getMonth();
-        if(p.months && p.months[m]){
-            budget += p.months[m]/22;
+    // Matching algorithm
+    function runMatching() {
+        if (!ers.length || !bankTxns.length) return;
+
+        suggestedMatches = [];
+        confirmedMatches = []; // reset confirmed
+        const matchedBankIndices = new Set();
+
+        // For each bank transaction, find best matching ER
+        bankTxns.forEach((bank, bankIdx) => {
+            let bestMatch = null;
+            let bestScore = 0;
+
+            ers.forEach((er, erIdx) => {
+                // Date window: +/- 7 days
+                const dateDiff = Math.abs(bank.date - er.date) / (1000 * 3600 * 24);
+                if (dateDiff > 7) return;
+
+                // Amount tolerance: +/- 5%
+                const amountDiff = Math.abs(bank.amount - er.amount);
+                const amountTolerance = er.amount * 0.05;
+                if (amountDiff > amountTolerance) return;
+
+                // Keyword match score (simple)
+                let keywordScore = 0;
+                const searchText = (bank.description + " " + (bank.costCentre || "")).toLowerCase();
+                const erText = (er.project + " " + er.description).toLowerCase();
+                const words = erText.split(/\W+/).filter(w => w.length > 3);
+                words.forEach(word => {
+                    if (searchText.includes(word)) keywordScore += 10;
+                });
+                if (er.project.toLowerCase().split(/\W+/).some(p => searchText.includes(p))) keywordScore += 15;
+
+                const totalScore = (10 - dateDiff) + (100 - (amountDiff / er.amount * 100)) + keywordScore;
+                if (totalScore > bestScore) {
+                    bestScore = totalScore;
+                    bestMatch = { erIdx, variance: bank.amount - er.amount, score: totalScore };
+                }
+            });
+
+            if (bestMatch && bestScore > 30) { // threshold
+                suggestedMatches.push({
+                    bankIndex: bankIdx,
+                    erIndex: bestMatch.erIdx,
+                    variance: bestMatch.variance,
+                    score: bestMatch.score
+                });
+            }
+        });
+
+        // Remove duplicate ER suggestions (keep highest score per ER)
+        const uniqueByEr = new Map();
+        suggestedMatches = suggestedMatches.filter(s => {
+            if (!uniqueByEr.has(s.erIndex) || uniqueByEr.get(s.erIndex).score < s.score) {
+                uniqueByEr.set(s.erIndex, s);
+                return true;
+            }
+            return false;
+        });
+
+        renderAllTables();
+    }
+
+    function confirmMatch(bankIdx, erIdx) {
+        confirmedMatches.push({ bankIndex: bankIdx, erIndex: erIdx });
+        // remove from suggested
+        suggestedMatches = suggestedMatches.filter(s => !(s.bankIndex === bankIdx && s.erIndex === erIdx));
+        renderAllTables();
+    }
+
+    function renderAllTables() {
+        const matchedBankSet = new Set(confirmedMatches.map(m => m.bankIndex));
+        
+        // Unmatched bank debits
+        const unmatched = bankTxns.filter((_, idx) => !matchedBankSet.has(idx) && !suggestedMatches.some(s => s.bankIndex === idx));
+        document.getElementById('unmatchedCount').innerText = unmatched.length;
+        document.getElementById('unmatchedBadge').innerText = unmatched.length;
+        const unmatchedHtml = unmatched.map(b => `<tr>
+            <td>${b.date.toLocaleDateString()}</td><td>${b.description}</td><td>R${b.amount.toFixed(2)}</td><td>${b.costCentre || '-'}</td>
+            <td><button class="btn btn-sm btn-outline-primary manual-match-btn" data-bank-idx="${b.originalIndex}" data-bank-desc="${b.description}" data-bank-amt="${b.amount}">Link to ER</button></td>
+        </tr>`).join('');
+        document.querySelector('#unmatchedTable tbody').innerHTML = unmatchedHtml || '<tr><td colspan="5" class="text-center">No unmatched transactions</td></tr>';
+
+        // Suggested matches
+        document.getElementById('suggestedBadge').innerText = suggestedMatches.length;
+        const suggestedHtml = suggestedMatches.map(s => {
+            const bank = bankTxns[s.bankIndex];
+            const er = ers[s.erIndex];
+            return `<tr class="match-suggestion-row">
+                <td>${bank.date.toLocaleDateString()}</td><td>${bank.description}</td><td>R${bank.amount.toFixed(2)}</td>
+                <td>${er.erNo}</td><td>R${er.amount.toFixed(2)}</td>
+                <td class="${s.variance < 0 ? 'text-danger' : 'text-success'}">R${s.variance.toFixed(2)}</td>
+                <td><button class="btn btn-sm btn-success confirm-match" data-bank="${s.bankIndex}" data-er="${s.erIndex}">Confirm</button></td>
+            </tr>`;
+        }).join('');
+        document.querySelector('#suggestedTable tbody').innerHTML = suggestedHtml || '<tr><td colspan="7" class="text-center">No suggestions</td></tr>';
+
+        // Confirmed matches
+        document.getElementById('matchedCount').innerText = confirmedMatches.length;
+        document.getElementById('confirmedBadge').innerText = confirmedMatches.length;
+        const confirmedHtml = confirmedMatches.map(m => {
+            const bank = bankTxns[m.bankIndex];
+            const er = ers[m.erIndex];
+            const variance = bank.amount - er.amount;
+            return `<tr>
+                <td>${bank.date.toLocaleDateString()}</td><td>${bank.description}</td><td>R${bank.amount.toFixed(2)}</td>
+                <td>${er.erNo}</td><td>R${er.amount.toFixed(2)}</td>
+                <td class="${variance < 0 ? 'text-danger' : 'text-success'}">R${variance.toFixed(2)}</td>
+                <td>${er.project}</td>
+            </tr>`;
+        }).join('');
+        document.querySelector('#confirmedTable tbody').innerHTML = confirmedHtml || '<tr><td colspan="7" class="text-center">No confirmed matches yet</td></tr>';
+
+        // Update KPIs
+        document.getElementById('totalErs').innerText = ers.length;
+        document.getElementById('totalBank').innerText = bankTxns.length;
+        document.getElementById('unmatchedCount').innerText = unmatched.length;
+        document.getElementById('matchedCount').innerText = confirmedMatches.length;
+    }
+
+    // Manual match handler (simple prompt)
+    function showManualMatchModal(bankIdx, bankDesc, bankAmount) {
+        const erOptions = ers.map((er, idx) => `${idx}: ${er.erNo} - R${er.amount} - ${er.project}`).join('\n');
+        const selected = prompt(`Select ER for:\n${bankDesc}\nR${bankAmount}\n\nEnter ER index from list:\n${erOptions}`);
+        if (selected !== null && !isNaN(parseInt(selected))) {
+            const erIdx = parseInt(selected);
+            if (erIdx >= 0 && erIdx < ers.length) {
+                confirmMatch(bankIdx, erIdx);
+            } else alert('Invalid index');
+        }
+    }
+
+    // Event delegation for dynamic buttons
+    document.body.addEventListener('click', (e) => {
+        if (e.target.classList.contains('confirm-match')) {
+            const bankIdx = parseInt(e.target.dataset.bank);
+            const erIdx = parseInt(e.target.dataset.er);
+            confirmMatch(bankIdx, erIdx);
+        }
+        if (e.target.classList.contains('manual-match-btn')) {
+            const bankIdx = parseInt(e.target.dataset.bankIdx);
+            const bankDesc = e.target.dataset.bankDesc;
+            const bankAmt = parseFloat(e.target.dataset.bankAmt);
+            const realBankIdx = bankTxns.findIndex(t => t.originalIndex === bankIdx);
+            if (realBankIdx !== -1) showManualMatchModal(realBankIdx, bankDesc, bankAmt);
         }
     });
 
-    let ach = budget ? (total/budget*100):0;
-
-    document.getElementById("todayTotal").innerText = formatCurrency(total);
-    document.getElementById("todayBudget").innerText = formatCurrency(budget);
-    document.getElementById("todayAchievement").innerText = ach.toFixed(1)+"%";
-
-    buildRanking(today);
-}
-
-function buildRanking(today){
-    let map = {};
-
-    projects.forEach(p=>{
-        if(!map[p.manager]) map[p.manager]={budget:0,actual:0};
-
-        let m = new Date().getMonth();
-        map[p.manager].budget += (p.months?.[m]||0)/22;
+    // File upload handlers
+    let erLoaded = false, bankLoaded = false;
+    document.getElementById('erFile').addEventListener('change', async (e) => {
+        if (!e.target.files[0]) return;
+        try {
+            const json = await readExcel(e.target.files[0]);
+            ers = parseErs(json);
+            erLoaded = true;
+            document.getElementById('uploadStatus').innerHTML = '<i class="fas fa-check-circle text-success"></i> ERs loaded: ' + ers.length;
+            document.getElementById('matchBtn').disabled = !(erLoaded && bankLoaded);
+        } catch(err) { console.error(err); alert('Error parsing ER file'); }
+    });
+    document.getElementById('bankFile').addEventListener('change', async (e) => {
+        if (!e.target.files[0]) return;
+        try {
+            const json = await readExcel(e.target.files[0]);
+            bankTxns = parseBank(json);
+            bankLoaded = true;
+            document.getElementById('uploadStatus').innerHTML = '<i class="fas fa-check-circle text-success"></i> Bank loaded: ' + bankTxns.length;
+            document.getElementById('matchBtn').disabled = !(erLoaded && bankLoaded);
+        } catch(err) { console.error(err); alert('Error parsing bank file'); }
     });
 
-    dailyRevenue.filter(r=>r.date===today)
-    .forEach(r=>{
-        if(map[r.manager]){
-            map[r.manager].actual += Number(r.amount);
-        }
+    document.getElementById('matchBtn').addEventListener('click', () => {
+        runMatching();
     });
 
-    let html = "<tr><th>Manager</th><th>Budget</th><th>Actual</th><th>Achievement</th></tr>";
-
-    Object.keys(map).forEach(pm=>{
-        let b = map[pm].budget;
-        let a = map[pm].actual;
-        let ach = b ? (a/b*100):0;
-
-        html += `<tr>
-            <td>${pm}</td>
-            <td>${formatCurrency(b)}</td>
-            <td>${formatCurrency(a)}</td>
-            <td>${ach.toFixed(1)}%</td>
-        </tr>`;
+    // Export Excel (full reconciliation)
+    document.getElementById('exportExcelBtn').addEventListener('click', () => {
+        const matchedData = confirmedMatches.map(m => ({
+            'Bank Date': bankTxns[m.bankIndex].date,
+            'Bank Description': bankTxns[m.bankIndex].description,
+            'Bank Amount': bankTxns[m.bankIndex].amount,
+            'ER No.': ers[m.erIndex].erNo,
+            'ER Amount': ers[m.erIndex].amount,
+            'Variance': bankTxns[m.bankIndex].amount - ers[m.erIndex].amount,
+            'Project': ers[m.erIndex].project
+        }));
+        const unmatchedData = bankTxns.filter((_, idx) => !confirmedMatches.some(m => m.bankIndex === idx)).map(b => ({
+            'Date': b.date,
+            'Description': b.description,
+            'Amount': b.amount,
+            'Cost Centre': b.costCentre,
+            'Status': 'Unmatched / Unauthorized'
+        }));
+        const wsMatched = XLSX.utils.json_to_sheet(matchedData);
+        const wsUnmatched = XLSX.utils.json_to_sheet(unmatchedData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, wsMatched, 'Confirmed Matches');
+        XLSX.utils.book_append_sheet(wb, wsUnmatched, 'Unmatched Transactions');
+        XLSX.writeFile(wb, `Fuel_Recon_${new Date().toISOString().slice(0,10)}.xlsx`);
     });
 
-    document.getElementById("managerRankingTable").innerHTML = html;
-}
-
-loadAllData();
-setInterval(loadAllData,30000);
+    // PDF Export
+    document.getElementById('exportPdfBtn').addEventListener('click', () => {
+        const matchedHtml = document.getElementById('confirmedTable').innerHTML;
+        const unmatchedHtml = document.getElementById('unmatchedTable').innerHTML;
+        const totalVar = confirmedMatches.reduce((sum, m) => sum + (bankTxns[m.bankIndex].amount - ers[m.erIndex].amount), 0);
+        const content = `
+            <div style="padding:20px">
+                <h2>Onpoint Fuel Reconciliation Report</h2>
+                <p>Generated: ${new Date().toLocaleString()}</p>
+                <h4>Summary</h4>
+                <p>Matched Transactions: ${confirmedMatches.length} | Total Variance: R${totalVar.toFixed(2)}</p>
+                <hr/>
+                <h4>Confirmed Matches</h4>
+                <table border="1" cellpadding="5" style="width:100%; border-collapse:collapse">${matchedHtml}</table>
+                <h4 class="mt-4">Unmatched Bank Debits (Unauthorized)</h4>
+                <table border="1" cellpadding="5" style="width:100%; border-collapse:collapse">${unmatchedHtml}</table>
+            </div>
+        `;
+        const element = document.createElement('div');
+        element.innerHTML = content;
+        document.body.appendChild(element);
+        html2pdf().from(element).set({ filename: `Fuel_Recon_Report_${new Date().toISOString().slice(0,10)}.pdf` }).save().then(() => document.body.removeChild(element));
+    });
 </script>
-
 </body>
 </html>
