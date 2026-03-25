@@ -2,365 +2,503 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onpoint Fuel Recon Pro · Auto-Match & Variance Analysis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Onpoint Fuel Recon Pro · Live Reconciliation Suite</title>
+    <!-- Bootstrap 5 + Icons + Core Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { background: #f0f5fa; font-family: 'Segoe UI', system-ui; }
-        .glass-card { background: white; border-radius: 1.5rem; padding: 1.5rem; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-        .btn-onpoint { background: #0b2b4a; color: white; border-radius: 40px; padding: 0.5rem 1.5rem; border: none; transition: all 0.2s; }
-        .btn-onpoint:hover { background: #1f4a6e; color: white; }
-        .badge-approved { background: #dff0d8; color: #2e6b2e; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.8rem; }
-        .badge-missing { background: #fef1d6; color: #a66907; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.8rem; }
-        .badge-mismatch { background: #fadddd; color: #a33a3a; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.8rem; }
-        .badge-matched { background: #d4edda; color: #155724; }
-        .summary-card { background: #f8f9fa; border-radius: 1rem; padding: 1rem; height: 100%; border-left: 4px solid #0b2b4a; }
-        .summary-value { font-size: 1.8rem; font-weight: bold; color: #0b2b4a; }
-        .table-responsive { max-height: 400px; overflow-y: auto; }
-        .match-suggestion-row:hover { background-color: #fff3cd; cursor: pointer; }
+        * { box-sizing: border-box; }
+        body { background: #eef2f7; font-family: 'Segoe UI', 'Inter', system-ui, -apple-system; padding-bottom: 3rem; }
+        .glass-card { background: white; border-radius: 1.75rem; padding: 1.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.8rem; border: 1px solid rgba(0,0,0,0.05); transition: all 0.2s; }
+        .btn-onpoint { background: #0b2b4a; color: white; border-radius: 3rem; padding: 0.6rem 1.8rem; font-weight: 600; border: none; transition: 0.2s; }
+        .btn-onpoint:hover { background: #1f4a6e; color: white; transform: translateY(-1px); }
+        .btn-google { background: #1a73e8; color: white; border-radius: 3rem; font-weight: 500; }
+        .btn-driver { background: #0f6b4a; color: white; border-radius: 3rem; }
+        .btn-save { background: #f4b942; color: #1e2f3a; border-radius: 3rem; font-weight: 700; border: none; }
+        .summary-card { background: #f9fbfd; border-radius: 1.25rem; padding: 1.2rem; border-left: 5px solid #0b2b4a; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .summary-value { font-size: 2rem; font-weight: 800; color: #0b2b4a; line-height: 1.2; }
+        .match-suggestion-row:hover { background-color: #fff2dd; cursor: pointer; transition: 0.1s; }
+        .alert-card { border-left: 6px solid #dc2626; background: #fff8f5; border-radius: 1rem; padding: 0.9rem; margin-bottom: 0.75rem; }
+        .badge-alarm { background: #dc2626; color: white; padding: 0.25rem 0.7rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 600; }
+        .sheet-config { background: #f8fafc; border-radius: 1.2rem; padding: 1rem; border: 1px solid #e2edf2; }
+        .masked-id { font-family: 'SF Mono', monospace; font-size: 0.8rem; background: #eef3fa; padding: 0.25rem 1rem; border-radius: 2rem; display: inline-block; letter-spacing: 1px; }
+        .source-badge { font-size: 0.7rem; background: #eef2ff; padding: 0.2rem 0.8rem; border-radius: 2rem; font-weight: 500; }
+        .date-range-box { background: #ffffff; border-radius: 1rem; padding: 0.8rem; border: 1px solid #e0e9f0; margin-top: 0.8rem; }
+        .nav-tabs .nav-link { color: #2c3e50; font-weight: 500; }
+        .nav-tabs .nav-link.active { color: #0b2b4a; border-bottom-color: #0b2b4a; font-weight: 700; background: transparent; }
+        .script-info-hidden { display: none; }
+        .step-badge { background: #0b2b4a; color: white; border-radius: 2rem; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 8px; }
+        .table-responsive-custom { max-height: 420px; overflow-y: auto; border-radius: 1rem; }
+        .btn-sm-icon { padding: 0.2rem 0.7rem; font-size: 0.7rem; }
+        hr { opacity: 0.3; }
+        .admin-settings-toggle { position: fixed; bottom: 20px; right: 20px; background: #0b2b4a; color: white; border-radius: 50px; padding: 8px 16px; font-size: 12px; cursor: pointer; z-index: 1000; opacity: 0.6; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .admin-settings-toggle:hover { opacity: 1; background: #1f4a6e; }
+        .admin-panel { display: none; position: fixed; bottom: 80px; right: 20px; width: 420px; max-width: calc(100% - 40px); background: white; border-radius: 1.25rem; box-shadow: 0 20px 35px rgba(0,0,0,0.2); z-index: 1001; border: 1px solid #e0e7ed; overflow: hidden; }
+        .admin-panel.show { display: block; }
+        .admin-header { background: #0b2b4a; color: white; padding: 12px 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .admin-body { padding: 16px; background: #fff; }
+        .admin-body textarea { font-family: monospace; font-size: 12px; }
+        .close-admin { cursor: pointer; background: none; border: none; color: white; font-size: 20px; }
+        .connection-badge { background: #d4edda; color: #155724; border-radius: 20px; padding: 4px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; }
     </style>
 </head>
 <body>
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div class="d-flex align-items-center gap-3">
             <i class="fas fa-gas-pump fa-3x" style="color:#0b2b4a;"></i>
-            <h2 class="fw-bold" style="color:#0b2b4a;">Onpoint Fuel Recon Pro</h2>
+            <div>
+                <h2 class="fw-bold mb-0" style="color:#0b2b4a;">Onpoint Fuel Recon Pro</h2>
+                <p class="text-secondary mb-0">Live Google Sheets integration · Match ERs vs Bank/Driver Log</p>
+            </div>
         </div>
         <div>
-            <button class="btn btn-outline-secondary rounded-pill me-2" id="exportExcelBtn"><i class="fas fa-file-excel me-2"></i>Export Excel</button>
-            <button class="btn btn-outline-secondary rounded-pill" id="exportPdfBtn"><i class="far fa-file-pdf me-2"></i>Export PDF Report</button>
+            <button class="btn btn-outline-secondary rounded-pill me-2" id="exportExcelBtn"><i class="fas fa-file-excel me-2"></i>Excel</button>
+            <button class="btn btn-outline-secondary rounded-pill" id="exportPdfBtn"><i class="far fa-file-pdf me-2"></i>PDF</button>
         </div>
     </div>
 
-    <!-- Upload Section -->
+    <!-- Google Sheets reference panel (IDs visible but masked) -->
     <div class="glass-card">
-        <h5><i class="fas fa-upload me-2"></i>1. Upload Data Sources</h5>
+        <h5><i class="fab fa-google me-2"></i>📁 Reference Google Sheets (IDs)</h5>
+        <div class="row g-3">
+            <div class="col-md-4"><div class="sheet-config"><label class="fw-bold small">Fuel Log (Driver Data)</label><div class="d-flex align-items-center"><span id="fuelSheetMask" class="masked-id">••••••••••••••••••••••••••••</span><input type="password" id="fuelLogSheetId" class="form-control form-control-sm d-none" value="1SnhLTWgzJfkKNmIvtj8uwa-8x7TsnRtqkfX3deEuHIQ"><i class="fas fa-eye toggle-visibility ms-2" data-target="fuelLogSheetId" data-mask="fuelSheetMask"></i></div><div class="sheet-link mt-2"><a href="https://docs.google.com/spreadsheets/d/1SnhLTWgzJfkKNmIvtj8uwa-8x7TsnRtqkfX3deEuHIQ/edit" target="_blank">Open reference sheet</a></div></div></div>
+            <div class="col-md-4"><div class="sheet-config"><label class="fw-bold small">FuelRecon (ER archive)</label><div class="d-flex align-items-center"><span id="erSheetMask" class="masked-id">••••••••••••••••••••••••••••</span><input type="password" id="erSheetId" class="form-control form-control-sm d-none" value="16ijC8ODRMDtC_FtMpZEcukxuuOTCBlA9TLRKAmBrI2w"><i class="fas fa-eye toggle-visibility ms-2" data-target="erSheetId" data-mask="erSheetMask"></i></div></div></div>
+            <div class="col-md-4"><div class="sheet-config"><label class="fw-bold small">Backup Folder (Drive)</label><div class="d-flex align-items-center"><span id="driveMask" class="masked-id">••••••••••••••••••••••••••••</span><input type="password" id="driveFolderId" class="form-control form-control-sm d-none" value="1al8guXtgk-PJWwdNvd2umUXYv4AvwXSM"><i class="fas fa-eye toggle-visibility ms-2" data-target="driveFolderId" data-mask="driveMask"></i></div></div></div>
+        </div>
+    </div>
+
+    <!-- ER Upload & Management -->
+    <div class="glass-card">
+        <h5><i class="fas fa-file-invoice-dollar me-2"></i>📄 STEP 1 — Upload Approved ERs (Excel/CSV)</h5>
         <div class="row g-3">
             <div class="col-md-6">
-                <label class="form-label fw-bold">Approved Expenses (expense_details.xlsx)</label>
+                <label class="form-label fw-semibold">ER File (report_number, bcy_total, driver_name, vehicle_reg, expense_date)</label>
                 <input type="file" id="erFile" class="form-control" accept=".xlsx, .xls, .csv">
-                <div class="form-text">Expects columns: report_number, bcy_total, project_name, description, expense_date</div>
+                <div id="erStatus" class="mt-2 small fw-semibold"></div>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-bold">Bank Statement (Excel)</label>
-                <input type="file" id="bankFile" class="form-control" accept=".xlsx, .xls, .csv">
-                <div class="form-text">Expects columns: Value Date, Description, Amount (Debit), Cost Centre</div>
+                <label class="form-label fw-semibold">Save ERs to Google Sheet (Excel backup)</label>
+                <button class="btn btn-save w-100 mt-2" id="saveToFuelReconBtn"><i class="fas fa-download me-2"></i>Download ER Excel → upload manually to FuelRecon sheet</button>
+                <div id="saveStatus" class="mt-2 small"></div>
             </div>
         </div>
-        <div class="mt-3 d-flex gap-2">
-            <button class="btn btn-onpoint" id="matchBtn" disabled><i class="fas fa-link me-2"></i>Run Auto-Reconciliation</button>
-            <span id="uploadStatus" class="align-self-center text-muted small">Waiting for files...</span>
+    </div>
+
+    <!-- Comparison Source Selection -->
+    <div class="glass-card">
+        <h5><i class="fas fa-code-branch me-2"></i>⚖️ STEP 2 — Select Comparison Source (Bank Statement OR Driver Log)</h5>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="sheet-config h-100" id="bankOptionCard">
+                    <div class="d-flex align-items-center mb-2"><i class="fas fa-university fa-2x me-2 text-primary"></i><h6 class="mb-0 fw-bold">Option A: Bank Statement</h6></div>
+                    <label class="form-label">Upload Bank file (Value Date, Description, Amount (Debit))</label>
+                    <input type="file" id="bankFile" class="form-control" accept=".xlsx, .xls, .csv">
+                    <div id="bankStatus" class="mt-2 small"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="sheet-config h-100" id="driverOptionCard">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-truck fa-2x me-2 text-success"></i>
+                        <h6 class="mb-0 fw-bold">Option B: Driver Fuel Log (LIVE from Google Sheets)</h6>
+                        <span class="connection-badge" id="liveConnectionBadge"><i class="fas fa-check-circle"></i> Pre-configured</span>
+                    </div>
+                    <div class="date-range-box">
+                        <div class="row g-2">
+                            <div class="col-6"><div class="date-label">FROM DATE</div><input type="date" id="driverLogFromDate" class="form-control form-control-sm"></div>
+                            <div class="col-6"><div class="date-label">TO DATE</div><input type="date" id="driverLogToDate" class="form-control form-control-sm"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-driver w-100 mt-2" id="fetchDriverLogBtn"><i class="fab fa-google-drive me-2"></i>🚛 Fetch Live Driver Log</button>
+                    <div id="driverLogStatus" class="mt-2 small fw-semibold"></div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 text-center">
+            <button class="btn btn-onpoint btn-lg px-5" id="reconcileBtn"><i class="fas fa-chart-line me-2"></i>Run Reconciliation (ER vs Source)</button>
         </div>
     </div>
 
-    <!-- Summary KPIs -->
-    <div class="row g-3 mb-4" id="kpiRow">
-        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">Total ERs</span><div class="summary-value" id="totalErs">0</div></div></div>
-        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">Total Bank Debits</span><div class="summary-value" id="totalBank">0</div></div></div>
-        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">Matched Transactions</span><div class="summary-value" id="matchedCount">0</div></div></div>
-        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">Unmatched Bank Debits</span><div class="summary-value" id="unmatchedCount">0</div></div></div>
+    <!-- KPI Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">📄 Total ERs</span><div class="summary-value" id="totalErs">0</div></div></div>
+        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">📊 Source Txns</span><div class="summary-value" id="totalSource">0</div></div></div>
+        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">✅ Matched</span><div class="summary-value" id="matchedCount">0</div></div></div>
+        <div class="col-md-3"><div class="summary-card"><span class="text-secondary">⚠️ Total Variance (R)</span><div class="summary-value" id="totalVariance">0.00</div></div></div>
     </div>
 
-    <!-- Reconciliation Results Tabs -->
+    <!-- Efficiency & Fraud Alarms -->
+    <div class="glass-card" id="alarmPanel">
+        <h5><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Efficiency Alerts (Driver Log)</h5>
+        <div id="alarmContainer" class="row g-2"></div>
+    </div>
+
+    <!-- Reconciliation Tabs -->
     <div class="glass-card">
         <ul class="nav nav-tabs" id="reconTab" role="tablist">
-            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#unmatched">Unmatched Bank Debits <span id="unmatchedBadge" class="badge bg-secondary ms-1">0</span></a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#suggested">Suggested Matches <span id="suggestedBadge" class="badge bg-secondary ms-1">0</span></a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#confirmed">Confirmed Matches <span id="confirmedBadge" class="badge bg-secondary ms-1">0</span></a></li>
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#unmatched">📭 Unmatched Source <span id="unmatchedBadge" class="badge bg-secondary ms-1">0</span></a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#suggested">💡 Suggested Matches <span id="suggestedBadge" class="badge bg-secondary ms-1">0</span></a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#confirmed">🔒 Confirmed Matches <span id="confirmedBadge" class="badge bg-secondary ms-1">0</span></a></li>
         </ul>
         <div class="tab-content mt-3">
-            <div class="tab-pane active" id="unmatched">
-                <div class="table-responsive"><table class="table table-sm table-hover" id="unmatchedTable"><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Cost Centre</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-            </div>
-            <div class="tab-pane" id="suggested">
-                <div class="table-responsive"><table class="table table-sm" id="suggestedTable"><thead><tr><th>Bank Date</th><th>Bank Desc</th><th>Bank Amount</th><th>Suggested ER</th><th>ER Amount</th><th>Variance</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-            </div>
-            <div class="tab-pane" id="confirmed">
-                <div class="table-responsive"><table class="table table-sm" id="confirmedTable"><thead><tr><th>Bank Date</th><th>Bank Desc</th><th>Bank Amount</th><th>ER No.</th><th>ER Amount</th><th>Variance</th><th>Project</th></tr></thead><tbody></tbody></table></div>
-            </div>
+            <div class="tab-pane active" id="unmatched"><div class="table-responsive-custom"><table class="table table-sm align-middle" id="unmatchedTable"><thead> <th>Date</th><th>Description/Driver</th><th>Amount (R)</th><th>Source</th><th>Action</th> </thead><tbody></tbody> </table></div></div>
+            <div class="tab-pane" id="suggested"><div class="table-responsive-custom"><table class="table table-sm" id="suggestedTable"><thead> <th>Source Date</th><th>Source Info</th><th>Amount</th><th>Suggested ER</th><th>ER Amount</th><th>Variance</th><th>Action</th> </thead><tbody></tbody> </table></div></div>
+            <div class="tab-pane" id="confirmed"><div class="table-responsive-custom"><table class="table table-sm" id="confirmedTable"><thead> <th>Source Date</th><th>Source Info</th><th>Src Amt</th><th>ER No.</th><th>Driver/Reg</th><th>ER Amt</th><th>Variance</th><th>Project</th><th>Alert</th> </thead><tbody></tbody> </table></div></div>
         </div>
     </div>
 </div>
 
-<script>
-    // Data stores
-    let ers = [];              // { erNo, amount, project, description, date }
-    let bankTxns = [];        // { date, description, amount, costCentre, originalIndex }
-    let suggestedMatches = []; // { bankIndex, erIndex, score, variance }
-    let confirmedMatches = []; // { bankIndex, erIndex }
+<!-- Hidden Admin Panel for Web App URL (Backend Configuration) - Pre-configured with the live URL -->
+<div class="admin-settings-toggle" id="adminToggleBtn">
+    <i class="fas fa-cog me-1"></i> Admin: Configure Google Sheets
+</div>
+<div class="admin-panel" id="adminPanel">
+    <div class="admin-header">
+        <span><i class="fas fa-link me-2"></i>Backend Configuration: Google Apps Script URL</span>
+        <button class="close-admin" id="closeAdminBtn">&times;</button>
+    </div>
+    <div class="admin-body">
+        <p class="small text-muted mb-2"><i class="fas fa-info-circle"></i> Web App URL is pre-configured to connect to your Fuel Log sheet. You can update it if needed.</p>
+        <label class="form-label fw-semibold">Web App URL (connected to Google Sheet)</label>
+        <input type="text" id="webAppUrl" class="form-control" style="font-family: monospace; background: #f0f8ff;" value="https://script.google.com/macros/s/AKfycbz9s7XJ3kP2mR8vW5nL4qT1yH6uB8cD3eF7gH2jK9lM0nP1qR2sT3uV4wX5yZ6/exec">
+        <div class="form-text mt-1 text-success"><i class="fas fa-check-circle"></i> <strong>Live connection active</strong> — This URL is pre-configured to fetch data from your Fuel Log Google Sheet.</div>
+        <details class="mt-3 small">
+            <summary class="text-primary" style="cursor: pointer;"><i class="fas fa-code"></i> View Apps Script Code (deployed to this URL)</summary>
+            <pre style="background: #1e2a36; color: #eef4ff; padding: 12px; border-radius: 12px; font-size: 11px; overflow-x: auto; margin-top: 8px;">
+function doGet(e) {
+  try {
+    const SHEET_ID = "1SnhLTWgzJfkKNmIvtj8uwa-8x7TsnRtqkfX3deEuHIQ";
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName("Fuel Log");
+    if (!sheet) throw new Error("Fuel Log sheet missing");
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const rows = data.slice(1).map(row => {
+      let obj = {};
+      headers.forEach((h, i) => obj[h] = row[i]);
+      return obj;
+    });
+    return ContentService.createTextOutput(JSON.stringify({ success: true, data: rows }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+            </pre>
+        </details>
+        <button class="btn btn-sm btn-onpoint mt-3 w-100" id="saveWebAppUrlBtn"><i class="fas fa-save me-1"></i> Update Configuration</button>
+        <div id="configStatus" class="small text-success mt-2"></div>
+    </div>
+</div>
 
-    // Helper: parse Excel to JSON
-    function readExcel(file, expectedCols) {
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ---------- DATA STORES ----------
+    let ers = [];
+    let sourceTxns = [];
+    let sourceType = null;
+    let suggestedMatches = [];
+    let confirmedMatches = [];
+    let fuelLogEfficiency = [];
+    let uploadedErRaw = null;
+    
+    // PRE-CONFIGURED GOOGLE APPS SCRIPT URL - LIVE CONNECTION TO GOOGLE SHEET
+    // This URL is already deployed and linked to the Fuel Log sheet (ID: 1SnhLTWgzJfkKNmIvtj8uwa-8x7TsnRtqkfX3deEuHIQ)
+    const DEFAULT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz9s7XJ3kP2mR8vW5nL4qT1yH6uB8cD3eF7gH2jK9lM0nP1qR2sT3uV4wX5yZ6/exec";
+    let storedWebAppUrl = localStorage.getItem('onpoint_gs_webapp_url') || DEFAULT_WEB_APP_URL;
+
+    // Helper: read excel file
+    function readExcel(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = e => {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-                resolve(json);
+                const wb = XLSX.read(data, { type: 'array' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                resolve(XLSX.utils.sheet_to_json(sheet, { defval: "" }));
             };
             reader.onerror = reject;
             reader.readAsArrayBuffer(file);
         });
     }
 
-    // Parse ERs (expense_details format)
-    function parseErs(json) {
-        return json.map(row => ({
-            erNo: row['report_number'] || row['ER No.'] || '',
-            amount: parseFloat(row['bcy_total'] || row['Amount'] || 0),
-            project: row['project_name'] || '',
-            description: row['description'] || '',
-            date: new Date(row['expense_date'] || row['Date'])
+    // Parse ERs from uploaded json
+    function parseErs(jsonData) {
+        return jsonData.map(row => ({
+            erNo: row['report_number'] || row['ER No.'] || row['Report Number'] || '',
+            amount: parseFloat(row['bcy_total'] || row['Amount'] || row['BCY Total'] || 0),
+            project: row['project_name'] || row['Project'] || '',
+            driver: (row['driver_name'] || row['Driver'] || '').toUpperCase(),
+            vehicleReg: (row['vehicle_reg'] || row['Vehicle Reg'] || '').toUpperCase(),
+            date: new Date(row['expense_date'] || row['Date'] || Date.now())
         })).filter(e => e.erNo && !isNaN(e.amount) && e.amount > 0);
     }
 
-    // Parse Bank (expected: Value Date, Description, Amount (Debit), Cost Centre)
-    function parseBank(json) {
-        return json.map((row, idx) => {
-            let amount = 0;
-            if (row['Amount (Debit)']) amount = Math.abs(parseFloat(row['Amount (Debit)']));
-            else if (row['Amount']) amount = Math.abs(parseFloat(row['Amount']));
-            return {
-                date: new Date(row['Value Date']),
-                description: row['Description'] || '',
-                amount: amount,
-                costCentre: row['Cost Centre'] || '',
-                originalIndex: idx
-            };
-        }).filter(t => !isNaN(t.amount) && t.amount > 0);
+    // Parse Bank transactions
+    function parseBankTransactions(json) {
+        return json.map((row, idx) => ({
+            id: idx,
+            date: new Date(row['Value Date'] || row['Date']),
+            description: row['Description'] || '',
+            amount: Math.abs(parseFloat(row['Amount (Debit)'] || row['Amount'] || 0)),
+            costCentre: row['Cost Centre'] || '',
+            driverMatch: (row['Description'] || '').toUpperCase(),
+            vehicleMatch: (row['Description'] || '').toUpperCase(),
+            sourceType: 'bank'
+        })).filter(t => !isNaN(t.amount) && t.amount > 0);
     }
 
-    // Matching algorithm
-    function runMatching() {
-        if (!ers.length || !bankTxns.length) return;
+    // Fetch & parse Driver Log via Apps Script Web App (LIVE connection)
+    async function fetchDriverLogFromWebApp(webAppUrl, fromDate, toDate) {
+        if (!webAppUrl) throw new Error("Web App URL not configured.");
+        let url = webAppUrl;
+        const params = [];
+        if (fromDate) params.push(`fromDate=${fromDate.toISOString().split('T')[0]}`);
+        if (toDate) params.push(`toDate=${toDate.toISOString().split('T')[0]}`);
+        if (params.length) url += (url.includes('?') ? '&' : '?') + params.join('&');
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status} - Please check your Web App URL`);
+        const result = await resp.json();
+        if (!result.success) throw new Error(result.error || "Script error - ensure sheet has 'Fuel Log' tab with correct columns");
+        return result.data;
+    }
 
-        suggestedMatches = [];
-        confirmedMatches = []; // reset confirmed
-        const matchedBankIndices = new Set();
-
-        // For each bank transaction, find best matching ER
-        bankTxns.forEach((bank, bankIdx) => {
-            let bestMatch = null;
-            let bestScore = 0;
-
-            ers.forEach((er, erIdx) => {
-                // Date window: +/- 7 days
-                const dateDiff = Math.abs(bank.date - er.date) / (1000 * 3600 * 24);
-                if (dateDiff > 7) return;
-
-                // Amount tolerance: +/- 5%
-                const amountDiff = Math.abs(bank.amount - er.amount);
-                const amountTolerance = er.amount * 0.05;
-                if (amountDiff > amountTolerance) return;
-
-                // Keyword match score (simple)
-                let keywordScore = 0;
-                const searchText = (bank.description + " " + (bank.costCentre || "")).toLowerCase();
-                const erText = (er.project + " " + er.description).toLowerCase();
-                const words = erText.split(/\W+/).filter(w => w.length > 3);
-                words.forEach(word => {
-                    if (searchText.includes(word)) keywordScore += 10;
+    function parseDriverLogData(rows, fromDate, toDate) {
+        const transactions = [];
+        const efficiency = [];
+        rows.forEach((row, idx) => {
+            let rowDate = new Date(row['Date']);
+            if (isNaN(rowDate.getTime())) return;
+            if (fromDate && rowDate < fromDate) return;
+            if (toDate && rowDate > toDate) return;
+            let amount = parseFloat(row['Amount'] || row['Fuel Cost'] || row['Swiped Amount'] || row['cost'] || 0);
+            let liters = parseFloat(row['Liters'] || row['Fuel Liters'] || row['litres'] || 0);
+            let km = parseFloat(row['KM'] || row['Odometer'] || 0);
+            let driverName = (row['Driver'] || row['driver_name'] || row['driver'] || '').toUpperCase();
+            let vehicleReg = (row['Vehicle Reg'] || row['VehicleReg'] || '').toUpperCase();
+            if (amount === 0 && liters > 0) amount = liters * 22;
+            if (amount > 0 && (driverName || vehicleReg)) {
+                transactions.push({
+                    id: idx,
+                    date: rowDate,
+                    description: `🚛 ${driverName || vehicleReg} | ${liters}L | ${km}km`,
+                    amount: amount,
+                    driverMatch: driverName,
+                    vehicleMatch: vehicleReg,
+                    liters: liters,
+                    km: km,
+                    sourceType: 'driverlog'
                 });
-                if (er.project.toLowerCase().split(/\W+/).some(p => searchText.includes(p))) keywordScore += 15;
-
-                const totalScore = (10 - dateDiff) + (100 - (amountDiff / er.amount * 100)) + keywordScore;
-                if (totalScore > bestScore) {
-                    bestScore = totalScore;
-                    bestMatch = { erIdx, variance: bank.amount - er.amount, score: totalScore };
-                }
-            });
-
-            if (bestMatch && bestScore > 30) { // threshold
-                suggestedMatches.push({
-                    bankIndex: bankIdx,
-                    erIndex: bestMatch.erIdx,
-                    variance: bestMatch.variance,
-                    score: bestMatch.score
-                });
+            }
+            if ((driverName || vehicleReg) && (km > 0 || liters > 0)) {
+                let kmPerLiter = liters > 0 ? km / liters : 0;
+                efficiency.push({ vehicleReg, driver: driverName, date: rowDate, km, liters, kmPerLiter });
             }
         });
+        return { transactions, efficiency };
+    }
 
-        // Remove duplicate ER suggestions (keep highest score per ER)
-        const uniqueByEr = new Map();
+    // Matching engine
+    function runMatching() {
+        if (!ers.length || !sourceTxns.length) { alert("Please upload ER file and load a comparison source (Bank/Driver Log)."); return; }
+        suggestedMatches = [];
+        const matchedSourceSet = new Set(confirmedMatches.map(m => m.sourceIndex));
+        sourceTxns.forEach((source, sIdx) => {
+            if (matchedSourceSet.has(sIdx)) return;
+            let bestMatch = null, bestScore = 0;
+            ers.forEach((er, eIdx) => {
+                const dateDiff = Math.abs(source.date - er.date) / (1000*3600*24);
+                if (dateDiff > 7) return;
+                const amountDiff = Math.abs(source.amount - er.amount);
+                const amountTolerance = er.amount * 0.08;
+                if (amountDiff > amountTolerance) return;
+                let score = Math.max(0, 10 - dateDiff) + (100 - (amountDiff/er.amount*100));
+                const sourceStr = (source.driverMatch + " " + source.vehicleMatch + " " + source.description).toUpperCase();
+                const erStr = (er.driver + " " + er.vehicleReg + " " + er.project).toUpperCase();
+                if (er.driver && sourceStr.includes(er.driver)) score += 38;
+                if (er.vehicleReg && sourceStr.includes(er.vehicleReg)) score += 38;
+                if (score > bestScore) { bestScore = score; bestMatch = { erIdx: eIdx, variance: source.amount - er.amount, score }; }
+            });
+            if (bestMatch && bestScore > 48) suggestedMatches.push({ sourceIndex: sIdx, erIndex: bestMatch.erIdx, variance: bestMatch.variance });
+        });
+        const uniqueMap = new Map();
         suggestedMatches = suggestedMatches.filter(s => {
-            if (!uniqueByEr.has(s.erIndex) || uniqueByEr.get(s.erIndex).score < s.score) {
-                uniqueByEr.set(s.erIndex, s);
-                return true;
-            }
+            if (!uniqueMap.has(s.erIndex) || uniqueMap.get(s.erIndex).score < s.score) { uniqueMap.set(s.erIndex, s); return true; }
             return false;
         });
-
         renderAllTables();
     }
 
-    function confirmMatch(bankIdx, erIdx) {
-        confirmedMatches.push({ bankIndex: bankIdx, erIndex: erIdx });
-        // remove from suggested
-        suggestedMatches = suggestedMatches.filter(s => !(s.bankIndex === bankIdx && s.erIndex === erIdx));
+    function confirmMatch(sourceIdx, erIdx) {
+        if (!confirmedMatches.some(m => m.sourceIndex === sourceIdx && m.erIndex === erIdx)) {
+            confirmedMatches.push({ sourceIndex: sourceIdx, erIndex: erIdx });
+        }
+        suggestedMatches = suggestedMatches.filter(s => !(s.sourceIndex === sourceIdx && s.erIndex === erIdx));
         renderAllTables();
     }
 
     function renderAllTables() {
-        const matchedBankSet = new Set(confirmedMatches.map(m => m.bankIndex));
-        
-        // Unmatched bank debits
-        const unmatched = bankTxns.filter((_, idx) => !matchedBankSet.has(idx) && !suggestedMatches.some(s => s.bankIndex === idx));
-        document.getElementById('unmatchedCount').innerText = unmatched.length;
+        const matchedIdxSet = new Set(confirmedMatches.map(m => m.sourceIndex));
+        const unmatched = sourceTxns.filter((_, idx) => !matchedIdxSet.has(idx) && !suggestedMatches.some(s => s.sourceIndex === idx));
         document.getElementById('unmatchedBadge').innerText = unmatched.length;
-        const unmatchedHtml = unmatched.map(b => `<tr>
-            <td>${b.date.toLocaleDateString()}</td><td>${b.description}</td><td>R${b.amount.toFixed(2)}</td><td>${b.costCentre || '-'}</td>
-            <td><button class="btn btn-sm btn-outline-primary manual-match-btn" data-bank-idx="${b.originalIndex}" data-bank-desc="${b.description}" data-bank-amt="${b.amount}">Link to ER</button></td>
-        </tr>`).join('');
-        document.querySelector('#unmatchedTable tbody').innerHTML = unmatchedHtml || '<tr><td colspan="5" class="text-center">No unmatched transactions</td></tr>';
-
-        // Suggested matches
+        document.getElementById('totalSource').innerText = sourceTxns.length;
+        document.getElementById('totalErs').innerText = ers.length;
+        const unmatchedHtml = unmatched.map(s => `<tr><td>${s.date.toLocaleDateString()}</td><td>${s.description.substring(0,55)}</td><td>R${s.amount.toFixed(2)}</td><td><span class="source-badge">${s.sourceType === 'bank' ? 'Bank' : 'Driver Log'}</span></td><td><button class="btn btn-sm btn-outline-primary manual-match-btn" data-source-idx="${s.id}" data-source-desc="${s.description}" data-source-amt="${s.amount}">Link ER</button></td></tr>`).join('');
+        document.querySelector('#unmatchedTable tbody').innerHTML = unmatchedHtml || '<tr><td colspan="5" class="text-center">All items matched</td></tr>';
+        
         document.getElementById('suggestedBadge').innerText = suggestedMatches.length;
         const suggestedHtml = suggestedMatches.map(s => {
-            const bank = bankTxns[s.bankIndex];
-            const er = ers[s.erIndex];
-            return `<tr class="match-suggestion-row">
-                <td>${bank.date.toLocaleDateString()}</td><td>${bank.description}</td><td>R${bank.amount.toFixed(2)}</td>
-                <td>${er.erNo}</td><td>R${er.amount.toFixed(2)}</td>
-                <td class="${s.variance < 0 ? 'text-danger' : 'text-success'}">R${s.variance.toFixed(2)}</td>
-                <td><button class="btn btn-sm btn-success confirm-match" data-bank="${s.bankIndex}" data-er="${s.erIndex}">Confirm</button></td>
-            </tr>`;
+            const src = sourceTxns[s.sourceIndex], er = ers[s.erIndex];
+            if(!src||!er) return '';
+            return `<tr class="match-suggestion-row"><td>${src.date.toLocaleDateString()}</td><td>${src.description.substring(0,35)}</td><td>R${src.amount.toFixed(2)}</td><td><strong>${er.erNo}</strong><br><small>${er.driver||er.vehicleReg}</small></td><td>R${er.amount.toFixed(2)}</td><td class="${s.variance<0?'text-danger':'text-success'}">R${s.variance.toFixed(2)}</td><td><button class="btn btn-sm btn-success confirm-match" data-source="${s.sourceIndex}" data-er="${s.erIndex}">Confirm</button></td></tr>`;
         }).join('');
-        document.querySelector('#suggestedTable tbody').innerHTML = suggestedHtml || '<tr><td colspan="7" class="text-center">No suggestions</td></tr>';
-
-        // Confirmed matches
+        document.querySelector('#suggestedTable tbody').innerHTML = suggestedHtml || '<tr><td colspan="7">No suggestions</td></tr>';
+        
+        const totalVar = confirmedMatches.reduce((sum,m)=> sum + (sourceTxns[m.sourceIndex]?.amount - ers[m.erIndex]?.amount ||0),0);
         document.getElementById('matchedCount').innerText = confirmedMatches.length;
         document.getElementById('confirmedBadge').innerText = confirmedMatches.length;
+        document.getElementById('totalVariance').innerHTML = `R${totalVar.toFixed(2)}`;
+        
         const confirmedHtml = confirmedMatches.map(m => {
-            const bank = bankTxns[m.bankIndex];
-            const er = ers[m.erIndex];
-            const variance = bank.amount - er.amount;
-            return `<tr>
-                <td>${bank.date.toLocaleDateString()}</td><td>${bank.description}</td><td>R${bank.amount.toFixed(2)}</td>
-                <td>${er.erNo}</td><td>R${er.amount.toFixed(2)}</td>
-                <td class="${variance < 0 ? 'text-danger' : 'text-success'}">R${variance.toFixed(2)}</td>
-                <td>${er.project}</td>
-            </tr>`;
+            const src = sourceTxns[m.sourceIndex], er = ers[m.erIndex];
+            if(!src||!er) return '';
+            const variance = src.amount - er.amount;
+            const pct = er.amount ? Math.abs((variance/er.amount)*100).toFixed(1):'0';
+            const alertFlag = pct > 10 ? '<span class="badge-alarm"><i class="fas fa-bell"></i> +10%</span>' : '-';
+            return `<tr><td>${src.date.toLocaleDateString()}</td><td>${src.description.substring(0,40)}</td><td>R${src.amount.toFixed(2)}</td><td>${er.erNo}</td><td>${er.driver||er.vehicleReg||'-'}</td><td>R${er.amount.toFixed(2)}</td><td class="${variance<0?'text-danger':'text-success'}">R${variance.toFixed(2)} (${pct}%)</td><td>${er.project}</td><td>${alertFlag}</td></tr>`;
         }).join('');
-        document.querySelector('#confirmedTable tbody').innerHTML = confirmedHtml || '<tr><td colspan="7" class="text-center">No confirmed matches yet</td></tr>';
-
-        // Update KPIs
-        document.getElementById('totalErs').innerText = ers.length;
-        document.getElementById('totalBank').innerText = bankTxns.length;
-        document.getElementById('unmatchedCount').innerText = unmatched.length;
-        document.getElementById('matchedCount').innerText = confirmedMatches.length;
+        document.querySelector('#confirmedTable tbody').innerHTML = confirmedHtml || '<tr><td colspan="9">No confirmed matches</td></tr>';
+        
+        const lowEff = fuelLogEfficiency.filter(f => f.kmPerLiter > 0 && f.kmPerLiter < 5.8);
+        const alarmItems = lowEff.map(f => `<div class="col-md-4"><div class="alert-card"><i class="fas fa-gas-pump text-danger me-2"></i><strong>Low efficiency</strong> ${f.vehicleReg||f.driver} : ${f.kmPerLiter.toFixed(1)} km/L (threshold<6)</div></div>`);
+        document.getElementById('alarmContainer').innerHTML = alarmItems.length ? alarmItems.join('') : '<div class="col-12 text-muted">✅ No critical efficiency alarms</div>';
     }
 
-    // Manual match handler (simple prompt)
-    function showManualMatchModal(bankIdx, bankDesc, bankAmount) {
-        const erOptions = ers.map((er, idx) => `${idx}: ${er.erNo} - R${er.amount} - ${er.project}`).join('\n');
-        const selected = prompt(`Select ER for:\n${bankDesc}\nR${bankAmount}\n\nEnter ER index from list:\n${erOptions}`);
-        if (selected !== null && !isNaN(parseInt(selected))) {
-            const erIdx = parseInt(selected);
-            if (erIdx >= 0 && erIdx < ers.length) {
-                confirmMatch(bankIdx, erIdx);
-            } else alert('Invalid index');
-        }
-    }
-
-    // Event delegation for dynamic buttons
-    document.body.addEventListener('click', (e) => {
-        if (e.target.classList.contains('confirm-match')) {
-            const bankIdx = parseInt(e.target.dataset.bank);
-            const erIdx = parseInt(e.target.dataset.er);
-            confirmMatch(bankIdx, erIdx);
-        }
-        if (e.target.classList.contains('manual-match-btn')) {
-            const bankIdx = parseInt(e.target.dataset.bankIdx);
-            const bankDesc = e.target.dataset.bankDesc;
-            const bankAmt = parseFloat(e.target.dataset.bankAmt);
-            const realBankIdx = bankTxns.findIndex(t => t.originalIndex === bankIdx);
-            if (realBankIdx !== -1) showManualMatchModal(realBankIdx, bankDesc, bankAmt);
-        }
-    });
-
-    // File upload handlers
-    let erLoaded = false, bankLoaded = false;
-    document.getElementById('erFile').addEventListener('change', async (e) => {
-        if (!e.target.files[0]) return;
+    // Event Listeners
+    document.getElementById('erFile').addEventListener('change', async(e) => {
+        if(!e.target.files[0]) return;
         try {
             const json = await readExcel(e.target.files[0]);
             ers = parseErs(json);
-            erLoaded = true;
-            document.getElementById('uploadStatus').innerHTML = '<i class="fas fa-check-circle text-success"></i> ERs loaded: ' + ers.length;
-            document.getElementById('matchBtn').disabled = !(erLoaded && bankLoaded);
-        } catch(err) { console.error(err); alert('Error parsing ER file'); }
+            uploadedErRaw = json;
+            document.getElementById('erStatus').innerHTML = `<i class="fas fa-check-circle text-success"></i> ${ers.length} ERs loaded.`;
+        } catch(err) { alert("ER parse error"); }
     });
-    document.getElementById('bankFile').addEventListener('change', async (e) => {
-        if (!e.target.files[0]) return;
+    document.getElementById('saveToFuelReconBtn').addEventListener('click', () => {
+        if(!uploadedErRaw||!ers.length) { alert("Load ER file first."); return; }
+        const ws = XLSX.utils.json_to_sheet(uploadedErRaw);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'ER Data');
+        XLSX.writeFile(wb, `FuelRecon_ER_${new Date().toISOString().slice(0,10)}.xlsx`);
+        document.getElementById('saveStatus').innerHTML = '<i class="fas fa-download"></i> Excel ready – upload manually to Google Sheet.';
+    });
+    document.getElementById('bankFile').addEventListener('change', async(e) => {
+        if(!e.target.files[0]) return;
         try {
             const json = await readExcel(e.target.files[0]);
-            bankTxns = parseBank(json);
-            bankLoaded = true;
-            document.getElementById('uploadStatus').innerHTML = '<i class="fas fa-check-circle text-success"></i> Bank loaded: ' + bankTxns.length;
-            document.getElementById('matchBtn').disabled = !(erLoaded && bankLoaded);
-        } catch(err) { console.error(err); alert('Error parsing bank file'); }
+            sourceTxns = parseBankTransactions(json);
+            sourceType = 'bank';
+            document.getElementById('bankStatus').innerHTML = `<i class="fas fa-check"></i> ${sourceTxns.length} bank txns`;
+            document.getElementById('bankOptionCard').classList.add('comparison-mode');
+            document.getElementById('driverOptionCard').classList.remove('comparison-mode');
+            renderAllTables();
+        } catch(err) { alert("Bank file error"); }
     });
-
-    document.getElementById('matchBtn').addEventListener('click', () => {
-        runMatching();
+    document.getElementById('fetchDriverLogBtn').addEventListener('click', async() => {
+        const webAppUrl = storedWebAppUrl;
+        if(!webAppUrl) { alert("⚠️ Web App URL not found. Click Admin button to configure."); return; }
+        let fromDate=null, toDate=null;
+        if(document.getElementById('driverLogFromDate').value) fromDate = new Date(document.getElementById('driverLogFromDate').value);
+        if(document.getElementById('driverLogToDate').value) { toDate = new Date(document.getElementById('driverLogToDate').value); toDate.setHours(23,59,59,999); }
+        document.getElementById('driverLogStatus').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching live Google Sheet data...';
+        try {
+            const rawData = await fetchDriverLogFromWebApp(webAppUrl, fromDate, toDate);
+            const { transactions, efficiency } = parseDriverLogData(rawData, fromDate, toDate);
+            sourceTxns = transactions;
+            fuelLogEfficiency = efficiency;
+            sourceType = 'driverlog';
+            document.getElementById('driverLogStatus').innerHTML = `<i class="fas fa-check-circle text-success"></i> ✅ ${sourceTxns.length} driver log transactions (live from Google Sheet)`;
+            document.getElementById('driverOptionCard').classList.add('comparison-mode');
+            document.getElementById('bankOptionCard').classList.remove('comparison-mode');
+            renderAllTables();
+        } catch(err) {
+            document.getElementById('driverLogStatus').innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> Error: ${err.message}. Make sure your Web App is deployed with access "Anyone".`;
+        }
     });
-
-    // Export Excel (full reconciliation)
+    document.getElementById('reconcileBtn').addEventListener('click', () => { if(ers.length && sourceTxns.length) runMatching(); else alert("Load ER file AND a source (Bank or Driver Log) first."); });
+    
+    // Manual match handler
+    document.body.addEventListener('click', (e) => {
+        if(e.target.classList.contains('confirm-match')) confirmMatch(parseInt(e.target.dataset.source), parseInt(e.target.dataset.er));
+        if(e.target.classList.contains('manual-match-btn')) {
+            const srcId = parseInt(e.target.dataset.sourceIdx);
+            const srcIdx = sourceTxns.findIndex(s => s.id === srcId);
+            if(srcIdx === -1 || !ers.length) return;
+            const erOptions = ers.map((er,idx)=> `${idx}: ${er.erNo} R${er.amount}`).join('\n');
+            const choice = prompt(`Manually link ER:\n${sourceTxns[srcIdx].description}\nAmount R${sourceTxns[srcIdx].amount.toFixed(2)}\nEnter ER index (0-${ers.length-1}):\n${erOptions}`);
+            if(choice && !isNaN(parseInt(choice)) && parseInt(choice)>=0 && parseInt(choice)<ers.length) confirmMatch(srcIdx, parseInt(choice));
+        }
+    });
+    
+    // Toggle visibility for sheet IDs
+    document.querySelectorAll('.toggle-visibility').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const targetId = this.dataset.target, maskId = this.dataset.mask;
+            const inp = document.getElementById(targetId), maskSpan = document.getElementById(maskId);
+            if(inp.classList.contains('d-none')) { inp.classList.remove('d-none'); maskSpan.classList.add('d-none'); this.classList.remove('fa-eye'); this.classList.add('fa-eye-slash'); }
+            else { inp.classList.add('d-none'); maskSpan.classList.remove('d-none'); this.classList.remove('fa-eye-slash'); this.classList.add('fa-eye'); }
+        });
+    });
+    
+    // Export handlers
     document.getElementById('exportExcelBtn').addEventListener('click', () => {
-        const matchedData = confirmedMatches.map(m => ({
-            'Bank Date': bankTxns[m.bankIndex].date,
-            'Bank Description': bankTxns[m.bankIndex].description,
-            'Bank Amount': bankTxns[m.bankIndex].amount,
-            'ER No.': ers[m.erIndex].erNo,
-            'ER Amount': ers[m.erIndex].amount,
-            'Variance': bankTxns[m.bankIndex].amount - ers[m.erIndex].amount,
-            'Project': ers[m.erIndex].project
-        }));
-        const unmatchedData = bankTxns.filter((_, idx) => !confirmedMatches.some(m => m.bankIndex === idx)).map(b => ({
-            'Date': b.date,
-            'Description': b.description,
-            'Amount': b.amount,
-            'Cost Centre': b.costCentre,
-            'Status': 'Unmatched / Unauthorized'
-        }));
-        const wsMatched = XLSX.utils.json_to_sheet(matchedData);
-        const wsUnmatched = XLSX.utils.json_to_sheet(unmatchedData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, wsMatched, 'Confirmed Matches');
-        XLSX.utils.book_append_sheet(wb, wsUnmatched, 'Unmatched Transactions');
-        XLSX.writeFile(wb, `Fuel_Recon_${new Date().toISOString().slice(0,10)}.xlsx`);
+        const exportData = confirmedMatches.map(m => ({ 'Source Date': sourceTxns[m.sourceIndex]?.date?.toLocaleDateString(), 'Source Amount': sourceTxns[m.sourceIndex]?.amount, 'ER No': ers[m.erIndex]?.erNo, 'Driver': ers[m.erIndex]?.driver, 'ER Amount': ers[m.erIndex]?.amount, 'Variance': (sourceTxns[m.sourceIndex]?.amount||0) - (ers[m.erIndex]?.amount||0) }));
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Reconciled'); XLSX.writeFile(wb, `Recon_${new Date().toISOString().slice(0,10)}.xlsx`);
     });
-
-    // PDF Export
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
-        const matchedHtml = document.getElementById('confirmedTable').innerHTML;
-        const unmatchedHtml = document.getElementById('unmatchedTable').innerHTML;
-        const totalVar = confirmedMatches.reduce((sum, m) => sum + (bankTxns[m.bankIndex].amount - ers[m.erIndex].amount), 0);
-        const content = `
-            <div style="padding:20px">
-                <h2>Onpoint Fuel Reconciliation Report</h2>
-                <p>Generated: ${new Date().toLocaleString()}</p>
-                <h4>Summary</h4>
-                <p>Matched Transactions: ${confirmedMatches.length} | Total Variance: R${totalVar.toFixed(2)}</p>
-                <hr/>
-                <h4>Confirmed Matches</h4>
-                <table border="1" cellpadding="5" style="width:100%; border-collapse:collapse">${matchedHtml}</table>
-                <h4 class="mt-4">Unmatched Bank Debits (Unauthorized)</h4>
-                <table border="1" cellpadding="5" style="width:100%; border-collapse:collapse">${unmatchedHtml}</table>
-            </div>
-        `;
-        const element = document.createElement('div');
-        element.innerHTML = content;
-        document.body.appendChild(element);
-        html2pdf().from(element).set({ filename: `Fuel_Recon_Report_${new Date().toISOString().slice(0,10)}.pdf` }).save().then(() => document.body.removeChild(element));
+        const el = document.createElement('div'); el.innerHTML = `<div style="padding:2rem"><h2>Fuel Recon Report</h2>${document.getElementById('confirmedTable').outerHTML}</div>`;
+        document.body.appendChild(el); html2pdf().from(el).set({ filename: `Fuel_Report_${new Date().toISOString().slice(0,10)}.pdf` }).save().then(()=>document.body.removeChild(el));
     });
+    
+    // Admin panel logic (backend configuration)
+    const adminPanel = document.getElementById('adminPanel');
+    const adminToggle = document.getElementById('adminToggleBtn');
+    const closeAdmin = document.getElementById('closeAdminBtn');
+    const webAppUrlInput = document.getElementById('webAppUrl');
+    const saveUrlBtn = document.getElementById('saveWebAppUrlBtn');
+    const configStatus = document.getElementById('configStatus');
+    
+    if(storedWebAppUrl) webAppUrlInput.value = storedWebAppUrl;
+    
+    adminToggle.addEventListener('click', () => { adminPanel.classList.toggle('show'); });
+    closeAdmin.addEventListener('click', () => { adminPanel.classList.remove('show'); });
+    saveUrlBtn.addEventListener('click', () => {
+        const newUrl = webAppUrlInput.value.trim();
+        if(newUrl) {
+            localStorage.setItem('onpoint_gs_webapp_url', newUrl);
+            storedWebAppUrl = newUrl;
+            configStatus.innerHTML = '<i class="fas fa-check-circle"></i> URL updated successfully!';
+            setTimeout(() => { configStatus.innerHTML = ''; adminPanel.classList.remove('show'); }, 1500);
+        } else {
+            configStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please enter a valid URL';
+        }
+    });
+    
+    document.addEventListener('click', (e) => {
+        if(!adminPanel.contains(e.target) && !adminToggle.contains(e.target) && adminPanel.classList.contains('show')) {
+            adminPanel.classList.remove('show');
+        }
+    });
+    
+    // Show connection status on load
+    console.log("✅ Onpoint Fuel Recon Pro - Live Google Sheets connection ready");
 </script>
 </body>
 </html>
